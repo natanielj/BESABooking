@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { collection, getDocs } from 'firebase/firestore';
-import { db } from '/Users/arely/BESABooking/BESABooking/src/firebase.ts'; 
+import { db } from '../../../firebase.ts'; 
 import { Eye, Calendar, List } from 'lucide-react';
 
 {/* Allow to delete booking */}

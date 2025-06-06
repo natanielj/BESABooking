@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import type { UserRole } from "../../../appTypes.d.ts";
 import { Calendar, Users, Trash2, Plus, X } from 'lucide-react';
-import { db } from '/Users/arely/BESABooking/BESABooking/src/firebase.ts';
+import { db } from '../../../firebase.ts';
 import { collection, getDocs, updateDoc, doc, deleteDoc } from "firebase/firestore";
 
 interface TimeSlot {

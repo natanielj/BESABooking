@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { ArrowLeft, ArrowRight, Calendar, Clock, MapPin, Users, Settings, FileText, Bell, CheckCircle,Plus,X,Globe,Video,AlertCircle,Edit3,Trash2,Eye,MoreHorizontal,Search} from 'lucide-react';
-import { db } from "/Users/arely/BESABooking/BESABooking/src/firebase.ts";
+import { db } from "../../../firebase.ts";
 import { collection, getDocs, onSnapshot, deleteDoc, doc, updateDoc, addDoc } from "firebase/firestore";
 
 {/* Create Tour Button adaptable for small screen */}

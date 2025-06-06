@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { X, User, Save, Calendar, Clock, Users, MapPin } from 'lucide-react';
 import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
-import { db } from '/Users/arely/BESABooking/BESABooking/src/firebase.ts';
+import { db } from '../../../firebase.ts';
 
 type BesaType = {
   id: string;          

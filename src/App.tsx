@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Users, Clock, X, } from 'lucide-react';
 import { Routes, Route, useNavigate } from 'react-router-dom';
 import { collection, getDocs } from 'firebase/firestore';
-import { db } from '/Users/arely/BESABooking/BESABooking/src/firebase.ts'; 
+import { db } from './firebase.ts'; 
 
 //pages and views
 import AdminLogin from './pages/admin/adminLogin';
@@ -15,65 +15,6 @@ import OfficeHoursView from './pages/admin/views/officeHoursView.tsx';
 import SettingsView from './pages/Settings';
 import DynamicBookingForm from './pages/DynamicBookingFlow.tsx';
 
-
-type Tour = {
-  id?: string;
-  title: string;
-  description: string;
-  duration: number;
-  durationUnit: 'minutes' | 'hours';
-  maxAttendees: number;
-  location: string;
-  zoomLink: string;
-  autoGenerateZoom: boolean;
-  // Availability
-  weeklyHours: {
-    [key: string]: { start: string; end: string }[];
-  };
-  dateSpecificHours: Array<{
-    date: string;
-    slots: { start: string; end: string }[];
-    unavailable: boolean;
-  }>;
-  frequency: number;
-  frequencyUnit: 'minutes' | 'hours';
-  // Scheduling Rules
-  registrationLimit: number;
-  minNotice: number;
-  minNoticeUnit: 'hours' | 'days' | 'weeks';
-  maxNotice: number;
-  maxNoticeUnit: 'days' | 'weeks' | 'months';
-  bufferTime: number;
-  bufferUnit: 'minutes' | 'hours';
-  cancellationPolicy: string;
-  reschedulingPolicy: string;
-  // Intake Form
-  intakeForm: {
-    firstName: boolean;
-    lastName: boolean;
-    email: boolean;
-    phone: boolean;
-    attendeeCount: boolean;
-    majorsInterested: boolean;
-    customQuestions: Array<{
-      question: string;
-      type: 'text' | 'textarea' | 'select' | 'checkbox';
-      required: boolean;
-      options?: string[];
-    }>;
-  };
-  // Notifications
-  reminderEmails: Array<{
-    timing: number;
-    unit: 'hours' | 'days' | 'weeks';
-  }>;
-  sessionInstructions: string;
-  // Status
-  published: boolean;
-  createdAt?: string;
-  upcomingBookings?: number;
-  totalBookings?: number;
-};
 
 function App() {
   // const [currentRole, setCurrentRole] = useState<UserRole>('public');

@@ -1,27 +1,7 @@
 import React, { useState } from 'react';
 import { Calendar, Clock, Users, User, Mail, Phone, MapPin, ArrowLeft, ArrowRight, Check, AlertCircle, Star, Heart, GraduationCap, BookOpen } from 'lucide-react';
 
-interface BookingData {
-  // Date & Tour Type
-  tourType: string;
-  date: string;
-  
-  // Available Times
-  timeSlot: string;
-  groupSize: number;
-  
-  // Preferences & Booking Info
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  organization: string;
-  role: string;
-  interests: string[];
-  accessibility: string;
-  specialRequests: string;
-  marketingConsent: boolean;
-}
+
 
 interface DynamicBookingFormProps {
   onBack: () => void;
@@ -33,12 +13,13 @@ const DynamicBookingForm: React.FC<DynamicBookingFormProps> = ({ onBack, presele
   const [bookingData, setBookingData] = useState<BookingData>({
     tourType: preselectedTour,
     date: '',
-    timeSlot: '',
-    groupSize: 1,
+    time: '',
+    attendees: 1,
+    maxAttendees: 1,
     firstName: '',
     lastName: '',
-    email: '',
-    phone: '',
+    contactEmail: '',
+    contactPhone: '',
     organization: '',
     role: '',
     interests: [],
@@ -164,13 +145,13 @@ const DynamicBookingForm: React.FC<DynamicBookingFormProps> = ({ onBack, presele
         if (!bookingData.date) newErrors.date = 'Please select a date';
         break;
       case 2:
-        if (!bookingData.timeSlot) newErrors.timeSlot = 'Please select a time slot';
-        if (bookingData.groupSize < 1) newErrors.groupSize = 'Group size must be at least 1';
+        if (!bookingData.time) newErrors.timeSlot = 'Please select a time slot';
+        if (bookingData.maxAttendees < 1) newErrors.groupSize = 'Group size must be at least 1';
         break;
       case 3:
         if (!bookingData.firstName) newErrors.firstName = 'First name is required';
         if (!bookingData.lastName) newErrors.lastName = 'Last name is required';
-        if (!bookingData.email) newErrors.email = 'Email is required';
+        if (!bookingData.contactEmail) newErrors.email = 'Email is required';
         if (!bookingData.phone) newErrors.phone = 'Phone number is required';
         if (!bookingData.organization) newErrors.organization = 'Organization is required';
         if (!bookingData.role) newErrors.role = 'Role is required';
@@ -364,9 +345,9 @@ const DynamicBookingForm: React.FC<DynamicBookingFormProps> = ({ onBack, presele
           {availableTimes.map((time) => (
             <button
               key={time}
-              onClick={() => updateBookingData('timeSlot', time)}
+              onClick={() => updateBookingData('time', time)}
               className={`p-4 border-2 rounded-lg text-center transition-all hover:shadow-md ${
-                bookingData.timeSlot === time
+                bookingData.time === time
                   ? 'border-blue-500 bg-blue-50 text-blue-700'
                   : 'border-gray-200 hover:border-gray-300'
               }`}
@@ -388,19 +369,19 @@ const DynamicBookingForm: React.FC<DynamicBookingFormProps> = ({ onBack, presele
         <div className="flex items-center space-x-4">
           <button
             type="button"
-            onClick={() => updateBookingData('groupSize', Math.max(1, bookingData.groupSize - 1))}
+            onClick={() => updateBookingData('maxAttendees', Math.max(1, bookingData.maxAttendees - 1))}
             className="w-10 h-10 rounded-full border-2 border-gray-300 flex items-center justify-center hover:bg-gray-50"
           >
             -
           </button>
           <span className="text-2xl font-semibold text-gray-900 min-w-12 text-center">
-            {bookingData.groupSize}
+            {bookingData.maxAttendees}
           </span>
           <button
             type="button"
             onClick={() => {
               const maxSize = tourTypes.find(t => t.id === bookingData.tourType)?.maxSize || 15;
-              updateBookingData('groupSize', Math.min(maxSize, bookingData.groupSize + 1));
+              updateBookingData('maxAttendees', Math.min(maxSize, bookingData.maxAttendees + 1));
             }}
             className="w-10 h-10 rounded-full border-2 border-gray-300 flex items-center justify-center hover:bg-gray-50"
           >
