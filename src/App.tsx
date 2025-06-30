@@ -29,7 +29,7 @@ const mockTours = [
   },
   {
     id: 4,
-    title: 'Slugworks Grouo In-Person Tours',
+    title: 'Slugworks Group In-Person Tours',
     duration: '40 minutes',
     maxAttendees: 5,
     description: 'Book a tour of Slugworks, UCSC’s student-focused makerspace in Baskin Engineering. Open to all undergraduates, it features a machine shop, Creatorspace, classroom, and club space — no engineering major required!',
