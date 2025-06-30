@@ -5,26 +5,42 @@ import { Calendar, Users, Settings, BookOpen, Clock, Shield, Menu, X, LogOut, Us
 const mockTours = [
   {
     id: 1,
-    title: 'Campus Tour',
-    duration: '60 minutes',
-    maxAttendees: 15,
-    description: 'General campus overview including academic buildings, student facilities, and campus life',
+    title: 'Baskin Engineering Group In-Person Tours',
+    duration: '1 Hour',
+    maxAttendees: 5,
+    description: 'This is an in-person tour of the Jack Baskin Engineering Building, led by the Baskin Engineering Student Ambassadors. During the tour, we will explore key areas that define the engineering experience at UCSC, such as classes, advising, research, student clubs, and more. You will also get a look inside Slugworks, our student-focused makerspace in the Baskin basement!',
     available: true
   },
   {
     id: 2,
-    title: 'Academic Program Deep Dive',
-    duration: '90 minutes',
+    title: 'Baskin Engineering Group Virtual Tours',
+    duration: '1 Hour',
     maxAttendees: 8,
-    description: 'Detailed exploration of specific academic programs and research opportunities',
+    description: 'The virtual tour is hosted via Zoom and features a presentation led by our BESA ambassadors. You will get an overview of the Baskin Engineering building, detailed information on the majors offered under Baskin, and an introduction to student clubs and organizations within Baskin. The session ends with time for questions, so you can engage directly with our ambassadors.',
     available: true
   },
   {
     id: 3,
-    title: 'Student Life Experience',
-    duration: '45 minutes',
-    maxAttendees: 12,
-    description: 'Focus on dorms, dining, clubs, and student activities',
+    title: 'Baskin Engineering Large In-Person Tours (10+ attendees)',
+    duration: '2 Hours',
+    maxAttendees: 50,
+    description: 'This is a UCSC Baskin Engineering Large In Person Tours (For groups of more than 10) provided by the Baskin Engineering Student Ambassadors. This page is for those who are wanting to book this tour for a class. Please do not book this unless your group has more than 10 people.',
+    available: true
+  },
+  {
+    id: 4,
+    title: 'Slugworks Grouo In-Person Tours',
+    duration: '40 minutes',
+    maxAttendees: 5,
+    description: 'Book a tour of Slugworks, UCSC’s student-focused makerspace in Baskin Engineering. Open to all undergraduates, it features a machine shop, Creatorspace, classroom, and club space — no engineering major required!',
+    available: true
+  },
+  {
+    id: 5,
+    title: 'BESAs Drop In Office Hours',
+    duration: '20 minutes',
+    maxAttendees: 5,
+    description: 'Book a one-on-one Virtual Office Hour with a BESA Ambassador to ask questions and learn more about Baskin Engineering.',
     available: true
   }
 ];
@@ -206,25 +222,28 @@ function App() {
 
   const PublicBookingView = () => (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-2">
-              <BookOpen className="h-8 w-8 text-blue-600" />
-              <span className="text-xl font-bold text-gray-900">BESA Tours</span>
-            </div>
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={() => handleLogin('besa')}
-                className="text-blue-600 hover:text-blue-800 font-medium transition-colors"
-              >
-                BESA Login
-              </button>
-              <button
-                onClick={() => handleLogin('admin')}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-              >
+    {/* Header */}
+    <header className="bg-white shadow-sm border-b-4 border-orange-300">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-16">
+          <div className="flex items-center space-x-2">
+            {/*When logo clicked, redriect to homepage*/}
+            <a href="/">
+              <img src="/BE_logo.png" alt="BESA logo" className="h-12 w-12 object-contain" />
+            </a>
+            <span className="text-2xl font-medium text-blue-900">BESA Tours</span>
+          </div>
+          <div className="flex items-center space-x-4">
+            <button
+              onClick={() => handleLogin('besa')} // BESA login button
+              className="bg-white text-blue-900 text-lg px-2 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              BESA Login
+            </button>
+            <button
+              onClick={() => handleLogin('admin')} // Admin login button
+              className="bg-white text-blue-900 text-lg px-2 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+            >
                 Admin Login
               </button>
             </div>
@@ -233,15 +252,16 @@ function App() {
       </header>
 
       {/* Hero Section */}
-      <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-16">
+      {/* <div className="bg-gradient-to-b from-blue-900 via-blue-900 to-blue-700 text-white py-16 border-b-4 border-orange-300"> */}
+      <div className="bg-blue-900 text-white py-16 border-b-4 border-orange-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-4xl md:text-6xl font-bold mb-6">
-            Discover Your Future
+            Baskin Engineering Tours
           </h1>
           <p className="text-xl md:text-2xl mb-8 opacity-90">
-            Book a personalized campus tour with our experienced BESA guides
+            Book a personalized tour of the Baskin Engineering Building led by our BESA guides
           </p>
-          <button className="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold text-lg hover:bg-gray-50 transition-colors transform hover:scale-105">
+          <button className="bg-orange-400 text-white px-8 py-3 rounded-lg font-semibold text-lg hover:bg-orange-500 transition-colors transform hover:scale-105">
             Book Your Tour Now
           </button>
         </div>
@@ -250,9 +270,9 @@ function App() {
       {/* Tour Options */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">Choose Your Tour Experience</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">Choose The Tour That Best Suits You!</h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Select from our variety of tour options designed to showcase different aspects of campus life
+            Select from our variety of tour options designed to accomdate tour sizes and interests.
           </p>
         </div>
 
@@ -260,9 +280,9 @@ function App() {
           {mockTours.map((tour) => (
             <div
               key={tour.id}
-              className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+              className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border-b-4 border-orange-300"
             >
-              <div className="p-6">
+              <div className="p-6 flex flex-col flex-grow">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-xl font-bold text-gray-900">{tour.title}</h3>
                   <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-sm font-medium">
@@ -280,15 +300,16 @@ function App() {
                     <span className="text-sm">Max {tour.maxAttendees}</span>
                   </div>
                 </div>
-                
-                <p className="text-gray-600 mb-6">{tour.description}</p>
+                <div className="flex-grow flex flex-col justify-between">
+                <p className="text-gray-600 mb-6 max-h-32 overflow-y-auto">{tour.description}</p>
                 
                 <button
                   onClick={() => setSelectedTour(tour.id)}
-                  className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                  className="w-full bg-blue-700 text-white py-2 px-4 rounded-lg hover:bg-blue-900 transition-colors font-medium"
                 >
                   Select This Tour
                 </button>
+                </div>
               </div>
             </div>
           ))}
