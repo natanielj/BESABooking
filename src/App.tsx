@@ -296,6 +296,8 @@ function App() {
     </div>
   );
 
+ {/* ADMIN PAGE START*/}
+
   return (
     // Move it back to use without login for now
     <Routes>
