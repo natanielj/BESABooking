@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Calendar, Users, Settings, Clock,  Shield, Menu, X, LogOut, User, MapPin, Mail, Phone, Edit3, Save, Plus, Trash2, UsersRound } from 'lucide-react';
-import { Routes, Route, useNavigate } from 'react-router-dom';
+import { Routes, Route, useNavigate, Navigate } from 'react-router-dom';
 
 
 // Mock data
@@ -182,28 +182,30 @@ const mockBookings = [
   }
 ];
 
-type UserRole = 'public' | 'besa' | 'admin';
-type Page = 'booking' | 'dashboard' | 'tours' | 'besas' | 'schedule' | 'settings' | 'office-hours';
+type UserRole = 'public' | 'admin';
+type Page = 'booking' | 'dashboard' | 'tours' | 'besas' | 'schedule' | 'settings' | 'office-hours' | 'admin';
 
 function App() {
   const [currentRole, setCurrentRole] = useState<UserRole>('public');
-  const [currentPage, setCurrentPage] = useState<Page>('booking');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [selectedTour, setSelectedTour] = useState<number | null>(null);
   const [selectedBesa, setSelectedBesa] = useState<number | null>(null);
   const [editingOfficeHours, setEditingOfficeHours] = useState<number | null>(null);
   const [besas, setBesas] = useState(mockBesas);
 
+  const navigate = useNavigate();
+
   const handleLogin = (role: UserRole) => {
     setCurrentRole(role);
-    setCurrentPage('dashboard');
     setIsMobileMenuOpen(false);
+    if (role === 'admin') navigate('/admin/dashboard');
+    else navigate('/');
   };
 
   const handleLogout = () => {
     setCurrentRole('public');
-    setCurrentPage('booking');
     setIsMobileMenuOpen(false);
+    navigate('/');
   };
 
   const updateBesaOfficeHours = (besaId: number, day: string, field: string, value: string | boolean) => {
@@ -272,11 +274,6 @@ function App() {
             <span className="text-2xl font-medium text-blue-900">BESA Tours</span>
           </div>
           <div className="flex items-center space-x-4">
-            <a
-              href="/admin"
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
-              Admin Login
-            </a>
             </div>
           </div>
         </div>
@@ -292,14 +289,16 @@ function App() {
           <p className="text-xl md:text-2xl mb-8 opacity-90">
             Book a personalized tour of the Baskin Engineering Building led by our BESA guides
           </p>
-          <button className="bg-orange-400 text-white px-8 py-3 rounded-lg font-semibold text-lg hover:bg-orange-500 transition-colors transform hover:scale-105">
-            Book Your Tour Now
-          </button>
+          <a href="#tour-options">
+            <button className="bg-orange-400 text-white px-8 py-3 rounded-lg font-semibold text-lg hover:bg-orange-500 transition-colors transform hover:scale-105">
+              Book Your Tour Now
+            </button>
+          </a>
         </div>
       </div>
 
       {/* Tour Options */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <div id="tour-options" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold text-gray-900 mb-4">Choose The Tour That Best Suits You!</h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
@@ -356,8 +355,7 @@ function App() {
                 <h3 className="text-2xl font-bold text-gray-900">Book Your Tour</h3>
                 <button
                   onClick={() => setSelectedTour(null)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
+                  className="text-gray-400 hover:text-gray-600">
                   <X className="h-6 w-6" />
                 </button>
               </div>
@@ -468,91 +466,79 @@ function App() {
     </div>
   );
 
+ {/* ADMIN PAGE START*/}
+
   const DashboardLayout = ({ children }: { children: React.ReactNode }) => (
     <div className="min-h-screen bg-gray-50">
-      {/* Navigation */}
+      {/* HEADER */}
       <nav className="bg-white shadow-sm border-b-4 border-orange-400">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-2">
-              <a href="/">
-                <img src="/BE_logo.png" alt="BESA logo" className="h-12 w-12 object-contain" />
-              </a>
-              <span className="text-xl font-bold text-blue-900">BESA Tours</span>
+              <img src="/BE_logo.png" className="h-8 w-8 text-blue-600" />
+              <span className="text-xl font-bold text-gray-900">BESA Tours</span>
               <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium ml-2">
                 {currentRole === 'admin' ? 'Admin' : 'BESA'}
               </span>
             </div>
 
+            {/* DASHBOARD HEADER BUTTON */}
             <div className="hidden md:flex items-center space-x-6">
-              <button
-                onClick={() => setCurrentPage('dashboard')}
+              <button onClick={() => navigate('/admin/dashboard')}
                 className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
-                  currentPage === 'dashboard' ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
+                  window.location.pathname === '/admin/dashboard' ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:text-gray-900'
+                }`}>
                 <Calendar className="h-4 w-4" />
                 <span>Dashboard</span>
               </button>
 
-              <button
-                onClick={() => setCurrentPage('schedule')}
+              {/* SCHEDULE HEADER BUTTON */}
+              <button onClick={() => navigate('/admin/schedule')}
                 className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
-                  currentPage === 'schedule' ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
+                  window.location.pathname === '/admin/schedule' ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:text-gray-900'
+                }`}>
                 <Clock className="h-4 w-4" />
                 <span>Schedule</span>
               </button>
 
-              {currentRole === 'admin' && (
-                <>
-                  <button
-                    onClick={() => setCurrentPage('tours')}
-                    className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
-                      currentPage === 'tours' ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:text-gray-900'
-                    }`}
-                  >
-                    <MapPin className="h-4 w-4" />
-                    <span>Tours</span>
-                  </button>
-
-                  <button
-                    onClick={() => setCurrentPage('besas')}
-                    className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
-                      currentPage === 'besas' ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:text-gray-900'
-                    }`}
-                  >
-                    <Users className="h-4 w-4" />
-                    <span>BESAs</span>
-                  </button>
-
-                  <button
-                    onClick={() => setCurrentPage('office-hours')}
-                    className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
-                      currentPage === 'office-hours' ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:text-gray-900'
-                    }`}
-                  >
-                    <Clock className="h-4 w-4" />
-                    <span>Office Hours</span>
-                  </button>
-                </>
-              )}
-
-              <button
-                onClick={() => setCurrentPage('settings')}
+              {/* TOURS HEADER BUTTON */}
+              <button onClick={() => navigate('/admin/tours')}
                 className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
-                  currentPage === 'settings' ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
+                  window.location.pathname === '/admin/tours' ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:text-gray-900'
+                }`}>
+                <MapPin className="h-4 w-4" />
+                <span>Tours</span>
+              </button>
+
+              {/* BESAs HEADER BUTTON */}
+              <button onClick={() => navigate('/admin/besas')}
+                className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
+                  window.location.pathname === '/admin/besas' ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:text-gray-900'
+                }`}>
+                <Users className="h-4 w-4" />
+                <span>BESAs</span>
+              </button>
+
+            {/* OFFICE HOURS HEADER BUTTON */}
+              <button onClick={() => navigate('/admin/office-hours')}
+                className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
+                  window.location.pathname === '/admin/office-hours' ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:text-gray-900'
+                }`}>
+                <Clock className="h-4 w-4" />
+                <span>Office Hours</span>
+              </button>
+
+              {/* SETTINGS HEADER BUTTON */}
+              <button onClick={() => navigate('/admin/settings')}
+                className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
+                  window.location.pathname === '/admin/settings' ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:text-gray-900'
+                }`}>
                 <Settings className="h-4 w-4" />
                 <span>Settings</span>
               </button>
 
-              <button
-                onClick={handleLogout}
-                className="flex items-center space-x-2 px-3 py-2 text-red-600 hover:text-red-800 transition-colors"
-              >
+              <button onClick={handleLogout}
+                className="flex items-center space-x-2 px-3 py-2 text-red-600 hover:text-red-800 transition-colors">
                 <LogOut className="h-4 w-4" />
                 <span>Logout</span>
               </button>
@@ -560,8 +546,7 @@ function App() {
 
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="md:hidden p-2 rounded-lg text-gray-600 hover:text-gray-900"
-            >
+              className="md:hidden p-2 rounded-lg text-gray-600 hover:text-gray-900">
               {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
           </div>
@@ -572,14 +557,14 @@ function App() {
           <div className="md:hidden bg-white border-t">
             <div className="px-4 py-2 space-y-1">
               <button
-                onClick={() => { setCurrentPage('dashboard'); setIsMobileMenuOpen(false); }}
+                onClick={() => { navigate('/admin/dashboard'); setIsMobileMenuOpen(false); }}
                 className="w-full flex items-center space-x-2 px-3 py-2 rounded-lg text-left text-gray-600 hover:text-gray-900"
               >
                 <Calendar className="h-4 w-4" />
                 <span>Dashboard</span>
               </button>
               <button
-                onClick={() => { setCurrentPage('schedule'); setIsMobileMenuOpen(false); }}
+                onClick={() => { navigate('/admin/schedule'); setIsMobileMenuOpen(false); }}
                 className="w-full flex items-center space-x-2 px-3 py-2 rounded-lg text-left text-gray-600 hover:text-gray-900"
               >
                 <Clock className="h-4 w-4" />
@@ -588,21 +573,21 @@ function App() {
               {currentRole === 'admin' && (
                 <>
                   <button
-                    onClick={() => { setCurrentPage('tours'); setIsMobileMenuOpen(false); }}
+                    onClick={() => { navigate('/admin/tours'); setIsMobileMenuOpen(false); }}
                     className="w-full flex items-center space-x-2 px-3 py-2 rounded-lg text-left text-gray-600 hover:text-gray-900"
                   >
                     <MapPin className="h-4 w-4" />
                     <span>Tours</span>
                   </button>
                   <button
-                    onClick={() => { setCurrentPage('besas'); setIsMobileMenuOpen(false); }}
+                    onClick={() => { navigate('/admin/besas'); setIsMobileMenuOpen(false); }}
                     className="w-full flex items-center space-x-2 px-3 py-2 rounded-lg text-left text-gray-600 hover:text-gray-900"
                   >
                     <Users className="h-4 w-4" />
                     <span>BESAs</span>
                   </button>
                   <button
-                    onClick={() => { setCurrentPage('office-hours'); setIsMobileMenuOpen(false); }}
+                    onClick={() => { navigate('/admin/office-hours'); setIsMobileMenuOpen(false); }}
                     className="w-full flex items-center space-x-2 px-3 py-2 rounded-lg text-left text-gray-600 hover:text-gray-900"
                   >
                     <Clock className="h-4 w-4" />
@@ -611,7 +596,7 @@ function App() {
                 </>
               )}
               <button
-                onClick={() => { setCurrentPage('settings'); setIsMobileMenuOpen(false); }}
+                onClick={() => { navigate('/admin/settings'); setIsMobileMenuOpen(false); }}
                 className="w-full flex items-center space-x-2 px-3 py-2 rounded-lg text-left text-gray-600 hover:text-gray-900"
               >
                 <Settings className="h-4 w-4" />
@@ -633,6 +618,7 @@ function App() {
     </div>
   );
 
+  {/* DASHBOARD VIEW */}
   const DashboardView = () => (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
@@ -647,28 +633,7 @@ function App() {
         </p>
       </div>
 
-      {/* Admin Dashboard Stats Cards */}
-      <div className="overflow-x-auto">
-      <div className="flex space-x-4 w-max pb-2">
-        {mockBesas.map((besa, index) => (
-      <div
-        key={index}
-        className="min-w-[250px] bg-white rounded-xl shadow-sm p-6 border-b-4 border-orange-400 flex-shrink-0">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm font-medium text-gray-600">{besa.name}</p>
-            <p className="text-3xl font-bold text-gray-900">{besa.toursThisWeek}</p>
-            <p className="text-xs text-gray-500 mt-1">Tours Today</p>
-          </div>
-          <div className="bg-blue-100 p-3 rounded-lg">
-            <User className="h-6 w-6 text-blue-600" />
-          </div>
-        </div>
-      </div>
-    ))}
-  </div>
-</div>
-
+      {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <div className="bg-white rounded-xl shadow-sm p-6 border-b-4 border-orange-400">
           <div className="flex items-center justify-between">
@@ -678,6 +643,18 @@ function App() {
             </div>
             <div className="bg-blue-100 p-3 rounded-lg">
               <Calendar className="h-6 w-6 text-blue-600" />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-sm p-6 border-b-4 border-orange-400">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">This Week</p>
+              <p className="text-3xl font-bold text-gray-900">23</p>
+            </div>
+            <div className="bg-green-100 p-3 rounded-lg">
+              <Users className="h-6 w-6 text-green-600" />
             </div>
           </div>
         </div>
@@ -743,7 +720,10 @@ function App() {
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Tour Management</h1>
           <p className="text-gray-600">Create and manage different types of tours</p>
         </div>
-        
+        <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center space-x-2">
+          <Plus className="h-4 w-4" />
+          <span>Add New Tour</span>
+        </button>
       </div>
 
       <div className="grid gap-6">
@@ -793,9 +773,8 @@ function App() {
           <h1 className="text-3xl font-bold text-gray-900 mb-2">BESA Management</h1>
           <p className="text-gray-600">Manage BESA accounts and permissions</p>
         </div>
-        <button
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center space-x-2">
-          <Plus className="h-4 w-4" />
+        <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center space-x-2">
+          <User className="h-4 w-4" />
           <span>Add New BESA</span>
         </button>
       </div>
@@ -1307,36 +1286,18 @@ function App() {
     </div>
   );
 
-  const renderPage = () => {
-    if (currentRole === 'public') {
-      return <PublicBookingView />;
-    }
-
-    return (
-      <DashboardLayout>
-        {currentPage === 'dashboard' && <DashboardView />}
-        {currentPage === 'schedule' && <ScheduleView />}
-        {currentPage === 'tours' && currentRole === 'admin' && <ToursManagementView />}
-        {currentPage === 'besas' && currentRole === 'admin' && <BESAManagementView />}
-        {currentPage === 'office-hours' && currentRole === 'admin' && <OfficeHoursView />}
-        {currentPage === 'settings' && <SettingsView />}
-      </DashboardLayout>
-    );
-  };
-
-  return (
-    <Routes>
-      <Route path="/" element={<PublicBookingView />} />
-    <Route
-      path="/admin"
-      element={
-        <DashboardLayout>
-          <DashboardView />
-        </DashboardLayout>
-        }
-      />
-    </Routes>
-  );
+return (
+  <Routes>
+    <Route path="/" element={<PublicBookingView />} />
+    <Route path="/admin" element={<Navigate to="/admin/dashboard" />} />
+    <Route path="/admin/dashboard" element={<DashboardLayout><DashboardView /></DashboardLayout>} />
+    <Route path="/admin/schedule" element={<DashboardLayout><ScheduleView /></DashboardLayout>} />
+    <Route path="/admin/tours" element={<DashboardLayout><ToursManagementView /></DashboardLayout>} />
+    <Route path="/admin/besas" element={<DashboardLayout><BESAManagementView /></DashboardLayout>} />
+    <Route path="/admin/office-hours" element={<DashboardLayout><OfficeHoursView /></DashboardLayout>} />
+    <Route path="/admin/settings" element={<DashboardLayout><SettingsView /></DashboardLayout>} />
+  </Routes>
+);
 }
 
 export default App;
