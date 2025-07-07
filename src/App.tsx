@@ -766,18 +766,40 @@ function App() {
     </div>
   );
 
+  const [showNewBesaModal, setShowNewBesaModal] = useState(false);
+  const [newBesa, setNewBesa] = useState({
+    name: '',
+    email: '',
+    role: 'BESA',
+    status: 'active',
+    toursThisWeek: 0,
+    totalTours: 0,
+    officeHours: {
+      monday: { start: '', end: '', available: false },
+      tuesday: { start: '', end: '', available: false },
+      wednesday: { start: '', end: '', available: false },
+      thursday: { start: '', end: '', available: false },
+      friday: { start: '', end: '', available: false },
+      saturday: { start: '', end: '', available: false },
+      sunday: { start: '', end: '', available: false }
+    }
+  });
+
   const BESAManagementView = () => (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex justify-between items-center mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">BESA Management</h1>
-          <p className="text-gray-600">Manage BESA accounts and permissions</p>
-        </div>
-        <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center space-x-2">
-          <User className="h-4 w-4" />
-          <span>Add New BESA</span>
-        </button>
+  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="flex justify-between items-center mb-8">
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">BESA Management</h1>
+        <p className="text-gray-600">Manage BESA accounts and permissions</p>
       </div>
+      <button
+        className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center space-x-2"
+        onClick={() => setShowNewBesaModal(true)}
+      >
+        <User className="h-4 w-4" />
+        <span>Add New BESA</span>
+      </button>
+    </div>
 
       <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
         <div className="overflow-x-auto">
@@ -833,7 +855,16 @@ function App() {
                     >
                       Edit
                     </button>
-                    <button className="text-red-600 hover:text-red-900">Deactivate</button>
+                    <button
+                      className="text-red-600 hover:text-red-900"
+                      onClick={() => {
+                      if (window.confirm(`Are you sure you want to deactivate and delete ${besa.name}? This action cannot be undone.`)) {
+                      setBesas(prev => prev.filter(b => b.id !== besa.id));
+                      }
+                      }}
+                    >
+                    Deactivate
+                  </button>
                   </td>
                 </tr>
               ))}
@@ -923,8 +954,110 @@ function App() {
           </div>
         </div>
       )}
-    </div>
-  );
+      {/* New BESA Modal */}
+    {showNewBesaModal && (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="bg-white rounded-xl max-w-md w-full p-6">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-xl font-bold text-gray-900">Add New BESA</h3>
+            <button
+              onClick={() => setShowNewBesaModal(false)}
+              className="text-gray-400 hover:text-gray-600"
+            >
+              <X className="h-6 w-6" />
+            </button>
+          </div>
+          <form
+            className="space-y-4"
+            onSubmit={e => {
+              e.preventDefault();
+              setBesas(prev => [
+                ...prev,
+                { ...newBesa, id: prev.length ? Math.max(...prev.map(b => b.id)) + 1 : 1 }
+              ]);
+              setShowNewBesaModal(false);
+              setNewBesa({
+                name: '',
+                email: '',
+                role: 'BESA',
+                status: 'active',
+                toursThisWeek: 0,
+                totalTours: 0,
+                officeHours: {
+                  monday: { start: '', end: '', available: false },
+                  tuesday: { start: '', end: '', available: false },
+                  wednesday: { start: '', end: '', available: false },
+                  thursday: { start: '', end: '', available: false },
+                  friday: { start: '', end: '', available: false },
+                  saturday: { start: '', end: '', available: false },
+                  sunday: { start: '', end: '', available: false }
+                }
+              });
+            }}
+          >
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+              <input
+                type="text"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                value={newBesa.name}
+                onChange={e => setNewBesa({ ...newBesa, name: e.target.value })}
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <input
+                type="email"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                value={newBesa.email}
+                onChange={e => setNewBesa({ ...newBesa, email: e.target.value })}
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
+              <select
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                value={newBesa.role}
+                onChange={e => setNewBesa({ ...newBesa, role: e.target.value })}
+              >
+                <option value="BESA">BESA</option>
+                <option value="BESA Lead">BESA Lead</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+              <select
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                value={newBesa.status}
+                onChange={e => setNewBesa({ ...newBesa, status: e.target.value })}
+              >
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+            <div className="flex justify-end mt-4">
+              <button
+                type="button"
+                onClick={() => setShowNewBesaModal(false)}
+                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 mr-2"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              >
+                Add BESA
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    )}
+  </div>
+);
 
   const OfficeHoursView = () => {
     const compiledSchedule = getCompiledSchedule();
