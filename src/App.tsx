@@ -13,8 +13,24 @@ function App() {
   const [selectedBesa, setSelectedBesa] = useState<number | null>(null);
   const [editingOfficeHours, setEditingOfficeHours] = useState<number | null>(null);
   const [besas, setBesas] = useState(mockBesas);
+  const [tours, setTours] = useState(mockTours);
 
   const navigate = useNavigate();
+
+  {/* Add New Tour Info Button*/}
+  const [showNewTourModal, setShowNewTourModal] = useState(false);
+  const [newTour, setNewTour] = useState({
+    title: '',
+    description: '',
+    duration: '',
+    maxAttendees: 1,
+    available: true,
+  });
+
+  {/* Edit Tour Info Button*/}
+  const [showEditTourModal, setShowEditTourModal] = useState(false);
+  const [editTour, setEditTour] = useState<any>(null);
+
 
   const handleLogin = (role: UserRole) => {
     setCurrentRole(role);
@@ -100,8 +116,7 @@ function App() {
         </div>
       </header>
 
-      {/* Hero Section */}
-      {/* <div className="bg-gradient-to-b from-blue-900 via-blue-900 to-blue-700 text-white py-16 border-b-4 border-orange-300"> */}
+      {/* Header Big Block Section */}
       <div className="bg-blue-900 text-white py-16 border-b-4 border-orange-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-4xl md:text-6xl font-bold mb-6">
@@ -128,43 +143,42 @@ function App() {
         </div>
 
         <div className="grid md:grid-cols-3 gap-8">
-          {mockTours.map((tour) => (
-            <div
-              key={tour.id}
-              className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border-b-4 border-orange-300"
-            >
-              <div className="p-6 flex flex-col flex-grow">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-xl font-bold text-gray-900">{tour.title}</h3>
-                  <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-sm font-medium">
-                    Available
-                  </span>
-                </div>
-                
-                <div className="flex items-center space-x-4 mb-4 text-gray-600">
-                  <div className="flex items-center space-x-1">
-                    <Clock className="h-4 w-4" />
-                    <span className="text-sm">{tour.duration}</span>
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <Users className="h-4 w-4" />
-                    <span className="text-sm">Max {tour.maxAttendees}</span>
-                  </div>
-                </div>
-                <div className="flex-grow flex flex-col justify-between">
-                <p className="text-gray-600 mb-6 max-h-32 overflow-y-auto">{tour.description}</p>
-                
-                <button
-                  onClick={() => setSelectedTour(tour.id)}
-                  className="w-full bg-blue-700 text-white py-2 px-4 rounded-lg hover:bg-blue-900 transition-colors font-medium"
-                >
-                  Select This Tour
-                </button>
-                </div>
-              </div>
+        {tours
+          .filter((tour) => tour.available) // Only show available tours
+          .map((tour) => (
+          <div
+            key={tour.id}
+            className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border-b-4 border-orange-300">
+            <div className="p-6 flex flex-col flex-grow">
+            <div className="flex items-center justify-between mb-4">
+            <h3 className="text-xl font-bold text-gray-900">{tour.title}</h3>
+            <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-sm font-medium">
+              Available
+            </span>
+          </div>
+          <div className="flex items-center space-x-4 mb-4 text-gray-600">
+            <div className="flex items-center space-x-1">
+              <Clock className="h-4 w-4" />
+              <span className="text-sm">{tour.duration}</span>
             </div>
-          ))}
+            <div className="flex items-center space-x-1">
+              <Users className="h-4 w-4" />
+              <span className="text-sm">Max {tour.maxAttendees}</span>
+            </div>
+          </div>
+          <div className="flex-grow flex flex-col justify-between">
+            <p className="text-gray-600 mb-6 max-h-32 overflow-y-auto">{tour.description}</p>
+            <button
+              onClick={() => setSelectedTour(tour.id)}
+              className="w-full bg-blue-700 text-white py-2 px-4 rounded-lg hover:bg-blue-900 transition-colors font-medium"
+            >
+              Select This Tour
+            </button>
+          </div>
         </div>
+      </div>
+    ))}
+</div>
       </div>
 
       {/* Tour Selection Modal */}
@@ -534,58 +548,283 @@ function App() {
     </div>
   );
 
+  {/* TOURS MANAGEMENT PAGE 
+    Edit button doesn't work*/}
   const ToursManagementView = () => (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex justify-between items-center mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Tour Management</h1>
-          <p className="text-gray-600">Create and manage different types of tours</p>
-        </div>
-        <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center space-x-2">
-          <Plus className="h-4 w-4" />
-          <span>Add New Tour</span>
-        </button>
+  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="flex justify-between items-center mb-8">
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Tour Management</h1>
+        <p className="text-gray-600">Create and manage different types of tours</p>
       </div>
+      <button
+        className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center space-x-2"
+        onClick={() => setShowNewTourModal(true)}
+      >
+        <Plus className="h-4 w-4" />
+        <span>Add New Tour</span>
+      </button>
+    </div>
 
-      <div className="grid gap-6">
-        {mockTours.map((tour) => (
-          <div key={tour.id} className="bg-white rounded-xl shadow-sm border p-6">
-            <div className="flex justify-between items-start mb-4">
-              <div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">{tour.title}</h3>
-                <p className="text-gray-600 mb-4">{tour.description}</p>
-                <div className="flex items-center space-x-6 text-sm text-gray-500">
-                  <div className="flex items-center space-x-1">
-                    <Clock className="h-4 w-4" />
-                    <span>{tour.duration}</span>
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <Users className="h-4 w-4" />
-                    <span>Max {tour.maxAttendees} attendees</span>
-                  </div>
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                    tour.available ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                  }`}>
-                    {tour.available ? 'Active' : 'Inactive'}
-                  </span>
+    <div className="grid gap-6">
+      {tours.map((tour) => (
+        <div key={tour.id} className="bg-white rounded-xl shadow-sm border p-6">
+          <div className="flex justify-between items-start mb-4">
+            <div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">{tour.title}</h3>
+              <p className="text-gray-600 mb-4">{tour.description}</p>
+              <div className="flex items-center space-x-6 text-sm text-gray-500">
+                <div className="flex items-center space-x-1">
+                  <Clock className="h-4 w-4" />
+                  <span>{tour.duration}</span>
                 </div>
-              </div>
-              <div className="flex space-x-2">
-                <button className="px-3 py-1 text-blue-600 hover:bg-blue-50 rounded-lg text-sm font-medium flex items-center space-x-1">
-                  <Edit3 className="h-3 w-3" />
-                  <span>Edit</span>
-                </button>
-                <button className="px-3 py-1 text-red-600 hover:bg-red-50 rounded-lg text-sm font-medium flex items-center space-x-1">
-                  <Trash2 className="h-3 w-3" />
-                  <span>Delete</span>
-                </button>
+                <div className="flex items-center space-x-1">
+                  <Users className="h-4 w-4" />
+                  <span>Max {tour.maxAttendees} attendees</span>
+                </div>
+                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                  tour.available ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                }`}>
+                  {tour.available ? 'Active' : 'Inactive'}
+                </span>
               </div>
             </div>
+            <div className="flex space-x-2">
+              {/* <button className="px-3 py-1 text-blue-600 hover:bg-blue-50 rounded-lg text-sm font-medium flex items-center space-x-1">
+                <Edit3 className="h-3 w-3" />
+                <span>Edit</span>
+              </button> */}
+              <button
+                className="px-3 py-1 text-blue-600 hover:bg-blue-50 rounded-lg text-sm font-medium flex items-center space-x-1"
+                onClick={() => {
+                setEditTour(tour);
+                setShowEditTourModal(true);
+                }}>
+                  <Edit3 className="h-3 w-3" />
+                  <span>Edit</span>
+              </button>
+              <button
+                className="px-3 py-1 text-red-600 hover:bg-red-50 rounded-lg text-sm font-medium flex items-center space-x-1"
+                onClick={() => {
+                  if (window.confirm(`Are you sure you want to delete ${tour.title}? This action cannot be undone.`)) {
+                    setTours(prev => prev.filter(t => t.id !== tour.id));
+                  }
+                }}
+              >
+                <Trash2 className="h-3 w-3" />
+                Delete
+              </button>
+            </div>
           </div>
-        ))}
-      </div>
+        </div>
+      ))}
     </div>
-  );
+
+    {/* Add New Tour Button Window */}
+    {/* Problem: Tour Doesn't Save*/}
+    {showNewTourModal && (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="bg-white rounded-xl max-w-md w-full p-6">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-xl font-bold text-gray-900">Add New Tour</h3>
+            <button
+              onClick={() => setShowNewTourModal(false)}
+              className="text-gray-400 hover:text-gray-600"
+            >
+              <X className="h-6 w-6" />
+            </button>
+          </div>
+          <form
+            className="space-y-4"
+            onSubmit={e => {
+              e.preventDefault();
+              setTours(prev => [
+                ...prev,
+                {
+                  ...newTour,
+                  id: prev.length ? Math.max(...prev.map(t => t.id)) + 1 : 1,
+                },
+              ]);
+              setShowNewTourModal(false);
+              setNewTour({
+                title: '',
+                description: '',
+                duration: '',
+                maxAttendees: 1,
+                available: true,
+              });
+            }}
+          >
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+              <input
+                type="text"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                value={newTour.title}
+                onChange={e => setNewTour({ ...newTour, title: e.target.value })}
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+              <textarea
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                value={newTour.description}
+                onChange={e => setNewTour({ ...newTour, description: e.target.value })}
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Duration</label>
+              <input
+                type="text"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                value={newTour.duration}
+                onChange={e => setNewTour({ ...newTour, duration: e.target.value })}
+                required
+                placeholder="e.g. 1 Hour"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Max Attendees</label>
+              <input
+                type="number"
+                min={1}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                value={newTour.maxAttendees}
+                onChange={e => setNewTour({ ...newTour, maxAttendees: Number(e.target.value) })}
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+              <select
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                value={newTour.available ? 'active' : 'inactive'}
+                onChange={e => setNewTour({ ...newTour, available: e.target.value === 'active' })}
+              >
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+            <div className="flex justify-end mt-4">
+              <button
+                type="button"
+                onClick={() => setShowNewTourModal(false)}
+                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 mr-2"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              >
+                Add Tour
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    )}
+
+    {showEditTourModal && editTour && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div className="bg-white rounded-xl max-w-md w-full p-6">
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-xl font-bold text-gray-900">Edit Tour</h3>
+        <button
+          onClick={() => setShowEditTourModal(false)}
+          className="text-gray-400 hover:text-gray-600"
+        >
+          <X className="h-6 w-6" />
+        </button>
+      </div>
+      <form
+        className="space-y-4"
+        onSubmit={e => {
+          e.preventDefault();
+          setTours(prev =>
+            prev.map(t =>
+              t.id === editTour.id ? editTour : t
+            )
+          );
+          setShowEditTourModal(false);
+          setEditTour(null);
+        }}
+      >
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+          <input
+            type="text"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+            value={editTour.title}
+            onChange={e => setEditTour({ ...editTour, title: e.target.value })}
+            required
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+          <textarea
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+            value={editTour.description}
+            onChange={e => setEditTour({ ...editTour, description: e.target.value })}
+            required
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Duration</label>
+          <input
+            type="text"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+            value={editTour.duration}
+            onChange={e => setEditTour({ ...editTour, duration: e.target.value })}
+            required
+            placeholder="e.g. 1 Hour"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Max Attendees</label>
+          <input
+            type="number"
+            min={1}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+            value={editTour.maxAttendees}
+            onChange={e => setEditTour({ ...editTour, maxAttendees: Number(e.target.value) })}
+            required
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+          <select
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+            value={editTour.available ? 'active' : 'inactive'}
+            onChange={e => setEditTour({ ...editTour, available: e.target.value === 'active' })}
+          >
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+        </div>
+        <div className="flex justify-end mt-4">
+          <button
+            type="button"
+            onClick={() => setShowEditTourModal(false)}
+            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 mr-2"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Save Changes
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+)}
+  </div>
+);
 
   const [showNewBesaModal, setShowNewBesaModal] = useState(false);
   const [newBesa, setNewBesa] = useState({
@@ -606,6 +845,8 @@ function App() {
     }
   });
 
+  {/* Rendering Problem: User needs to click screen after every letter
+    Edit button has more time frames, email change option, name change, etc.*/}
   const BESAManagementView = () => (
   <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <div className="flex justify-between items-center mb-8">
@@ -694,7 +935,7 @@ function App() {
         </div>
       </div>
 
-      {/* BESA Detail Modal */}
+      {/* BESA Details Listed On Table */}
       {selectedBesa && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
@@ -775,7 +1016,8 @@ function App() {
           </div>
         </div>
       )}
-      {/* New BESA Modal */}
+
+    {/* Add New BESA Button Window */}
     {showNewBesaModal && (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
         <div className="bg-white rounded-xl max-w-md w-full p-6">
@@ -788,6 +1030,7 @@ function App() {
               <X className="h-6 w-6" />
             </button>
           </div>
+
           <form
             className="space-y-4"
             onSubmit={e => {
@@ -880,6 +1123,7 @@ function App() {
   </div>
 );
 
+{/* Add '+' next to office hours */}
   const OfficeHoursView = () => {
     const compiledSchedule = getCompiledSchedule();
     const dayNames = {
