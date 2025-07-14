@@ -14,6 +14,7 @@ function App() {
   const [editingOfficeHours, setEditingOfficeHours] = useState<number | null>(null);
   const [besas, setBesas] = useState(mockBesas);
   const [tours, setTours] = useState(mockTours);
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
 
   const navigate = useNavigate();
 
@@ -32,12 +33,12 @@ function App() {
   const [editTour, setEditTour] = useState<any>(null);
 
 
-  const handleLogin = (role: UserRole) => {
-    setCurrentRole(role);
-    setIsMobileMenuOpen(false);
-    if (role === 'admin') navigate('/admin/dashboard');
-    else navigate('/');
-  };
+  // const handleLogin = (role: UserRole) => {
+  //   setCurrentRole(role);
+  //   setIsMobileMenuOpen(false);
+  //   if (role === 'admin') navigate('/admin/dashboard');
+  //   else navigate('/');
+  // };
 
   const handleLogout = () => {
     setCurrentRole('public');
@@ -303,6 +304,62 @@ function App() {
 
  {/* ADMIN PAGE START*/}
 
+ {/* BESA Login to Admin Page*/}
+ const AdminLogin = () => {
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
+
+    const handleSubmit = (e: React.FormEvent) => {
+      e.preventDefault();
+      // Replace with real authentication logic as needed
+      if (email === 'besa@ucsc.edu' && password === 'besa') {
+        setIsAdminAuthenticated(true);
+        setCurrentRole('admin');
+        navigate('/admin/dashboard');
+      } else {
+        setError('Invalid credentials');
+      }
+    };
+
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[url('/BE_backdrop.png')] bg-repeat bg-[length:20px_20px]">
+        <div className="bg-white rounded-xl shadow-lg p-8 max-w-md w-full border-b-4 border-orange-400">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">BESA Login</h2>
+          <form className="space-y-4" onSubmit={handleSubmit}>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <input
+                type="email"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+              <input
+                type="password"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                required
+              />
+            </div>
+            {error && <div className="text-red-600 text-sm">{error}</div>}
+            <button
+              type="submit"
+              className="w-full bg-blue-700 text-white px-4 py-2 rounded-lg hover:bg-blue-900"
+            >
+              Login
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  };
+
   const DashboardLayout = ({ children }: { children: React.ReactNode }) => (
     <div className="min-h-screen bg-gray-50">
       {/* HEADER */}
@@ -549,7 +606,7 @@ function App() {
   );
 
   {/* TOURS MANAGEMENT PAGE 
-    Edit button doesn't work*/}
+    Tour Info Rendering Problem: Doesn't Save + Needs Reclick After Each Input*/}
   const ToursManagementView = () => (
   <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <div className="flex justify-between items-center mb-8">
@@ -590,10 +647,6 @@ function App() {
               </div>
             </div>
             <div className="flex space-x-2">
-              {/* <button className="px-3 py-1 text-blue-600 hover:bg-blue-50 rounded-lg text-sm font-medium flex items-center space-x-1">
-                <Edit3 className="h-3 w-3" />
-                <span>Edit</span>
-              </button> */}
               <button
                 className="px-3 py-1 text-blue-600 hover:bg-blue-50 rounded-lg text-sm font-medium flex items-center space-x-1"
                 onClick={() => {
@@ -845,7 +898,7 @@ function App() {
     }
   });
 
-  {/* Rendering Problem: User needs to click screen after every letter
+  {/* Rendering Problem: User needs to click screen after every input
     Edit button has more time frames, email change option, name change, etc.*/}
   const BESAManagementView = () => (
   <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -1485,17 +1538,80 @@ function App() {
   );
 
 return (
-  <Routes>
-    <Route path="/" element={<PublicBookingView />} />
-    <Route path="/admin" element={<Navigate to="/admin/dashboard" />} />
-    <Route path="/admin/dashboard" element={<DashboardLayout><DashboardView /></DashboardLayout>} />
-    <Route path="/admin/schedule" element={<DashboardLayout><ScheduleView /></DashboardLayout>} />
-    <Route path="/admin/tours" element={<DashboardLayout><ToursManagementView /></DashboardLayout>} />
-    <Route path="/admin/besas" element={<DashboardLayout><BESAManagementView /></DashboardLayout>} />
-    <Route path="/admin/office-hours" element={<DashboardLayout><OfficeHoursView /></DashboardLayout>} />
-    <Route path="/admin/settings" element={<DashboardLayout><SettingsView /></DashboardLayout>} />
-  </Routes>
-);
+<Routes>
+      <Route path="/" element={<PublicBookingView />} />
+      <Route
+        path="/admin"
+        element={
+          isAdminAuthenticated ? (
+            <Navigate to="/admin/dashboard" />
+          ) : (
+            <AdminLogin />
+          )
+        }
+      />
+      <Route
+        path="/admin/dashboard"
+        element={
+          isAdminAuthenticated ? (
+            <DashboardLayout><DashboardView /></DashboardLayout>
+          ) : (
+            <Navigate to="/admin" />
+          )
+        }
+      />
+      <Route
+        path="/admin/schedule"
+        element={
+          isAdminAuthenticated ? (
+            <DashboardLayout><ScheduleView /></DashboardLayout>
+          ) : (
+            <Navigate to="/admin" />
+          )
+        }
+      />
+      <Route
+        path="/admin/tours"
+        element={
+          isAdminAuthenticated ? (
+            <DashboardLayout><ToursManagementView /></DashboardLayout>
+          ) : (
+            <Navigate to="/admin" />
+          )
+        }
+      />
+      <Route
+        path="/admin/besas"
+        element={
+          isAdminAuthenticated ? (
+            <DashboardLayout><BESAManagementView /></DashboardLayout>
+          ) : (
+            <Navigate to="/admin" />
+          )
+        }
+      />
+      <Route
+        path="/admin/office-hours"
+        element={
+          isAdminAuthenticated ? (
+            <DashboardLayout><OfficeHoursView /></DashboardLayout>
+          ) : (
+            <Navigate to="/admin" />
+          )
+        }
+      />
+      <Route
+        path="/admin/settings"
+        element={
+          isAdminAuthenticated ? (
+            <DashboardLayout><SettingsView /></DashboardLayout>
+          ) : (
+            <Navigate to="/admin" />
+          )
+        }
+      />
+    </Routes>
+  );
 }
 
 export default App;
