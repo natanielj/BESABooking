@@ -4,7 +4,6 @@ import { Routes, Route, useNavigate, Navigate } from 'react-router-dom';
 import { mockTours, mockBesas, mockBookings } from '../data/mockData.ts';
 
 type UserRole = 'public' | 'admin';
-type Page = 'booking' | 'dashboard' | 'tours' | 'besas' | 'schedule' | 'settings' | 'office-hours' | 'admin';
 
 function App() {
   const [currentRole, setCurrentRole] = useState<UserRole>('public');
