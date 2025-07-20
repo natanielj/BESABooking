@@ -1022,7 +1022,6 @@ const [newTour, setNewTour] = useState({ ...defaultNewTour });
           setShowNewTourModal(false);
         }}
       >
-        {/* Put all your input fields INSIDE here! */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
           <input
@@ -1033,9 +1032,7 @@ const [newTour, setNewTour] = useState({ ...defaultNewTour });
             required
           />
         </div>
-
-        {/* ... Repeat for all other inputs just like above ... */}
-
+        
         <div className="flex justify-end mt-4">
           <button
             type="button"
@@ -1246,7 +1243,6 @@ const [newTour, setNewTour] = useState({ ...defaultNewTour });
           />
         </div>
 
-        {/* Actions */}
         <div className="flex justify-end mt-4">
           <button
             type="button"
@@ -1921,17 +1917,3 @@ return (
     </Routes>
   );
 }
-
-export default App;
-function setShowEditTourModal(arg0: boolean): void {
-  throw new Error('Function not implemented.');
-}
-
-function setTours(arg0: (prev: any) => any) {
-  throw new Error('Function not implemented.');
-}
-
-function setEditTour(arg0: null) {
-  throw new Error('Function not implemented.');
-}
-
