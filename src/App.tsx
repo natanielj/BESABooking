@@ -1241,8 +1241,11 @@ const AdminLogin = () => {
           setShowNewTourModal(false);
         }}
       >
+<<<<<<< HEAD
         {/* Put all your input fields INSIDE here! */}
 >>>>>>> 26b7b08 (updated tour options for add tour button & edit tour)
+=======
+>>>>>>> 5a9ee12 (updated new tour and edit tour to ask new variables)
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
           <input
@@ -1257,6 +1260,7 @@ const AdminLogin = () => {
             required
           />
         </div>
+<<<<<<< HEAD
 
 <<<<<<< HEAD
         <div>
@@ -1413,6 +1417,9 @@ const AdminLogin = () => {
         {/* ... Repeat for all other inputs just like above ... */}
 >>>>>>> 26b7b08 (updated tour options for add tour button & edit tour)
 
+=======
+        
+>>>>>>> 5a9ee12 (updated new tour and edit tour to ask new variables)
         <div className="flex justify-end mt-4">
           <button
             type="button"
@@ -1623,7 +1630,6 @@ const AdminLogin = () => {
           />
         </div>
 
-        {/* Actions */}
         <div className="flex justify-end mt-4">
           <button
             type="button"
@@ -2418,17 +2424,3 @@ return (
     </Routes>
   );
 }
-
-export default App;
-function setShowEditTourModal(arg0: boolean): void {
-  throw new Error('Function not implemented.');
-}
-
-function setTours(arg0: (prev: any) => any) {
-  throw new Error('Function not implemented.');
-}
-
-function setEditTour(arg0: null) {
-  throw new Error('Function not implemented.');
-}
-
