@@ -877,7 +877,7 @@ const [newTour, setNewTour] = useState({ ...defaultNewTour });
     </div>
 
     <div className="grid gap-6">
-      {/* Tour Display in Tour Management */}
+      {/* Tour View */}
       {tours.map((tour) => (
         <div key={tour.id} className="bg-white rounded-xl shadow-sm border p-6">
         <div className="flex justify-between items-start mb-4">
@@ -931,8 +931,8 @@ const [newTour, setNewTour] = useState({ ...defaultNewTour });
               month: 'long',
               day: 'numeric',
               year: 'numeric',
-              })}`
-            : 'N/A'}
+            })}`
+          : 'N/A'}
           </div>
 
 
@@ -996,7 +996,7 @@ const [newTour, setNewTour] = useState({ ...defaultNewTour });
     {/* Rendering Fixed; Tour Doesn't Save With Correct Properties*/}
     {showNewTourModal && (
   <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-    <div className="bg-white rounded-xl max-w-md w-full p-6 h-3/4 overflow-y-auto">
+    <div className="bg-white rounded-xl w-full max-w-xl h-3/4 overflow-y-auto p-6">
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-xl font-bold text-gray-900">Add New Tour</h3>
         <button
@@ -1015,11 +1015,11 @@ const [newTour, setNewTour] = useState({ ...defaultNewTour });
             ...prev,
             {
               ...newTour,
-              id: prev.length ? Math.max(...prev.map(t => t.id)) + 1 : 1,
+              id: prev.length ? Math.max(...prev.map((t) => t.id)) + 1 : 1,
             },
           ]);
-          setNewTour(defaultNewTour);
           setShowNewTourModal(false);
+          setNewTour(defaultNewTour);
         }}
       >
         <div>
@@ -1028,11 +1028,162 @@ const [newTour, setNewTour] = useState({ ...defaultNewTour });
             type="text"
             className="w-full px-3 py-2 border border-gray-300 rounded-lg"
             value={newTour.title}
-            onChange={(e) => setNewTour({ ...newTour, title: e.target.value })}
+            onChange={(e) => setNewTour((prev) => ({ ...prev, title: e.target.value }))}
             required
           />
         </div>
-        
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+          <textarea
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+            value={newTour.description}
+            onChange={(e) => setNewTour((prev) => ({ ...prev, description: e.target.value }))}
+            required
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Duration</label>
+          <input
+            type="text"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+            placeholder="e.g. 1 Hour"
+            value={newTour.duration}
+            onChange={(e) => setNewTour((prev) => ({ ...prev, duration: e.target.value }))}
+            required
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Max Attendees</label>
+          <input
+            type="number"
+            min={1}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+            value={newTour.maxAttendees}
+            onChange={(e) => setNewTour((prev) => ({ ...prev, maxAttendees: Number(e.target.value) }))}
+            required
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+          <select
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+            value={newTour.available ? 'active' : 'inactive'}
+            onChange={(e) =>
+              setNewTour((prev) => ({ ...prev, available: e.target.value === 'active' }))
+            }
+          >
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Frequency</label>
+          <select
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+            value={newTour.frequency || ''}
+            onChange={(e) => setNewTour((prev) => ({ ...prev, frequency: e.target.value }))}
+          >
+            <option value="">Select Frequency</option>
+            <option value="hourly">Every Hour</option>
+            <option value="half-hourly">Every Half Hour</option>
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Break Duration</label>
+          <input
+            type="text"
+            placeholder="e.g. 5 minutes"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+            value={newTour.break || ''}
+            onChange={(e) => setNewTour((prev) => ({ ...prev, break: e.target.value }))}
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Time Range</label>
+          <input
+            type="text"
+            placeholder="e.g. 9am - 12pm"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+            value={newTour.timeRange || ''}
+            onChange={(e) => setNewTour((prev) => ({ ...prev, timeRange: e.target.value }))}
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Date Range</label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div>
+              <label className="block text-xs text-gray-600 mb-1">Start Date</label>
+              <input
+                type="date"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                value={newTour.startDate || ''}
+                onChange={(e) => setNewTour((prev) => ({ ...prev, startDate: e.target.value }))}
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-600 mb-1">End Date</label>
+              <input
+                type="date"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                value={newTour.endDate || ''}
+                onChange={(e) => setNewTour((prev) => ({ ...prev, endDate: e.target.value }))}
+                min={newTour.startDate || ''}
+              />
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Advance Notice</label>
+          <input
+            type="text"
+            placeholder="e.g. Must book 1 week in advance"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+            value={newTour.notice || ''}
+            onChange={(e) => setNewTour((prev) => ({ ...prev, notice: e.target.value }))}
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
+          <input
+            type="text"
+            placeholder="e.g. Baskin Engineering"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+            value={newTour.location || ''}
+            onChange={(e) => setNewTour((prev) => ({ ...prev, location: e.target.value }))}
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Zoom Link</label>
+          <input
+            type="url"
+            placeholder="e.g. https://zoom.us/..."
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+            value={newTour.zoomLink || ''}
+            onChange={(e) => setNewTour((prev) => ({ ...prev, zoomLink: e.target.value }))}
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Holiday Hours / Notes</label>
+          <textarea
+            placeholder="e.g. No tours on Nov 28"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+            value={newTour.holidayHours || ''}
+            onChange={(e) => setNewTour((prev) => ({ ...prev, holidayHours: e.target.value }))}
+          />
+        </div>
+
         <div className="flex justify-end mt-4">
           <button
             type="button"
@@ -1243,6 +1394,7 @@ const [newTour, setNewTour] = useState({ ...defaultNewTour });
           />
         </div>
 
+        {/* Actions */}
         <div className="flex justify-end mt-4">
           <button
             type="button"
@@ -1917,3 +2069,17 @@ return (
     </Routes>
   );
 }
+
+export default App;
+function setShowEditTourModal(arg0: boolean): void {
+  throw new Error('Function not implemented.');
+}
+
+function setTours(arg0: (prev: any) => any) {
+  throw new Error('Function not implemented.');
+}
+
+function setEditTour(arg0: null) {
+  throw new Error('Function not implemented.');
+}
+
