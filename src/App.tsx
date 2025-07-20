@@ -1,5 +1,9 @@
 import React, { useState } from 'react';
+<<<<<<< HEAD
 import { Calendar, Users, Settings, Clock,  Shield, Menu, X, LogOut, User, MapPin, Mail, Phone, Edit3, Save, Plus, Trash2, UsersRound, Clock10, CalendarCheck, CalendarDays, CalendarCheck2Icon, CalendarX2, CalendarX, TimerIcon, Clock11Icon, Clock6, CheckCircle2, BellDot, Timer, Eye, EyeOff } from 'lucide-react';
+=======
+import { Calendar, Users, Settings, Clock,  Shield, Menu, X, LogOut, User, MapPin, Mail, Phone, Edit3, Save, Plus, Trash2, UsersRound, Clock10, CalendarCheck, CalendarDays, CalendarCheck2Icon, CalendarX2, CalendarX, TimerIcon, Clock11Icon, Clock6, CheckCircle2, BellDot, Timer } from 'lucide-react';
+>>>>>>> 26b7b08 (updated tour options for add tour button & edit tour)
 import { Routes, Route, useNavigate, Navigate } from 'react-router-dom';
 <<<<<<< HEAD
 import { mockTours, mockBesas, mockBookings } from '../data/mockData.ts';
@@ -234,6 +238,8 @@ const mockBookings = [
 
 
 
+
+
 type UserRole = 'public' | 'admin';
 
 function App() {
@@ -284,6 +290,7 @@ const [newTour, setNewTour] = useState({ ...defaultNewTour });
     });
 
 <<<<<<< HEAD
+<<<<<<< HEAD
   {/* Logout Button Sends to Homepage*/}
 =======
   // const handleLogin = (role: UserRole) => {
@@ -294,6 +301,9 @@ const [newTour, setNewTour] = useState({ ...defaultNewTour });
   // };
 
 >>>>>>> a6bbd7c (besa login page)
+=======
+  {/* Logout Button Sends to Homepage*/}
+>>>>>>> 26b7b08 (updated tour options for add tour button & edit tour)
   const handleLogout = () => {
     setCurrentRole('public');
     setIsMobileMenuOpen(false);
@@ -731,7 +741,11 @@ const AdminLogin = () => {
     );
   };
 
+<<<<<<< HEAD
 >>>>>>> a6bbd7c (besa login page)
+=======
+  {/* ADMIN PAGE HEADER */}
+>>>>>>> 26b7b08 (updated tour options for add tour button & edit tour)
   const DashboardLayout = ({ children }: { children: React.ReactNode }) => (
     <div className="min-h-screen bg-gray-50">
       {/* HEADER */}
@@ -978,12 +992,17 @@ const AdminLogin = () => {
   );
 
 <<<<<<< HEAD
+<<<<<<< HEAD
   {/* TOURS MANAGEMENT PAGE */}
   { /* Tour Info Rendering Problem: Doesn't Save + Needs Reclick After Each Input */}
 =======
   {/* TOURS MANAGEMENT PAGE 
     Tour Info Rendering Problem: Doesn't Save + Needs Reclick After Each Input*/}
 >>>>>>> a6bbd7c (besa login page)
+=======
+  {/* TOURS MANAGEMENT PAGE */}
+  { /* Tour Info Rendering Problem: Doesn't Save + Needs Reclick After Each Input */}
+>>>>>>> 26b7b08 (updated tour options for add tour button & edit tour)
   const ToursManagementView = () => (
   <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <div className="flex justify-between items-center mb-8">
@@ -1000,10 +1019,16 @@ const AdminLogin = () => {
     </div>
 
     <div className="grid gap-6">
+<<<<<<< HEAD
       {/* Tour View */}
       {tours.map((tour) => (
         <div key={tour.id} className="bg-white rounded-xl shadow-sm border p-6">
 <<<<<<< HEAD
+=======
+      {/* Tour Display in Tour Management */}
+      {tours.map((tour) => (
+        <div key={tour.id} className="bg-white rounded-xl shadow-sm border p-6">
+>>>>>>> 26b7b08 (updated tour options for add tour button & edit tour)
         <div className="flex justify-between items-start mb-4">
         <div className="flex-1">
         <h3 className="text-xl font-bold text-gray-900 mb-2">{tour.title}</h3>
@@ -1013,6 +1038,7 @@ const AdminLogin = () => {
           <div>
             <Clock className="inline-block mr-1" />
             <strong>Duration:</strong> {tour.duration}
+<<<<<<< HEAD
 =======
           <div className="flex justify-between items-start mb-4">
             <div>
@@ -1057,6 +1083,8 @@ const AdminLogin = () => {
               </button>
             </div>
 >>>>>>> a6bbd7c (besa login page)
+=======
+>>>>>>> 26b7b08 (updated tour options for add tour button & edit tour)
           </div>
 
           <div>
@@ -1099,10 +1127,19 @@ const AdminLogin = () => {
               month: 'long',
               day: 'numeric',
               year: 'numeric',
+<<<<<<< HEAD
             })}`
           : 'N/A'}
           </div>
 
+=======
+              })}`
+            : 'N/A'}
+          </div>
+
+
+
+>>>>>>> 26b7b08 (updated tour options for add tour button & edit tour)
           <div>
             <Clock className="inline-block mr-1" />
             <strong>Time Range:</strong> {tour.timeRange || 'N/A'}
@@ -1154,13 +1191,22 @@ const AdminLogin = () => {
     </div>
   </div>
 ))}
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> 26b7b08 (updated tour options for add tour button & edit tour)
     </div>
 
     {/* Add New Tour Button Window */}
     {/* Rendering Fixed; Tour Doesn't Save With Correct Properties*/}
     {showNewTourModal && (
   <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+<<<<<<< HEAD
     <div className="bg-white rounded-xl w-full max-w-xl h-3/4 overflow-y-auto p-6">
+=======
+    <div className="bg-white rounded-xl max-w-md w-full p-6 h-3/4 overflow-y-auto">
+>>>>>>> 26b7b08 (updated tour options for add tour button & edit tour)
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-xl font-bold text-gray-900">Add New Tour</h3>
         <button
@@ -1179,6 +1225,7 @@ const AdminLogin = () => {
             ...prev,
             {
               ...newTour,
+<<<<<<< HEAD
               id: prev.length ? Math.max(...prev.map((t) => t.id)) + 1 : 1,
             },
           ]);
@@ -1186,17 +1233,32 @@ const AdminLogin = () => {
           setNewTour(defaultNewTour);
         }}
       >
+=======
+              id: prev.length ? Math.max(...prev.map(t => t.id)) + 1 : 1,
+            },
+          ]);
+          setNewTour(defaultNewTour);
+          setShowNewTourModal(false);
+        }}
+      >
+        {/* Put all your input fields INSIDE here! */}
+>>>>>>> 26b7b08 (updated tour options for add tour button & edit tour)
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
           <input
             type="text"
             className="w-full px-3 py-2 border border-gray-300 rounded-lg"
             value={newTour.title}
+<<<<<<< HEAD
             onChange={(e) => setNewTour((prev) => ({ ...prev, title: e.target.value }))}
+=======
+            onChange={(e) => setNewTour({ ...newTour, title: e.target.value })}
+>>>>>>> 26b7b08 (updated tour options for add tour button & edit tour)
             required
           />
         </div>
 
+<<<<<<< HEAD
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
           <textarea
@@ -1347,6 +1409,9 @@ const AdminLogin = () => {
             onChange={(e) => setNewTour((prev) => ({ ...prev, holidayHours: e.target.value }))}
           />
         </div>
+=======
+        {/* ... Repeat for all other inputs just like above ... */}
+>>>>>>> 26b7b08 (updated tour options for add tour button & edit tour)
 
         <div className="flex justify-end mt-4">
           <button
@@ -1583,6 +1648,7 @@ const AdminLogin = () => {
 );
 
 <<<<<<< HEAD
+<<<<<<< HEAD
   // Rendering Problem: User needs to click screen after every input
   // Edit button has more time frames, email change option, name change, etc.
 =======
@@ -1608,6 +1674,10 @@ const AdminLogin = () => {
   {/* Rendering Problem: User needs to click screen after every input
     Edit button has more time frames, email change option, name change, etc.*/}
 >>>>>>> a6bbd7c (besa login page)
+=======
+  // Rendering Problem: User needs to click screen after every input
+  // Edit button has more time frames, email change option, name change, etc.
+>>>>>>> 26b7b08 (updated tour options for add tour button & edit tour)
   const BESAManagementView = () => (
   <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <div className="flex justify-between items-center mb-8">
@@ -2224,6 +2294,7 @@ return (
         element={
           isAdminAuthenticated ? (
 <<<<<<< HEAD
+<<<<<<< HEAD
             <Navigate to="/admin/dashboard" />) : (<AdminLogin />)}/>
 =======
             <Navigate to="/admin/dashboard" />
@@ -2233,10 +2304,14 @@ return (
         }
       />
 >>>>>>> a6bbd7c (besa login page)
+=======
+            <Navigate to="/admin/dashboard" />) : (<AdminLogin />)}/>
+>>>>>>> 26b7b08 (updated tour options for add tour button & edit tour)
       <Route
         path="/admin/dashboard"
         element={
           isAdminAuthenticated ? (
+<<<<<<< HEAD
 <<<<<<< HEAD
             <DashboardLayout><DashboardView /></DashboardLayout>) : (<Navigate to="/admin" />)}/>
 =======
@@ -2247,10 +2322,14 @@ return (
         }
       />
 >>>>>>> a6bbd7c (besa login page)
+=======
+            <DashboardLayout><DashboardView /></DashboardLayout>) : (<Navigate to="/admin" />)}/>
+>>>>>>> 26b7b08 (updated tour options for add tour button & edit tour)
       <Route
         path="/admin/schedule"
         element={
           isAdminAuthenticated ? (
+<<<<<<< HEAD
 <<<<<<< HEAD
             <DashboardLayout><ScheduleView /></DashboardLayout>) : (<Navigate to="/admin" />)}/>
 =======
@@ -2261,10 +2340,14 @@ return (
         }
       />
 >>>>>>> a6bbd7c (besa login page)
+=======
+            <DashboardLayout><ScheduleView /></DashboardLayout>) : (<Navigate to="/admin" />)}/>
+>>>>>>> 26b7b08 (updated tour options for add tour button & edit tour)
       <Route
         path="/admin/tours"
         element={
           isAdminAuthenticated ? (
+<<<<<<< HEAD
 <<<<<<< HEAD
             <DashboardLayout><ToursManagementView /></DashboardLayout>) : (<Navigate to="/admin" />)}/>
 =======
@@ -2275,10 +2358,14 @@ return (
         }
       />
 >>>>>>> a6bbd7c (besa login page)
+=======
+            <DashboardLayout><ToursManagementView /></DashboardLayout>) : (<Navigate to="/admin" />)}/>
+>>>>>>> 26b7b08 (updated tour options for add tour button & edit tour)
       <Route
         path="/admin/besas"
         element={
           isAdminAuthenticated ? (
+<<<<<<< HEAD
 <<<<<<< HEAD
             <DashboardLayout><BESAManagementView /></DashboardLayout>) : (<Navigate to="/admin" />)}/>
 =======
@@ -2289,10 +2376,14 @@ return (
         }
       />
 >>>>>>> a6bbd7c (besa login page)
+=======
+            <DashboardLayout><BESAManagementView /></DashboardLayout>) : (<Navigate to="/admin" />)}/>
+>>>>>>> 26b7b08 (updated tour options for add tour button & edit tour)
       <Route
         path="/admin/office-hours"
         element={
           isAdminAuthenticated ? (
+<<<<<<< HEAD
 <<<<<<< HEAD
             <DashboardLayout><OfficeHoursView /></DashboardLayout>) : (<Navigate to="/admin" />)}/>
 =======
@@ -2303,10 +2394,14 @@ return (
         }
       />
 >>>>>>> a6bbd7c (besa login page)
+=======
+            <DashboardLayout><OfficeHoursView /></DashboardLayout>) : (<Navigate to="/admin" />)}/>
+>>>>>>> 26b7b08 (updated tour options for add tour button & edit tour)
       <Route
         path="/admin/settings"
         element={
           isAdminAuthenticated ? (
+<<<<<<< HEAD
 <<<<<<< HEAD
             <DashboardLayout><SettingsView /></DashboardLayout>) : (<Navigate to="/admin" />)}/>
 =======
@@ -2317,8 +2412,23 @@ return (
         }
       />
 >>>>>>> a6bbd7c (besa login page)
+=======
+            <DashboardLayout><SettingsView /></DashboardLayout>) : (<Navigate to="/admin" />)}/>
+>>>>>>> 26b7b08 (updated tour options for add tour button & edit tour)
     </Routes>
   );
 }
 
 export default App;
+function setShowEditTourModal(arg0: boolean): void {
+  throw new Error('Function not implemented.');
+}
+
+function setTours(arg0: (prev: any) => any) {
+  throw new Error('Function not implemented.');
+}
+
+function setEditTour(arg0: null) {
+  throw new Error('Function not implemented.');
+}
+
