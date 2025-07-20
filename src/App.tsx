@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { Calendar, Users, Settings, Clock,  Shield, Menu, X, LogOut, User, MapPin, Mail, Phone, Edit3, Save, Plus, Trash2, UsersRound } from 'lucide-react';
+import { Calendar, Users, Settings, Clock,  Shield, Menu, X, LogOut, User, MapPin, Mail, Phone, Edit3, Save, Plus, Trash2, UsersRound, Clock10, CalendarCheck, CalendarDays, CalendarCheck2Icon, CalendarX2, CalendarX, TimerIcon, Clock11Icon, Clock6, CheckCircle2, BellDot, Timer } from 'lucide-react';
 import { Routes, Route, useNavigate, Navigate } from 'react-router-dom';
 import { mockTours, mockBesas, mockBookings } from '../data/mockData.ts';
+
+
 
 type UserRole = 'public' | 'admin';
 
@@ -11,40 +13,55 @@ function App() {
   const [selectedTour, setSelectedTour] = useState<number | null>(null);
   const [selectedBesa, setSelectedBesa] = useState<number | null>(null);
   const [editingOfficeHours, setEditingOfficeHours] = useState<number | null>(null);
-  const [besas, setBesas] = useState(mockBesas);
+  const [besas, setBesas] = useState(mockBesas); 
   const [tours, setTours] = useState(mockTours);
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
 
   const navigate = useNavigate();
 
   {/* Add New Tour Info Button*/}
-  const [showNewTourModal, setShowNewTourModal] = useState(false);
-  const [newTour, setNewTour] = useState({
+  const defaultNewTour = {
     title: '',
     description: '',
     duration: '',
     maxAttendees: 1,
     available: true,
-  });
+    frequency: '',
+    break: '',
+    timeRange: '',
+    startDate: '',
+    endDate: '',
+    notice: '',
+    location: '',
+    zoomLink: '',
+    holidayHours: '',
+  };
 
-  {/* Edit Tour Info Button*/}
+const [showNewTourModal, setShowNewTourModal] = useState(false);
+const [newTour, setNewTour] = useState({ ...defaultNewTour });
+
+
+  {/* Edit Tour Info Button */}
   const [showEditTourModal, setShowEditTourModal] = useState(false);
   const [editTour, setEditTour] = useState<any>(null);
 
+  {/* New BESA Button */}
+  const [showNewBesaModal, setShowNewBesaModal] = useState(false);
+  const [newBesa, setNewBesa] = useState({
+    name: '',
+    email: '',
+    role: 'BESA',
+    status: 'active',
+    });
 
-  // const handleLogin = (role: UserRole) => {
-  //   setCurrentRole(role);
-  //   setIsMobileMenuOpen(false);
-  //   if (role === 'admin') navigate('/admin/dashboard');
-  //   else navigate('/');
-  // };
-
+  {/* Logout Button Sends to Homepage*/}
   const handleLogout = () => {
     setCurrentRole('public');
     setIsMobileMenuOpen(false);
     navigate('/');
   };
 
+    {/* Update office Hours Helper Function */}
   const updateBesaOfficeHours = (besaId: number, day: string, field: string, value: string | boolean) => {
     setBesas(prev => prev.map(besa => 
       besa.id === besaId 
@@ -62,6 +79,19 @@ function App() {
     ));
   };
 
+  {/* Edit BESA Info Helper Function */}
+  const updateBesaField = (
+    id: number,
+    field: 'name' | 'email' | 'role' | 'status',
+    value: string) => {
+    setBesas(prevBesas =>
+      prevBesas.map(besa =>
+        besa.id === id ? { ...besa, [field]: value }: besa
+      )
+    );
+  };
+
+  {/* Office Hours Page - Compiled Schedule*/}
   const getCompiledSchedule = () => {
     const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
     const schedule: { [key: string]: { start: string; end: string; besas: string[] } } = {};
@@ -97,14 +127,14 @@ function App() {
     return schedule;
   };
 
+  {/* MAIN HOMEPAGE*/}
   const PublicBookingView = () => (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-    {/* Header */}
+    {/* Top Header */}
     <header className="bg-white shadow-sm border-b-4 border-orange-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center space-x-2">
-            {/*When logo clicked, redriect to homepage*/}
             <a href="/">
               <img src="/BE_logo.png" alt="BESA logo" className="h-12 w-12 object-contain" />
             </a>
@@ -359,6 +389,7 @@ function App() {
     );
   };
 
+  {/* ADMIN PAGE HEADER */}
   const DashboardLayout = ({ children }: { children: React.ReactNode }) => (
     <div className="min-h-screen bg-gray-50">
       {/* HEADER */}
@@ -604,8 +635,8 @@ function App() {
     </div>
   );
 
-  {/* TOURS MANAGEMENT PAGE 
-    Tour Info Rendering Problem: Doesn't Save + Needs Reclick After Each Input*/}
+  {/* TOURS MANAGEMENT PAGE */}
+  { /* Tour Info Rendering Problem: Doesn't Save + Needs Reclick After Each Input */}
   const ToursManagementView = () => (
   <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <div className="flex justify-between items-center mb-8">
@@ -615,173 +646,198 @@ function App() {
       </div>
       <button
         className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center space-x-2"
-        onClick={() => setShowNewTourModal(true)}
-      >
+        onClick={() => setShowNewTourModal(true)}>
         <Plus className="h-4 w-4" />
         <span>Add New Tour</span>
       </button>
     </div>
 
     <div className="grid gap-6">
+      {/* Tour Display in Tour Management */}
       {tours.map((tour) => (
         <div key={tour.id} className="bg-white rounded-xl shadow-sm border p-6">
-          <div className="flex justify-between items-start mb-4">
-            <div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">{tour.title}</h3>
-              <p className="text-gray-600 mb-4">{tour.description}</p>
-              <div className="flex items-center space-x-6 text-sm text-gray-500">
-                <div className="flex items-center space-x-1">
-                  <Clock className="h-4 w-4" />
-                  <span>{tour.duration}</span>
-                </div>
-                <div className="flex items-center space-x-1">
-                  <Users className="h-4 w-4" />
-                  <span>Max {tour.maxAttendees} attendees</span>
-                </div>
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                  tour.available ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                }`}>
-                  {tour.available ? 'Active' : 'Inactive'}
-                </span>
-              </div>
-            </div>
-            <div className="flex space-x-2">
-              <button
-                className="px-3 py-1 text-blue-600 hover:bg-blue-50 rounded-lg text-sm font-medium flex items-center space-x-1"
-                onClick={() => {
-                setEditTour(tour);
-                setShowEditTourModal(true);
-                }}>
-                  <Edit3 className="h-3 w-3" />
-                  <span>Edit</span>
-              </button>
-              <button
-                className="px-3 py-1 text-red-600 hover:bg-red-50 rounded-lg text-sm font-medium flex items-center space-x-1"
-                onClick={() => {
-                  if (window.confirm(`Are you sure you want to delete ${tour.title}? This action cannot be undone.`)) {
-                    setTours(prev => prev.filter(t => t.id !== tour.id));
-                  }
-                }}
-              >
-                <Trash2 className="h-3 w-3" />
-                Delete
-              </button>
-            </div>
+        <div className="flex justify-between items-start mb-4">
+        <div className="flex-1">
+        <h3 className="text-xl font-bold text-gray-900 mb-2">{tour.title}</h3>
+        <p className="text-gray-600 mb-4">{tour.description}</p>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4 text-sm text-gray-700">
+          <div>
+            <Clock className="inline-block mr-1" />
+            <strong>Duration:</strong> {tour.duration}
           </div>
+
+          <div>
+            <User className="inline-block mr-1" />
+            <strong>Max Attendees:</strong> {tour.maxAttendees}
+          </div>
+
+          <div>
+            <CheckCircle2 className="inline-block mr-1" />
+            <strong>Status:</strong>{' '}
+            <span className={`font-medium ${tour.available ? 'text-green-700' : 'text-red-700'}`}>
+              {tour.available ? 'Active' : 'Inactive'}
+            </span>
+          </div>
+
+          <div>
+            <Timer className="inline-block mr-1" />
+            <strong>Frequency:</strong> {tour.frequency || 'N/A'}
+          </div>
+
+          <div>
+            <Clock className="inline-block mr-1" />
+            <strong>Break Duration:</strong> {tour.break || 'N/A'}
+          </div>
+
+          <div>
+            <MapPin className="inline-block mr-1" />
+            <strong>Location:</strong> {tour.location || 'N/A'}
+          </div>
+
+          <div>
+            <Calendar className="inline-block mr-1" />
+            <strong>Date Range:</strong>{' '}
+            {tour.startDate && tour.endDate
+            ? `${new Date(tour.startDate).toLocaleDateString('en-US', {
+              month: 'long',
+              day: 'numeric',
+              year: 'numeric',
+            })} to ${new Date(tour.endDate).toLocaleDateString('en-US', {
+              month: 'long',
+              day: 'numeric',
+              year: 'numeric',
+              })}`
+            : 'N/A'}
+          </div>
+
+
+
+          <div>
+            <Clock className="inline-block mr-1" />
+            <strong>Time Range:</strong> {tour.timeRange || 'N/A'}
+          </div>
+
+          <div>
+            <CalendarX className="inline-block mr-1" />
+            <strong>Holiday Hours:</strong> {tour.holidayHours || 'N/A'}
+          </div>
+
+          {tour.zoomLink && (
+            <div className="md:col-span-3">
+              <strong>Zoom Link:</strong>{' '}
+              <a href={tour.zoomLink} className="text-blue-600 underline" target="_blank" rel="noopener noreferrer">
+                {tour.zoomLink}
+              </a>
+            </div>
+          )}
+
+          <div>
+            <BellDot className="inline-block mr-1" />
+            <strong>Advance Notice:</strong> {tour.notice || 'N/A'}
+          </div>
+          
         </div>
-      ))}
+      </div>
+
+      <div className="flex flex-col space-y-2 ml-4">
+        <button
+          className="px-3 py-1 text-blue-600 hover:bg-blue-50 rounded-lg text-sm font-medium flex items-center space-x-1"
+          onClick={() => {
+            setEditTour(tour);
+            setShowEditTourModal(true);
+          }}>
+          <Edit3 className="h-3 w-3" />
+          <span>Edit</span>
+        </button>
+        <button
+          className="px-3 py-1 text-red-600 hover:bg-red-50 rounded-lg text-sm font-medium flex items-center space-x-1"
+          onClick={() => {
+            if (window.confirm(`Are you sure you want to delete ${tour.title}? This action cannot be undone.`)) {
+              setTours(prev => prev.filter(t => t.id !== tour.id));
+            }
+          }}>
+          <Trash2 className="h-3 w-3" />
+          <span>Delete</span>
+        </button>
+      </div>
+    </div>
+  </div>
+))}
+
+
     </div>
 
     {/* Add New Tour Button Window */}
-    {/* Problem: Tour Doesn't Save*/}
+    {/* Rendering Fixed; Tour Doesn't Save With Correct Properties*/}
     {showNewTourModal && (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-        <div className="bg-white rounded-xl max-w-md w-full p-6">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-xl font-bold text-gray-900">Add New Tour</h3>
-            <button
-              onClick={() => setShowNewTourModal(false)}
-              className="text-gray-400 hover:text-gray-600"
-            >
-              <X className="h-6 w-6" />
-            </button>
-          </div>
-          <form
-            className="space-y-4"
-            onSubmit={e => {
-              e.preventDefault();
-              setTours(prev => [
-                ...prev,
-                {
-                  ...newTour,
-                  id: prev.length ? Math.max(...prev.map(t => t.id)) + 1 : 1,
-                },
-              ]);
-              setShowNewTourModal(false);
-              setNewTour({
-                title: '',
-                description: '',
-                duration: '',
-                maxAttendees: 1,
-                available: true,
-              });
-            }}
-          >
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
-              <input
-                type="text"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                value={newTour.title}
-                onChange={e => setNewTour({ ...newTour, title: e.target.value })}
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-              <textarea
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                value={newTour.description}
-                onChange={e => setNewTour({ ...newTour, description: e.target.value })}
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Duration</label>
-              <input
-                type="text"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                value={newTour.duration}
-                onChange={e => setNewTour({ ...newTour, duration: e.target.value })}
-                required
-                placeholder="e.g. 1 Hour"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Max Attendees</label>
-              <input
-                type="number"
-                min={1}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                value={newTour.maxAttendees}
-                onChange={e => setNewTour({ ...newTour, maxAttendees: Number(e.target.value) })}
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-              <select
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                value={newTour.available ? 'active' : 'inactive'}
-                onChange={e => setNewTour({ ...newTour, available: e.target.value === 'active' })}
-              >
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-              </select>
-            </div>
-            <div className="flex justify-end mt-4">
-              <button
-                type="button"
-                onClick={() => setShowNewTourModal(false)}
-                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 mr-2"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-              >
-                Add Tour
-              </button>
-            </div>
-          </form>
-        </div>
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div className="bg-white rounded-xl max-w-md w-full p-6 h-3/4 overflow-y-auto">
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-xl font-bold text-gray-900">Add New Tour</h3>
+        <button
+          onClick={() => setShowNewTourModal(false)}
+          className="text-gray-400 hover:text-gray-600"
+        >
+          <X className="h-6 w-6" />
+        </button>
       </div>
-    )}
 
+      <form
+        className="space-y-4"
+        onSubmit={(e) => {
+          e.preventDefault();
+          setTours((prev) => [
+            ...prev,
+            {
+              ...newTour,
+              id: prev.length ? Math.max(...prev.map(t => t.id)) + 1 : 1,
+            },
+          ]);
+          setNewTour(defaultNewTour);
+          setShowNewTourModal(false);
+        }}
+      >
+        {/* Put all your input fields INSIDE here! */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+          <input
+            type="text"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+            value={newTour.title}
+            onChange={(e) => setNewTour({ ...newTour, title: e.target.value })}
+            required
+          />
+        </div>
+
+        {/* ... Repeat for all other inputs just like above ... */}
+
+        <div className="flex justify-end mt-4">
+          <button
+            type="button"
+            onClick={() => setShowNewTourModal(false)}
+            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 mr-2"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Add Tour
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+)}
+
+
+    {/* Edit Tour Button Window */}
+    {/* Rendering Problem: Reclick after every input */}
     {showEditTourModal && editTour && (
   <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-    <div className="bg-white rounded-xl max-w-md w-full p-6">
+    <div className="bg-white rounded-xl w-full max-w-xl h-3/4 overflow-y-auto p-6">
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-xl font-bold text-gray-900">Edit Tour</h3>
         <button
@@ -791,14 +847,13 @@ function App() {
           <X className="h-6 w-6" />
         </button>
       </div>
+
       <form
         className="space-y-4"
-        onSubmit={e => {
+        onSubmit={(e) => {
           e.preventDefault();
-          setTours(prev =>
-            prev.map(t =>
-              t.id === editTour.id ? editTour : t
-            )
+          setTours((prev) =>
+            prev.map((t) => (t.id === editTour.id ? editTour : t))
           );
           setShowEditTourModal(false);
           setEditTour(null);
@@ -810,30 +865,33 @@ function App() {
             type="text"
             className="w-full px-3 py-2 border border-gray-300 rounded-lg"
             value={editTour.title}
-            onChange={e => setEditTour({ ...editTour, title: e.target.value })}
+            onChange={(e) => setEditTour({ ...editTour, title: e.target.value })}
             required
           />
         </div>
+
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
           <textarea
             className="w-full px-3 py-2 border border-gray-300 rounded-lg"
             value={editTour.description}
-            onChange={e => setEditTour({ ...editTour, description: e.target.value })}
+            onChange={(e) => setEditTour({ ...editTour, description: e.target.value })}
             required
           />
         </div>
+
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Duration</label>
           <input
             type="text"
             className="w-full px-3 py-2 border border-gray-300 rounded-lg"
             value={editTour.duration}
-            onChange={e => setEditTour({ ...editTour, duration: e.target.value })}
+            onChange={(e) => setEditTour({ ...editTour, duration: e.target.value })}
             required
             placeholder="e.g. 1 Hour"
           />
         </div>
+
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Max Attendees</label>
           <input
@@ -841,21 +899,130 @@ function App() {
             min={1}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg"
             value={editTour.maxAttendees}
-            onChange={e => setEditTour({ ...editTour, maxAttendees: Number(e.target.value) })}
+            onChange={(e) => setEditTour({ ...editTour, maxAttendees: Number(e.target.value) })}
             required
           />
         </div>
+
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
           <select
             className="w-full px-3 py-2 border border-gray-300 rounded-lg"
             value={editTour.available ? 'active' : 'inactive'}
-            onChange={e => setEditTour({ ...editTour, available: e.target.value === 'active' })}
+            onChange={(e) => setEditTour({ ...editTour, available: e.target.value === 'active' })}
           >
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>
           </select>
         </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Frequency</label>
+          <select
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+            value={editTour.frequency || ''}
+            onChange={(e) => setEditTour({ ...editTour, frequency: e.target.value })}
+          >
+            <option value="">Select Frequency</option>
+            <option value="hourly">Every Hour</option>
+            <option value="half-hourly">Every Half Hour</option>
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Break Duration</label>
+          <input
+            type="text"
+            placeholder="e.g. 5 minutes"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+            value={editTour.break || ''}
+            onChange={(e) => setEditTour({ ...editTour, break: e.target.value })}
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Time Range</label>
+          <input
+            type="text"
+            placeholder="e.g. 9am - 12pm"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+            value={editTour.timeRange || ''}
+            onChange={(e) => setEditTour({ ...editTour, timeRange: e.target.value })}
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Date Range</label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div>
+              <label className="block text-xs text-gray-600 mb-1">Start Date</label>
+              <input
+                type="date"
+                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                value={editTour.startDate || ''}
+                onChange={(e) => setEditTour({ ...editTour, startDate: e.target.value })}
+              />
+            </div>
+          <div>
+            <label className="block text-xs text-gray-600 mb-1">End Date</label>
+            <input
+              type="date"
+              required
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+              value={editTour.endDate || ''}
+              onChange={(e) => setEditTour({ ...editTour, endDate: e.target.value })}
+              min={editTour.startDate || ''}
+            />
+          </div>
+          </div>
+        </div>
+
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Advance Notice</label>
+          <input
+            type="text"
+            placeholder="e.g. Must book 1 week in advance"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+            value={editTour.notice || ''}
+            onChange={(e) => setEditTour({ ...editTour, notice: e.target.value })}
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
+          <input
+            type="text"
+            placeholder="e.g. Baskin Engineering"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+            value={editTour.location || ''}
+            onChange={(e) => setEditTour({ ...editTour, location: e.target.value })}
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Zoom Link</label>
+          <input
+            type="url"
+            placeholder="e.g. https://zoom.us/..."
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+            value={editTour.zoomLink || ''}
+            onChange={(e) => setEditTour({ ...editTour, zoomLink: e.target.value })}
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Holiday Hours / Notes</label>
+          <textarea
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+            placeholder="e.g. No tours on Nov 28"
+            value={editTour.holidayHours || ''}
+            onChange={(e) => setEditTour({ ...editTour, holidayHours: e.target.value })}
+          />
+        </div>
+
+        {/* Actions */}
         <div className="flex justify-end mt-4">
           <button
             type="button"
@@ -875,46 +1042,29 @@ function App() {
     </div>
   </div>
 )}
+
   </div>
 );
 
-  const [showNewBesaModal, setShowNewBesaModal] = useState(false);
-  const [newBesa, setNewBesa] = useState({
-    name: '',
-    email: '',
-    role: 'BESA',
-    status: 'active',
-    toursThisWeek: 0,
-    totalTours: 0,
-    officeHours: {
-      monday: { start: '', end: '', available: false },
-      tuesday: { start: '', end: '', available: false },
-      wednesday: { start: '', end: '', available: false },
-      thursday: { start: '', end: '', available: false },
-      friday: { start: '', end: '', available: false },
-      saturday: { start: '', end: '', available: false },
-      sunday: { start: '', end: '', available: false }
-    }
-  });
-
-  {/* Rendering Problem: User needs to click screen after every input
-    Edit button has more time frames, email change option, name change, etc.*/}
+  // Rendering Problem: User needs to click screen after every input
+  // Edit button has more time frames, email change option, name change, etc.
   const BESAManagementView = () => (
   <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <div className="flex justify-between items-center mb-8">
+      {/* Besa Management Header*/}
       <div>
         <h1 className="text-3xl font-bold text-gray-900 mb-2">BESA Management</h1>
         <p className="text-gray-600">Manage BESA accounts and permissions</p>
       </div>
       <button
         className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center space-x-2"
-        onClick={() => setShowNewBesaModal(true)}
-      >
+        onClick={() => setShowNewBesaModal(true)}>
         <User className="h-4 w-4" />
         <span>Add New BESA</span>
       </button>
     </div>
 
+      {/* Besa Table Display */}
       <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -965,8 +1115,7 @@ function App() {
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                     <button 
                       onClick={() => setSelectedBesa(besa.id)}
-                      className="text-blue-600 hover:text-blue-900"
-                    >
+                      className="text-blue-600 hover:text-blue-900">
                       Edit
                     </button>
                     <button
@@ -974,9 +1123,7 @@ function App() {
                       onClick={() => {
                       if (window.confirm(`Are you sure you want to deactivate and delete ${besa.name}? This action cannot be undone.`)) {
                       setBesas(prev => prev.filter(b => b.id !== besa.id));
-                      }
-                      }}
-                    >
+                      }}}>
                     Deactivate
                   </button>
                   </td>
@@ -987,87 +1134,87 @@ function App() {
         </div>
       </div>
 
-      {/* BESA Details Listed On Table */}
+      {/* Edit Button: The Display */}
       {selectedBesa && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-2xl font-bold text-gray-900">
-                  Edit BESA: {besas.find(b => b.id === selectedBesa)?.name}
-                </h3>
-                <button
-                  onClick={() => setSelectedBesa(null)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <X className="h-6 w-6" />
-                </button>
-              </div>
+        <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="p-6">
+        <div className="flex justify-between items-center mb-6">
+          <h3 className="text-2xl font-bold text-gray-900">
+            Edit BESA: {besas.find(b => b.id === selectedBesa)?.name}
+          </h3>
+          <button
+            onClick={() => setSelectedBesa(null)}
+            className="text-gray-400 hover:text-gray-600">
+            <X className="h-6 w-6" />
+          </button>
+        </div>
 
-              {/* Office Hours Section */}
-              <div className="mb-8">
-                <h4 className="text-lg font-semibold text-gray-900 mb-4">Office Hours</h4>
-                <div className="space-y-4">
-                  {Object.entries(besas.find(b => b.id === selectedBesa)?.officeHours || {}).map(([day, hours]) => (
-                    <div key={day} className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
-                      <div className="w-24">
-                        <span className="text-sm font-medium text-gray-700 capitalize">{day}</span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <input
-                          type="checkbox"
-                          checked={hours.available}
-                          onChange={(e) => updateBesaOfficeHours(selectedBesa, day, 'available', e.target.checked)}
-                          className="h-4 w-4 text-blue-600"
-                        />
-                        <span className="text-sm text-gray-600">Available</span>
-                      </div>
-                      {hours.available && (
-                        <>
-                          <div className="flex items-center space-x-2">
-                            <label className="text-sm text-gray-600">Start:</label>
-                            <input
-                              type="time"
-                              value={hours.start}
-                              onChange={(e) => updateBesaOfficeHours(selectedBesa, day, 'start', e.target.value)}
-                              className="px-2 py-1 border border-gray-300 rounded text-sm"
-                            />
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <label className="text-sm text-gray-600">End:</label>
-                            <input
-                              type="time"
-                              value={hours.end}
-                              onChange={(e) => updateBesaOfficeHours(selectedBesa, day, 'end', e.target.value)}
-                              className="px-2 py-1 border border-gray-300 rounded text-sm"
-                            />
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="flex justify-end space-x-4">
-                <button
-                  onClick={() => setSelectedBesa(null)}
-                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={() => setSelectedBesa(null)}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center space-x-2"
-                >
-                  <Save className="h-4 w-4" />
-                  <span>Save Changes</span>
-                </button>
-              </div>
+        {/* Edit Form */}
+        <form className="space-y-6">
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+              <input
+                type="text"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                value={besas.find(b => b.id === selectedBesa)?.name || ''}
+                onChange={(e) => updateBesaField(selectedBesa, 'name', e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <input
+                type="email"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                value={besas.find(b => b.id === selectedBesa)?.email || ''}
+                onChange={(e) => updateBesaField(selectedBesa, 'email', e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
+              <select
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                value={besas.find(b => b.id === selectedBesa)?.role || 'BESA'}
+                onChange={(e) => updateBesaField(selectedBesa, 'role', e.target.value)}
+              >
+                <option value="BESA">BESA</option>
+                <option value="BESA Lead">BESA Lead</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+              <select
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                value={besas.find(b => b.id === selectedBesa)?.status || 'active'}
+                onChange={(e) => updateBesaField(selectedBesa, 'status', e.target.value)}
+              >
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
             </div>
           </div>
+        </form>
+
+        {/* Action Buttons */}
+        <div className="flex justify-end space-x-4 mt-6">
+          <button
+            onClick={() => setSelectedBesa(null)}
+            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">
+            Cancel
+          </button>
+          <button
+            onClick={() => setSelectedBesa(null)}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center space-x-2">
+            <Save className="h-4 w-4" />
+            <span>Save Changes</span>
+          </button>
         </div>
-      )}
+      </div>
+    </div>
+  </div>
+)}
+
 
     {/* Add New BESA Button Window */}
     {showNewBesaModal && (
@@ -1077,40 +1224,13 @@ function App() {
             <h3 className="text-xl font-bold text-gray-900">Add New BESA</h3>
             <button
               onClick={() => setShowNewBesaModal(false)}
-              className="text-gray-400 hover:text-gray-600"
-            >
+              className="text-gray-400 hover:text-gray-600">
               <X className="h-6 w-6" />
             </button>
           </div>
 
-          <form
-            className="space-y-4"
-            onSubmit={e => {
-              e.preventDefault();
-              setBesas(prev => [
-                ...prev,
-                { ...newBesa, id: prev.length ? Math.max(...prev.map(b => b.id)) + 1 : 1 }
-              ]);
-              setShowNewBesaModal(false);
-              setNewBesa({
-                name: '',
-                email: '',
-                role: 'BESA',
-                status: 'active',
-                toursThisWeek: 0,
-                totalTours: 0,
-                officeHours: {
-                  monday: { start: '', end: '', available: false },
-                  tuesday: { start: '', end: '', available: false },
-                  wednesday: { start: '', end: '', available: false },
-                  thursday: { start: '', end: '', available: false },
-                  friday: { start: '', end: '', available: false },
-                  saturday: { start: '', end: '', available: false },
-                  sunday: { start: '', end: '', available: false }
-                }
-              });
-            }}
-          >
+        {/* Change State to be on click*/}
+          <form>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
               <input
@@ -1543,74 +1663,51 @@ return (
         path="/admin"
         element={
           isAdminAuthenticated ? (
-            <Navigate to="/admin/dashboard" />
-          ) : (
-            <AdminLogin />
-          )
-        }
-      />
+            <Navigate to="/admin/dashboard" />) : (<AdminLogin />)}/>
       <Route
         path="/admin/dashboard"
         element={
           isAdminAuthenticated ? (
-            <DashboardLayout><DashboardView /></DashboardLayout>
-          ) : (
-            <Navigate to="/admin" />
-          )
-        }
-      />
+            <DashboardLayout><DashboardView /></DashboardLayout>) : (<Navigate to="/admin" />)}/>
       <Route
         path="/admin/schedule"
         element={
           isAdminAuthenticated ? (
-            <DashboardLayout><ScheduleView /></DashboardLayout>
-          ) : (
-            <Navigate to="/admin" />
-          )
-        }
-      />
+            <DashboardLayout><ScheduleView /></DashboardLayout>) : (<Navigate to="/admin" />)}/>
       <Route
         path="/admin/tours"
         element={
           isAdminAuthenticated ? (
-            <DashboardLayout><ToursManagementView /></DashboardLayout>
-          ) : (
-            <Navigate to="/admin" />
-          )
-        }
-      />
+            <DashboardLayout><ToursManagementView /></DashboardLayout>) : (<Navigate to="/admin" />)}/>
       <Route
         path="/admin/besas"
         element={
           isAdminAuthenticated ? (
-            <DashboardLayout><BESAManagementView /></DashboardLayout>
-          ) : (
-            <Navigate to="/admin" />
-          )
-        }
-      />
+            <DashboardLayout><BESAManagementView /></DashboardLayout>) : (<Navigate to="/admin" />)}/>
       <Route
         path="/admin/office-hours"
         element={
           isAdminAuthenticated ? (
-            <DashboardLayout><OfficeHoursView /></DashboardLayout>
-          ) : (
-            <Navigate to="/admin" />
-          )
-        }
-      />
+            <DashboardLayout><OfficeHoursView /></DashboardLayout>) : (<Navigate to="/admin" />)}/>
       <Route
         path="/admin/settings"
         element={
           isAdminAuthenticated ? (
-            <DashboardLayout><SettingsView /></DashboardLayout>
-          ) : (
-            <Navigate to="/admin" />
-          )
-        }
-      />
+            <DashboardLayout><SettingsView /></DashboardLayout>) : (<Navigate to="/admin" />)}/>
     </Routes>
   );
 }
 
 export default App;
+function setShowEditTourModal(arg0: boolean): void {
+  throw new Error('Function not implemented.');
+}
+
+function setTours(arg0: (prev: any) => any) {
+  throw new Error('Function not implemented.');
+}
+
+function setEditTour(arg0: null) {
+  throw new Error('Function not implemented.');
+}
+
