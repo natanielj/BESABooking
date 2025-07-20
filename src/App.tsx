@@ -1,7 +1,236 @@
 import React, { useState } from 'react';
 import { Calendar, Users, Settings, Clock,  Shield, Menu, X, LogOut, User, MapPin, Mail, Phone, Edit3, Save, Plus, Trash2, UsersRound, Clock10, CalendarCheck, CalendarDays, CalendarCheck2Icon, CalendarX2, CalendarX, TimerIcon, Clock11Icon, Clock6, CheckCircle2, BellDot, Timer } from 'lucide-react';
 import { Routes, Route, useNavigate, Navigate } from 'react-router-dom';
+<<<<<<< HEAD
 import { mockTours, mockBesas, mockBookings } from '../data/mockData.ts';
+=======
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from './firebase.ts'; 
+
+// Mock data
+const mockTours = [
+  {
+    id: 1,
+    title: 'Baskin Engineering Group In-Person Tours',
+    duration: '1 Hour',
+    maxAttendees: 5,
+    description: 'This is an in-person tour of the Jack Baskin Engineering Building, led by the Baskin Engineering Student Ambassadors. During the tour, we will explore key areas that define the engineering experience at UCSC, such as classes, advising, research, student clubs, and more. You will also get a look inside Slugworks, our student-focused makerspace in the Baskin basement!',
+    available: true,
+    frequency: 'Every Hour',
+    break: 'None',
+    timeRange: 'Monday - Friday, 9:00 AM - 5:00 PM',
+    startDate: '2024-01-01',
+    endDate: '2024-12-31',
+    notice: 'Please arrive 10 minutes early to check in at the Baskin Engineering front desk.',
+    location: 'Jack Baskin Engineering Building, UCSC',
+    zoomLink: '',
+    holidayHours: 'Closed on university holidays'
+  },
+  {
+    id: 2,
+    title: 'Baskin Engineering Group Virtual Tours',
+    duration: '1 Hour',
+    maxAttendees: 8,
+    description: 'The virtual tour is hosted via Zoom and features a presentation led by our BESA ambassadors. You will get an overview of the Baskin Engineering building, detailed information on the majors offered under Baskin, and an introduction to student clubs and organizations within Baskin. The session ends with time for questions, so you can engage directly with our ambassadors.',
+    available: true,
+    frequency: '',
+    break: 'None',
+    timeRange: 'Monday - Friday, 9:00 AM - 5:00 PM',
+    startDate: '2024-01-01',
+    endDate: '2024-12-31',
+    notice: 'Please arrive 10 minutes early to check in at the Baskin Engineering front desk.',
+    location: 'Jack Baskin Engineering Building, UCSC',
+    zoomLink: '',
+    holidayHours: 'Closed on university holidays'
+  },
+  {
+    id: 3,
+    title: 'Baskin Engineering Large In-Person Tours (10+ attendees)',
+    duration: '2 Hours',
+    maxAttendees: 50,
+    description: 'This is a UCSC Baskin Engineering Large In Person Tours (For groups of more than 10) provided by the Baskin Engineering Student Ambassadors. This page is for those who are wanting to book this tour for a class. Please do not book this unless your group has more than 10 people.',
+    available: true,
+    frequency: '',
+    break: 'None',
+    timeRange: 'Monday - Friday, 9:00 AM - 5:00 PM',
+    startDate: '2024-01-01',
+    endDate: '2024-12-31',
+    notice: 'Please arrive 10 minutes early to check in at the Baskin Engineering front desk.',
+    location: 'Jack Baskin Engineering Building, UCSC',
+    zoomLink: '',
+    holidayHours: 'Closed on university holidays'
+  },
+  {
+    id: 4,
+    title: 'Slugworks Group In-Person Tours',
+    duration: '40 minutes',
+    maxAttendees: 5,
+    description: 'Book a tour of Slugworks, UCSC’s student-focused makerspace in Baskin Engineering. Open to all undergraduates, it features a machine shop, Creatorspace, classroom, and club space — no engineering major required!',
+    available: true,
+    frequency: '',
+    break: 'None',
+    timeRange: 'Monday - Friday, 9:00 AM - 5:00 PM',
+    startDate: '2024-01-01',
+    endDate: '2024-12-31',
+    notice: 'Please arrive 10 minutes early to check in at the Baskin Engineering front desk.',
+    location: 'Jack Baskin Engineering Building, UCSC',
+    zoomLink: '',
+    holidayHours: 'Closed on university holidays'
+  },
+  {
+    id: 5,
+    title: 'BESAs Drop In Office Hours',
+    duration: '20 minutes',
+    maxAttendees: 5,
+    description: 'Book a one-on-one Virtual Office Hour with a BESA Ambassador to ask questions and learn more about Baskin Engineering.',
+    available: true,
+    frequency: '',
+    break: 'None',
+    timeRange: 'Monday - Friday, 9:00 AM - 5:00 PM',
+    startDate: '2024-01-01',
+    endDate: '2024-12-31',
+    notice: 'Please arrive 10 minutes early to check in at the Baskin Engineering front desk.',
+    location: 'Jack Baskin Engineering Building, UCSC',
+    zoomLink: '',
+    holidayHours: 'Closed on university holidays'
+  }
+];
+
+const mockBesas = [
+  {
+    id: 1,
+    name: 'Sarah Johnson',
+    email: 'sarah.j@university.edu',
+    role: 'BESA',
+    status: 'active',
+    toursThisWeek: 8,
+    totalTours: 147,
+    officeHours: {
+      monday: { start: '09:00', end: '17:00', available: true },
+      tuesday: { start: '09:00', end: '17:00', available: true },
+      wednesday: { start: '10:00', end: '16:00', available: true },
+      thursday: { start: '09:00', end: '17:00', available: true },
+      friday: { start: '09:00', end: '15:00', available: true },
+      saturday: { start: '', end: '', available: false },
+      sunday: { start: '', end: '', available: false }
+    }
+  },
+  {
+    id: 2,
+    name: 'Michael Chen',
+    email: 'michael.c@university.edu',
+    role: 'BESA Lead',
+    status: 'active',
+    toursThisWeek: 12,
+    totalTours: 203,
+    officeHours: {
+      monday: { start: '08:00', end: '16:00', available: true },
+      tuesday: { start: '08:00', end: '16:00', available: true },
+      wednesday: { start: '08:00', end: '16:00', available: true },
+      thursday: { start: '08:00', end: '16:00', available: true },
+      friday: { start: '08:00', end: '14:00', available: true },
+      saturday: { start: '10:00', end: '14:00', available: true },
+      sunday: { start: '', end: '', available: false }
+    }
+  },
+  {
+    id: 3,
+    name: 'Emma Rodriguez',
+    email: 'emma.r@university.edu',
+    role: 'BESA',
+    status: 'active',
+    toursThisWeek: 6,
+    totalTours: 89,
+    officeHours: {
+      monday: { start: '11:00', end: '19:00', available: true },
+      tuesday: { start: '11:00', end: '19:00', available: true },
+      wednesday: { start: '11:00', end: '19:00', available: true },
+      thursday: { start: '11:00', end: '19:00', available: true },
+      friday: { start: '11:00', end: '17:00', available: true },
+      saturday: { start: '', end: '', available: false },
+      sunday: { start: '12:00', end: '16:00', available: true }
+    }
+  },
+  {
+    id: 4,
+    name: 'Arely Rosendes',
+    email: 'emma.r@university.edu',
+    role: 'BESA',
+    status: 'active',
+    toursThisWeek: 6,
+    totalTours: 89,
+    officeHours: {
+      monday: { start: '11:00', end: '19:00', available: true },
+      tuesday: { start: '11:00', end: '19:00', available: true },
+      wednesday: { start: '11:00', end: '19:00', available: true },
+      thursday: { start: '11:00', end: '19:00', available: true },
+      friday: { start: '11:00', end: '17:00', available: true },
+      saturday: { start: '', end: '', available: false },
+      sunday: { start: '12:00', end: '16:00', available: true }
+    }
+  },
+  {
+    id: 5,
+    name: 'Nataniel J',
+    email: 'emma.r@university.edu',
+    role: 'BESA',
+    status: 'active',
+    toursThisWeek: 6,
+    totalTours: 89,
+    officeHours: {
+      monday: { start: '11:00', end: '19:00', available: true },
+      tuesday: { start: '11:00', end: '19:00', available: true },
+      wednesday: { start: '11:00', end: '19:00', available: true },
+      thursday: { start: '11:00', end: '19:00', available: true },
+      friday: { start: '11:00', end: '17:00', available: true },
+      saturday: { start: '', end: '', available: false },
+      sunday: { start: '12:00', end: '16:00', available: true }
+    }
+  }
+];
+
+const mockBookings = [
+  {
+    id: 1,
+    tourType: 'Campus Tour',
+    date: '2024-01-15',
+    time: '10:00 AM',
+    attendees: 12,
+    maxAttendees: 15,
+    besa: 'Sarah Johnson',
+    status: 'confirmed',
+    contactName: 'Jennifer Davis',
+    contactEmail: 'j.davis@email.com',
+    contactPhone: '(555) 123-4567'
+  },
+  {
+    id: 2,
+    tourType: 'Academic Program Deep Dive',
+    date: '2024-01-15',
+    time: '2:00 PM',
+    attendees: 6,
+    maxAttendees: 8,
+    besa: 'Michael Chen',
+    status: 'confirmed',
+    contactName: 'Robert Wilson',
+    contactEmail: 'r.wilson@email.com',
+    contactPhone: '(555) 987-6543'
+  },
+  {
+    id: 3,
+    tourType: 'Student Life Experience',
+    date: '2024-01-16',
+    time: '11:00 AM',
+    attendees: 8,
+    maxAttendees: 12,
+    besa: 'Emma Rodriguez',
+    status: 'pending',
+    contactName: 'Lisa Anderson',
+    contactEmail: 'l.anderson@email.com',
+    contactPhone: '(555) 456-7890'
+  }
+];
+>>>>>>> 1fabd81 (login connected to firebase using email/password)
 
 
 
@@ -334,60 +563,62 @@ const [newTour, setNewTour] = useState({ ...defaultNewTour });
  {/* ADMIN PAGE START*/}
 
  {/* BESA Login to Admin Page*/}
- const AdminLogin = () => {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
+const AdminLogin = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
 
-    const handleSubmit = (e: React.FormEvent) => {
-      e.preventDefault();
-      // Replace with real authentication logic as needed
-      if (email === 'besa@ucsc.edu' && password === 'besa') {
-        setIsAdminAuthenticated(true);
-        setCurrentRole('admin');
-        navigate('/admin/dashboard');
-      } else {
-        setError('Invalid credentials');
-      }
-    };
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
 
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[url('/BE_backdrop.png')] bg-repeat bg-[length:20px_20px]">
-        <div className="bg-white rounded-xl shadow-lg p-8 max-w-md w-full border-b-4 border-orange-400">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">BESA Login</h2>
-          <form className="space-y-4" onSubmit={handleSubmit}>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-              <input
-                type="email"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-              <input
-                type="password"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                required
-              />
-            </div>
-            {error && <div className="text-red-600 text-sm">{error}</div>}
-            <button
-              type="submit"
-              className="w-full bg-blue-700 text-white px-4 py-2 rounded-lg hover:bg-blue-900"
-            >
-              Login
-            </button>
-          </form>
-        </div>
-      </div>
-    );
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      setIsAdminAuthenticated(true);
+      setCurrentRole('admin');
+      navigate('/admin/dashboard');
+    } catch (err: any) {
+      setError('Login failed: ' + (err.message || 'Invalid credentials'));
+    }
   };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-[url('/BE_backdrop.png')] bg-repeat bg-[length:20px_20px]">
+      <div className="bg-white rounded-xl shadow-lg p-8 max-w-md w-full border-b-4 border-orange-400">
+        <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">BESA Login</h2>
+        <form className="space-y-4" onSubmit={handleSubmit}>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <input
+              type="email"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+            <input
+              type="password"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              required
+            />
+          </div>
+          {error && <div className="text-red-600 text-sm">{error}</div>}
+          <button
+            type="submit"
+            className="w-full bg-blue-700 text-white px-4 py-2 rounded-lg hover:bg-blue-900"
+          >
+            Login
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+};
 
   {/* ADMIN PAGE HEADER */}
   const DashboardLayout = ({ children }: { children: React.ReactNode }) => (
@@ -711,8 +942,6 @@ const [newTour, setNewTour] = useState({ ...defaultNewTour });
           : 'N/A'}
           </div>
 
-
-
           <div>
             <Clock className="inline-block mr-1" />
             <strong>Time Range:</strong> {tour.timeRange || 'N/A'}
@@ -764,8 +993,6 @@ const [newTour, setNewTour] = useState({ ...defaultNewTour });
     </div>
   </div>
 ))}
-
-
     </div>
 
     {/* Add New Tour Button Window */}
@@ -1847,15 +2074,3 @@ return (
 }
 
 export default App;
-function setShowEditTourModal(arg0: boolean): void {
-  throw new Error('Function not implemented.');
-}
-
-function setTours(arg0: (prev: any) => any) {
-  throw new Error('Function not implemented.');
-}
-
-function setEditTour(arg0: null) {
-  throw new Error('Function not implemented.');
-}
-
