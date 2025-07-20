@@ -183,7 +183,6 @@ const mockBookings = [
 ];
 
 type UserRole = 'public' | 'admin';
-type Page = 'booking' | 'dashboard' | 'tours' | 'besas' | 'schedule' | 'settings' | 'office-hours' | 'admin';
 
 function App() {
   const [currentRole, setCurrentRole] = useState<UserRole>('public');
