@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Calendar, Users, Settings, Clock,  Shield, Menu, X, LogOut, User, MapPin, Mail, Phone, Edit3, Save, Plus, Trash2, UsersRound, Clock10, CalendarCheck, CalendarDays, CalendarCheck2Icon, CalendarX2, CalendarX, TimerIcon, Clock11Icon, Clock6, CheckCircle2, BellDot, Timer, Eye, EyeOff } from 'lucide-react';
 import { Routes, Route, useNavigate, Navigate } from 'react-router-dom';
+import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, addMonths, subMonths, isSameMonth, getDate } from 'date-fns';
 import { signInWithEmailAndPassword, signInWithPopup } from 'firebase/auth';
 import { auth,googleProvider } from './firebase.ts'; 
+
 
 // Mock data
 const mockTours = [
@@ -241,6 +243,8 @@ function App() {
   const [besas, setBesas] = useState(mockBesas); 
   const [tours, setTours] = useState(mockTours);
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+
 
   const navigate = useNavigate();
 
@@ -1858,7 +1862,38 @@ const AdminLogin = () => {
     );
   };
 
-  const ScheduleView = () => (
+  const ScheduleView = () => {
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+
+  const monthStart = startOfMonth(currentMonth);
+  const monthEnd = endOfMonth(monthStart);
+  const startDate = startOfWeek(monthStart, { weekStartsOn: 0 });
+  const endDate = endOfWeek(monthEnd, { weekStartsOn: 0 });
+
+  const generateCalendarDays = () => {
+    const days = [];
+    let day = startDate;
+
+    while (day <= endDate) {
+      days.push(day);
+      day = addDays(day, 1);
+    }
+
+    return days;
+  };
+
+  const handleToday = () => {
+  setCurrentMonth(new Date());
+};
+
+
+  const handlePrevMonth = () => setCurrentMonth(subMonths(currentMonth, 1));
+  const handleNextMonth = () => setCurrentMonth(addMonths(currentMonth, 1));
+
+  const calendarDays = generateCalendarDays();
+  const mockBookings = [8, 12, 15, 18, 22, 25]; // Replace with real booking dates if available
+
+  return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Schedule Management</h1>
@@ -1870,13 +1905,16 @@ const AdminLogin = () => {
         <div className="lg:col-span-2">
           <div className="bg-white rounded-xl shadow-sm border p-6">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold text-gray-900">January 2024</h2>
+              <div className="flex items-center space-x-4">
+                <button onClick={handlePrevMonth} className="px-2 py-1 text-black hover:bg-blue-50 rounded-lg text-xl">&lt;</button>
+                <h2 className="text-xl font-bold text-gray-900">{format(currentMonth, 'MMMM yyyy')}</h2>
+                <button onClick={handleNextMonth} className="px-2 py-1 text-black hover:bg-blue-50 rounded-lg text-xl">&gt;</button>
+              </div>
               <div className="flex space-x-2">
-                <button className="px-3 py-1 text-blue-600 hover:bg-blue-50 rounded-lg text-sm">Previous</button>
-                <button className="px-3 py-1 text-blue-600 hover:bg-blue-50 rounded-lg text-sm">Next</button>
+                <button onClick={handleToday} className="px-3 py-1 text-blue-600 hover:bg-blue-50 rounded-lg text-m">Today</button>
               </div>
             </div>
-            
+
             <div className="grid grid-cols-7 gap-1 mb-4">
               {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
                 <div key={day} className="p-2 text-center text-sm font-medium text-gray-500">
@@ -1884,23 +1922,25 @@ const AdminLogin = () => {
                 </div>
               ))}
             </div>
-            
+
             <div className="grid grid-cols-7 gap-1">
-              {Array.from({ length: 35 }, (_, i) => {
-                const date = i - 6;
-                const hasBooking = [8, 12, 15, 18, 22, 25].includes(date);
+              {calendarDays.map((day, i) => {
+                const dayNumber = getDate(day);
+                const isCurrentMonth = isSameMonth(day, currentMonth);
+                const hasBooking = isCurrentMonth && mockBookings.includes(dayNumber);
+
                 return (
                   <div
                     key={i}
                     className={`p-2 text-center text-sm h-12 flex items-center justify-center rounded-lg ${
-                      date > 0 && date <= 31
+                      isCurrentMonth
                         ? hasBooking
                           ? 'bg-blue-100 text-blue-800 font-medium cursor-pointer hover:bg-blue-200'
-                          : 'hover:bg-gray-100 cursor-pointer'
+                          : 'hover:bg-gray-100 cursor-pointer text-gray-900'
                         : 'text-gray-300'
                     }`}
                   >
-                    {date > 0 && date <= 31 ? date : ''}
+                    {dayNumber}
                   </div>
                 );
               })}
@@ -1908,24 +1948,21 @@ const AdminLogin = () => {
           </div>
         </div>
 
-        {/* Upcoming Tours */}
+        {/* Right Panel - Upcoming Tours & Today's Coverage */}
         <div className="space-y-6">
+          {/* Replace mockBookings and besas with real data if needed */}
           <div className="bg-white rounded-xl shadow-sm border p-6">
             <h3 className="text-lg font-bold text-gray-900 mb-4">Upcoming Tours</h3>
             <div className="space-y-4">
-              {mockBookings.slice(0, 3).map((booking) => (
-                <div key={booking.id} className="border-l-4 border-blue-500 pl-4">
+              {mockBookings.slice(0, 3).map((day, idx) => (
+                <div key={idx} className="border-l-4 border-blue-500 pl-4">
                   <div className="flex justify-between items-start">
                     <div>
-                      <p className="font-medium text-gray-900">{booking.tourType}</p>
-                      <p className="text-sm text-gray-500">{booking.date} at {booking.time}</p>
-                      <p className="text-sm text-gray-600">{booking.attendees} attendees</p>
+                      <p className="font-medium text-gray-900">Campus Tour</p>
+                      <p className="text-sm text-gray-500">{format(new Date(2024, currentMonth.getMonth(), day), 'MMM d')} at 10:00 AM</p>
+                      <p className="text-sm text-gray-600">10 attendees</p>
                     </div>
-                    <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                      booking.status === 'confirmed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
-                    }`}>
-                      {booking.status}
-                    </span>
+                    <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">confirmed</span>
                   </div>
                 </div>
               ))}
@@ -1935,7 +1972,10 @@ const AdminLogin = () => {
           <div className="bg-white rounded-xl shadow-sm border p-6">
             <h3 className="text-lg font-bold text-gray-900 mb-4">Today's Coverage</h3>
             <div className="space-y-3">
-              {besas.filter(besa => besa.officeHours.monday.available).map((besa) => (
+              {[
+                { id: 1, name: 'BESA A', officeHours: { monday: { available: true, start: '9:00 AM', end: '12:00 PM' } } },
+                { id: 2, name: 'BESA B', officeHours: { monday: { available: true, start: '1:00 PM', end: '4:00 PM' } } }
+              ].filter(besa => besa.officeHours.monday.available).map((besa) => (
                 <div key={besa.id} className="flex justify-between items-center">
                   <span className="text-sm text-gray-900">{besa.name}</span>
                   <span className="text-sm font-medium text-blue-600">
@@ -1949,6 +1989,7 @@ const AdminLogin = () => {
       </div>
     </div>
   );
+  };
 
   const SettingsView = () => (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
