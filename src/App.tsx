@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Calendar, Users, Settings, Clock,  Shield, Menu, X, LogOut, User, MapPin, Mail, Phone, Edit3, Save, Plus, Trash2, UsersRound, Clock10, CalendarCheck, CalendarDays, CalendarCheck2Icon, CalendarX2, CalendarX, TimerIcon, Clock11Icon, Clock6, CheckCircle2, BellDot, Timer, Eye, EyeOff } from 'lucide-react';
 import { Routes, Route, useNavigate, Navigate } from 'react-router-dom';
-import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, addMonths, subMonths, isSameMonth, getDate, isSameDay } from 'date-fns';
+import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, addMonths, subMonths, isSameMonth, getDate, isSameDay, parse } from 'date-fns';
 import { signInWithEmailAndPassword, signInWithPopup } from 'firebase/auth';
 import { auth,googleProvider } from './firebase.ts'; 
 
@@ -191,7 +191,7 @@ const mockBesas = [
 const mockBookings = [
   {
     id: 1,
-    tourType: 'Campus Tour',
+    tourType: 'Baskin Engineering Group In-Person Tours',
     date: '07-23-2025',
     time: '10:00 AM',
     attendees: 12,
@@ -204,7 +204,7 @@ const mockBookings = [
   },
   {
     id: 2,
-    tourType: 'Academic Program Deep Dive',
+    tourType: 'Baskin Engineering Group Virtual Tours',
     date: '06-15-2025',
     time: '2:00 PM',
     attendees: 6,
@@ -217,7 +217,7 @@ const mockBookings = [
   },
   {
     id: 3,
-    tourType: 'Student Life Experience',
+    tourType: 'Slugworks Group In-Person Tours',
     date: '06-15-2025',
     time: '11:00 AM',
     attendees: 8,
@@ -245,6 +245,7 @@ function App() {
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [viewMode, setViewMode] = useState('calendar');
 
 
   const navigate = useNavigate();
@@ -1892,26 +1893,47 @@ const AdminLogin = () => {
   const calendarDays = generateCalendarDays();
 
   const handleToday = () => {
-  const today = new Date();
-  setCurrentMonth(today);
-  setSelectedDate(today);
-};
+    const today = new Date();
+    setCurrentMonth(today);
+    setSelectedDate(today);
+  };
 
-const handleDayClick = (day: Date) => {
-  setSelectedDate(day);
-};
+  const handleDayClick = (day: Date) => {
+    setSelectedDate(day);
+  };
 
   const handlePrevMonth = () => setCurrentMonth(subMonths(currentMonth, 1));
   const handleNextMonth = () => setCurrentMonth(addMonths(currentMonth, 1));
 
+  const toggleViewMode = () => {
+    setViewMode(viewMode === 'calendar' ? 'list' : 'calendar');
+  };
+
+  const groupedBookings = mockBookings.reduce((acc, booking) => {
+    const dateKey = format(new Date(booking.date), 'MM-dd-yyyy');
+    if (!acc[dateKey]) acc[dateKey] = [];
+    acc[dateKey].push(booking);
+    return acc;
+  }, {} as Record<string, typeof mockBookings>);
+
+
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="mb-8">
+      <div className="mb-8 flex justify-between items-center">
+        <div>
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Schedule Management</h1>
         <p className="text-gray-600">View and manage tour schedules and office hours</p>
       </div>
+      <button
+          onClick={toggleViewMode}
+          className="px-3 py-1 text-blue-600 hover:bg-blue-100 rounded-lg text-m border border-blue-600"
+        >
+          Switch to {viewMode === 'calendar' ? 'List View' : 'Calendar View'}
+        </button>
+      </div>
 
+    {viewMode == 'calendar' ? (
       <div className="grid lg:grid-cols-3 gap-8">
         {/* Calendar View */}
         <div className="lg:col-span-2">
@@ -2019,9 +2041,52 @@ const handleDayClick = (day: Date) => {
           </div>
         </div>
       </div>
+
+      ) : (
+
+        // List View showing all bookings grouped by date
+        <div className="bg-white rounded-xl shadow-sm border p-6">
+          <h3 className="text-lg font-bold text-gray-900 mb-4">All Tours</h3>
+          {mockBookings.length === 0 ? (
+            <p className="text-gray-500">No tours scheduled.</p>
+          ) : (
+            Object.entries(groupedBookings)
+              .sort(([a], [b]) => new Date(a).getTime() - new Date(b).getTime())
+              .map(([date, bookings]) => (
+                <div key={date} className="mb-6">
+                  <h4 className="text-md font-semibold text-blue-800 mb-2">
+                    {format(new Date(date), 'EEEE, MMM do yyyy')}
+                  </h4>
+                  {bookings.map((booking) => (
+            <div key={booking.id} className="border-l-4 border-blue-500 pl-4 mb-4">
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="font-sm text-gray-500">{booking.tourType}</p>
+                  <p className="font-medium text-gray-900">{booking.contactName}</p>
+                  <p className="text-sm text-gray-500">
+                    {format(new Date(booking.date), 'MMMM d, yyyy')} at {booking.time}
+                  </p>
+                  <p className="text-sm text-gray-600">{booking.attendees} attendees</p>
+                </div>
+                <span
+                  className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                    booking.status === 'confirmed'
+                      ? 'bg-green-100 text-green-800'
+                      : 'bg-yellow-100 text-yellow-800'
+                  }`}
+                >
+                  {booking.status}
+                </span>
+              </div>
+            </div>
+          ))}
+                </div>
+              ))
+          )}
+        </div>
+      )}
     </div>
-  );
-  };
+  )};
 
   const SettingsView = () => (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
