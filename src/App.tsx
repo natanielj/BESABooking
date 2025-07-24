@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Calendar, Users, Settings, Clock,  Shield, Menu, X, LogOut, User, MapPin, Mail, Phone, Edit3, Save, Plus, Trash2, UsersRound, Clock10, CalendarCheck, CalendarDays, CalendarCheck2Icon, CalendarX2, CalendarX, TimerIcon, Clock11Icon, Clock6, CheckCircle2, BellDot, Timer, Eye, EyeOff } from 'lucide-react';
 import { Routes, Route, useNavigate, Navigate } from 'react-router-dom';
-import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, addMonths, subMonths, isSameMonth, getDate } from 'date-fns';
+import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, addMonths, subMonths, isSameMonth, getDate, isSameDay } from 'date-fns';
 import { signInWithEmailAndPassword, signInWithPopup } from 'firebase/auth';
 import { auth,googleProvider } from './firebase.ts'; 
 
@@ -192,7 +192,7 @@ const mockBookings = [
   {
     id: 1,
     tourType: 'Campus Tour',
-    date: '2024-01-15',
+    date: '06-17-2025',
     time: '10:00 AM',
     attendees: 12,
     maxAttendees: 15,
@@ -205,7 +205,7 @@ const mockBookings = [
   {
     id: 2,
     tourType: 'Academic Program Deep Dive',
-    date: '2024-01-15',
+    date: '06-15-2025',
     time: '2:00 PM',
     attendees: 6,
     maxAttendees: 8,
@@ -218,7 +218,7 @@ const mockBookings = [
   {
     id: 3,
     tourType: 'Student Life Experience',
-    date: '2024-01-16',
+    date: '06-15-2025',
     time: '11:00 AM',
     attendees: 8,
     maxAttendees: 12,
@@ -1862,6 +1862,7 @@ const AdminLogin = () => {
     );
   };
 
+  {/* Add toggle to switch between calendar/list view */}
   const ScheduleView = () => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
@@ -1891,7 +1892,6 @@ const AdminLogin = () => {
   const handleNextMonth = () => setCurrentMonth(addMonths(currentMonth, 1));
 
   const calendarDays = generateCalendarDays();
-  const mockBookings = [8, 12, 15, 18, 22, 25]; // Replace with real booking dates if available
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -1927,19 +1927,26 @@ const AdminLogin = () => {
               {calendarDays.map((day, i) => {
                 const dayNumber = getDate(day);
                 const isCurrentMonth = isSameMonth(day, currentMonth);
-                const hasBooking = isCurrentMonth && mockBookings.includes(dayNumber);
+                const hasBooking = mockBookings.some(
+                  (booking) => isSameDay(new Date(booking.date), day)
+                );
+                const isToday = isSameMonth(day, new Date()) && getDate(day) === getDate(new Date());
 
                 return (
-                  <div
+                  <div // highlight today's date
                     key={i}
-                    className={`p-2 text-center text-sm h-12 flex items-center justify-center rounded-lg ${
+                    className={`p-2 text-center text-sm h-12 flex items-center justify-center rounded-lg
+                    ${
                       isCurrentMonth
-                        ? hasBooking
-                          ? 'bg-blue-100 text-blue-800 font-medium cursor-pointer hover:bg-blue-200'
-                          : 'hover:bg-gray-100 cursor-pointer text-gray-900'
-                        : 'text-gray-300'
-                    }`}
-                  >
+                      ? isToday
+                      ? 'bg-blue-100 text-blue-800 font-medium' // Highlight today
+                      : hasBooking
+                      ? 'border-2 border-blue-500 text-blue-700 font-medium cursor-pointer hover:bg-blue-50'
+                      : 'hover:bg-gray-100 cursor-pointer text-gray-900'
+                      : 'text-gray-300'
+                    }
+                    `}
+                    >
                     {dayNumber}
                   </div>
                 );
@@ -1948,21 +1955,24 @@ const AdminLogin = () => {
           </div>
         </div>
 
-        {/* Right Panel - Upcoming Tours & Today's Coverage */}
+        {/* Right Panel - Upcoming Tours */}
         <div className="space-y-6">
-          {/* Replace mockBookings and besas with real data if needed */}
           <div className="bg-white rounded-xl shadow-sm border p-6">
             <h3 className="text-lg font-bold text-gray-900 mb-4">Upcoming Tours</h3>
             <div className="space-y-4">
-              {mockBookings.slice(0, 3).map((day, idx) => (
+              {mockBookings.slice(0, 10).map((day, idx) => (
                 <div key={idx} className="border-l-4 border-blue-500 pl-4">
                   <div className="flex justify-between items-start">
                     <div>
-                      <p className="font-medium text-gray-900">Campus Tour</p>
-                      <p className="text-sm text-gray-500">{format(new Date(2024, currentMonth.getMonth(), day), 'MMM d')} at 10:00 AM</p>
-                      <p className="text-sm text-gray-600">10 attendees</p>
+                      <p className="font-medium text-gray-900">{day.tourType}</p>
+                      <p className="text-sm text-gray-500">{format(new Date(day.date), 'MMM d')} at {day.time}</p>
+                      <p className="text-sm text-gray-600">{day.attendees} attendees</p>
                     </div>
-                    <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">confirmed</span>
+                      <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                        day.status === 'confirmed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                        }`}>
+                        {day.status}
+                      </span>
                   </div>
                 </div>
               ))}
@@ -1973,8 +1983,8 @@ const AdminLogin = () => {
             <h3 className="text-lg font-bold text-gray-900 mb-4">Today's Coverage</h3>
             <div className="space-y-3">
               {[
-                { id: 1, name: 'BESA A', officeHours: { monday: { available: true, start: '9:00 AM', end: '12:00 PM' } } },
-                { id: 2, name: 'BESA B', officeHours: { monday: { available: true, start: '1:00 PM', end: '4:00 PM' } } }
+                { id: 1, name: 'mockbesas.name', officeHours: { monday: { available: true, start: '9:00 AM', end: '12:00 PM' } } },
+                { id: 2, name: 'mockbesas.name', officeHours: { monday: { available: true, start: '1:00 PM', end: '4:00 PM' } } }
               ].filter(besa => besa.officeHours.monday.available).map((besa) => (
                 <div key={besa.id} className="flex justify-between items-center">
                   <span className="text-sm text-gray-900">{besa.name}</span>
