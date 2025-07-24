@@ -192,7 +192,7 @@ const mockBookings = [
   {
     id: 1,
     tourType: 'Campus Tour',
-    date: '06-17-2025',
+    date: '07-23-2025',
     time: '10:00 AM',
     attendees: 12,
     maxAttendees: 15,
@@ -243,10 +243,16 @@ function App() {
   const [besas, setBesas] = useState(mockBesas); 
   const [tours, setTours] = useState(mockTours);
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [currentMonth, setCurrentMonth] = useState(new Date());
 
 
   const navigate = useNavigate();
+
+  const filteredBookings = mockBookings.filter((booking) =>
+    isSameDay(new Date(booking.date), selectedDate)
+  );
+
 
   {/* Add New Tour Info Button*/}
   const defaultNewTour = {
@@ -1864,12 +1870,12 @@ const AdminLogin = () => {
 
   {/* Add toggle to switch between calendar/list view */}
   const ScheduleView = () => {
-  const [currentMonth, setCurrentMonth] = useState(new Date());
 
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(monthStart);
   const startDate = startOfWeek(monthStart, { weekStartsOn: 0 });
   const endDate = endOfWeek(monthEnd, { weekStartsOn: 0 });
+
 
   const generateCalendarDays = () => {
     const days = [];
@@ -1883,15 +1889,21 @@ const AdminLogin = () => {
     return days;
   };
 
+  const calendarDays = generateCalendarDays();
+
   const handleToday = () => {
-  setCurrentMonth(new Date());
+  const today = new Date();
+  setCurrentMonth(today);
+  setSelectedDate(today);
 };
 
+const handleDayClick = (day: Date) => {
+  setSelectedDate(day);
+};
 
   const handlePrevMonth = () => setCurrentMonth(subMonths(currentMonth, 1));
   const handleNextMonth = () => setCurrentMonth(addMonths(currentMonth, 1));
 
-  const calendarDays = generateCalendarDays();
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -1911,7 +1923,11 @@ const AdminLogin = () => {
                 <button onClick={handleNextMonth} className="px-2 py-1 text-black hover:bg-blue-50 rounded-lg text-xl">&gt;</button>
               </div>
               <div className="flex space-x-2">
-                <button onClick={handleToday} className="px-3 py-1 text-blue-600 hover:bg-blue-50 rounded-lg text-m">Today</button>
+                <button 
+                  onClick={handleToday} 
+                  className="px-3 py-1 text-blue-600 hover:bg-blue-50 rounded-lg text-m">
+                  Today
+                </button>
               </div>
             </div>
 
@@ -1933,7 +1949,7 @@ const AdminLogin = () => {
                 const isToday = isSameMonth(day, new Date()) && getDate(day) === getDate(new Date());
 
                 return (
-                  <div // highlight today's date
+                  <div
                     key={i}
                     className={`p-2 text-center text-sm h-12 flex items-center justify-center rounded-lg
                     ${
@@ -1946,6 +1962,7 @@ const AdminLogin = () => {
                       : 'text-gray-300'
                     }
                     `}
+                    onClick={() => handleDayClick(day)}
                     >
                     {dayNumber}
                   </div>
@@ -1955,12 +1972,15 @@ const AdminLogin = () => {
           </div>
         </div>
 
-        {/* Right Panel - Upcoming Tours */}
+        {/* Right Panel - Today Tours */}
         <div className="space-y-6">
           <div className="bg-white rounded-xl shadow-sm border p-6">
-            <h3 className="text-lg font-bold text-gray-900 mb-4">Upcoming Tours</h3>
+            <h3 className="text-lg font-bold text-gray-900 mb-4">
+              Tours for {format(selectedDate, 'MMMM d, yyyy')}
+            </h3>
             <div className="space-y-4">
-              {mockBookings.slice(0, 10).map((day, idx) => (
+              {filteredBookings.length > 0 ? (
+                filteredBookings.map((day, idx) => (
                 <div key={idx} className="border-l-4 border-blue-500 pl-4">
                   <div className="flex justify-between items-start">
                     <div>
@@ -1975,24 +1995,26 @@ const AdminLogin = () => {
                       </span>
                   </div>
                 </div>
-              ))}
+              ))
+              ) : (
+                <p className="text-gray-500">No tours scheduled for today.</p>
+              )}
             </div>
           </div>
 
           <div className="bg-white rounded-xl shadow-sm border p-6">
             <h3 className="text-lg font-bold text-gray-900 mb-4">Today's Coverage</h3>
             <div className="space-y-3">
-              {[
-                { id: 1, name: 'mockbesas.name', officeHours: { monday: { available: true, start: '9:00 AM', end: '12:00 PM' } } },
-                { id: 2, name: 'mockbesas.name', officeHours: { monday: { available: true, start: '1:00 PM', end: '4:00 PM' } } }
-              ].filter(besa => besa.officeHours.monday.available).map((besa) => (
-                <div key={besa.id} className="flex justify-between items-center">
-                  <span className="text-sm text-gray-900">{besa.name}</span>
-                  <span className="text-sm font-medium text-blue-600">
-                    {besa.officeHours.monday.start} - {besa.officeHours.monday.end}
-                  </span>
-                </div>
-              ))}
+              {mockBesas
+                .filter(besa => besa.officeHours.monday?.available)
+                .map((besa) => (
+                  <div key={besa.id} className="flex justify-between items-center">
+                    <span className="text-sm text-gray-900">{besa.name}</span>
+                    <span className="text-sm font-medium text-blue-600">
+                      {besa.officeHours.monday.start} - {besa.officeHours.monday.end}
+                    </span>
+                  </div>
+                ))}
             </div>
           </div>
         </div>
