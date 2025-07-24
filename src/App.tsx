@@ -328,6 +328,24 @@ const [newTour, setNewTour] = useState({ ...defaultNewTour });
     );
   };
 
+  function convertTo24Hour(time12h: string) {
+    const [time, modifier] = time12h.split(' ');
+    let [hours, minutes] = time.split(':').map(Number);
+
+    if (modifier === 'PM' && hours !== 12) {
+      hours += 12;
+    }
+    if (modifier === 'AM' && hours === 12) {
+      hours = 0;
+    }
+
+    // Pad hours and minutes with leading zero
+    const hoursStr = hours.toString().padStart(2, '0');
+    const minutesStr = minutes.toString().padStart(2, '0');
+
+    return `${hoursStr}:${minutesStr}:00`; // add seconds for ISO format
+  }
+
   {/* Office Hours Page - Compiled Schedule*/}
   const getCompiledSchedule = () => {
     const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
@@ -1870,7 +1888,7 @@ const AdminLogin = () => {
     );
   };
 
-  {/* have 'Today's Coverage' update with day selected */}
+  {/* Have List View Sort By Time*/}
   const ScheduleView = () => {
 
   const monthStart = startOfMonth(currentMonth);
@@ -1972,7 +1990,6 @@ const AdminLogin = () => {
                 const hasBooking = mockBookings.some(
                   (booking) => isSameDay(new Date(booking.date), day)
                 );
-                // const isToday = isSameMonth(day, new Date()) && getDate(day) === getDate(new Date());
 
                 return (
                   <div
@@ -2063,29 +2080,37 @@ const AdminLogin = () => {
                   <h4 className="text-md font-semibold text-blue-800 mb-2">
                     {format(new Date(date), 'EEEE, MMM do yyyy')}
                   </h4>
-                  {bookings.map((booking) => (
-            <div key={booking.id} className="border-l-4 border-blue-500 pl-4 mb-4">
-              <div className="flex justify-between items-start">
-                <div>
-                  <p className="font-sm text-gray-500">{booking.tourType}</p>
-                  <p className="font-medium text-gray-900">{booking.contactName}</p>
-                  <p className="text-sm text-gray-500">
-                    {format(new Date(booking.date), 'MMMM d, yyyy')} at {booking.time}
-                  </p>
-                  <p className="text-sm text-gray-600">{booking.attendees} attendees</p>
-                </div>
-                <span
-                  className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                    booking.status === 'confirmed'
-                      ? 'bg-green-100 text-green-800'
-                      : 'bg-yellow-100 text-yellow-800'
-                  }`}
-                >
-                  {booking.status}
-                </span>
-              </div>
-            </div>
-          ))}
+
+                  {bookings
+                  .slice()
+                  .sort((a, b) => {
+                    const timeA = new Date(`${date}T${convertTo24Hour(a.time)}`).getTime();
+                    const timeB = new Date(`${date}T${convertTo24Hour(b.time)}`).getTime();
+                    return timeA - timeB;
+
+                  })
+                  .map((booking) => (
+                    <div key={booking.id} className="border-l-4 border-blue-500 pl-4 mb-4">
+                    <div className="flex justify-between items-start">
+                    <div>
+                      <p className="font-sm text-gray-500">{booking.tourType}</p>
+                      <p className="font-medium text-gray-900">{booking.contactName}</p>
+                      <p className="text-sm text-gray-500">
+                        {format(new Date(booking.date), 'MMMM d, yyyy')} at {booking.time}
+                      </p>
+                      <p className="text-sm text-gray-600">{booking.attendees} attendees</p>
+                    </div>
+                    <span
+                      className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                        booking.status === 'confirmed'
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-yellow-100 text-yellow-800'
+                      }`}>
+                    {booking.status}
+                    </span>
+                    </div>
+                    </div>
+                  ))}
                 </div>
               ))
           )}
