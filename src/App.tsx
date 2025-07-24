@@ -201,7 +201,7 @@ const mockBookings = [
   {
     id: 1,
     tourType: 'Campus Tour',
-    date: '06-17-2025',
+    date: '07-23-2025',
     time: '10:00 AM',
     attendees: 12,
     maxAttendees: 15,
@@ -255,8 +255,19 @@ function App() {
   const [besas, setBesas] = useState(mockBesas); 
   const [tours, setTours] = useState(mockTours);
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
+<<<<<<< HEAD
+=======
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+
+>>>>>>> 75a6106 (selecting any day show that month along with tours that day, and today button works)
 
   const navigate = useNavigate();
+
+  const filteredBookings = mockBookings.filter((booking) =>
+    isSameDay(new Date(booking.date), selectedDate)
+  );
+
 
   {/* Add New Tour Info Button*/}
   const defaultNewTour = {
@@ -2089,12 +2100,12 @@ const AdminLogin = () => {
 =======
   {/* Add toggle to switch between calendar/list view */}
   const ScheduleView = () => {
-  const [currentMonth, setCurrentMonth] = useState(new Date());
 
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(monthStart);
   const startDate = startOfWeek(monthStart, { weekStartsOn: 0 });
   const endDate = endOfWeek(monthEnd, { weekStartsOn: 0 });
+
 
   const generateCalendarDays = () => {
     const days = [];
@@ -2108,15 +2119,21 @@ const AdminLogin = () => {
     return days;
   };
 
+  const calendarDays = generateCalendarDays();
+
   const handleToday = () => {
-  setCurrentMonth(new Date());
+  const today = new Date();
+  setCurrentMonth(today);
+  setSelectedDate(today);
 };
 
+const handleDayClick = (day: Date) => {
+  setSelectedDate(day);
+};
 
   const handlePrevMonth = () => setCurrentMonth(subMonths(currentMonth, 1));
   const handleNextMonth = () => setCurrentMonth(addMonths(currentMonth, 1));
 
-  const calendarDays = generateCalendarDays();
 
   return (
 >>>>>>> 88d25d1 (calendar shows tours)
@@ -2133,8 +2150,16 @@ const AdminLogin = () => {
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-bold text-gray-900">January 2024</h2>
               <div className="flex space-x-2">
+<<<<<<< HEAD
                 <button className="px-3 py-1 text-blue-600 hover:bg-blue-50 rounded-lg text-sm">Previous</button>
                 <button className="px-3 py-1 text-blue-600 hover:bg-blue-50 rounded-lg text-sm">Next</button>
+=======
+                <button 
+                  onClick={handleToday} 
+                  className="px-3 py-1 text-blue-600 hover:bg-blue-50 rounded-lg text-m">
+                  Today
+                </button>
+>>>>>>> 75a6106 (selecting any day show that month along with tours that day, and today button works)
               </div>
             </div>
             
@@ -2162,7 +2187,7 @@ const AdminLogin = () => {
 
 >>>>>>> 88d25d1 (calendar shows tours)
                 return (
-                  <div // highlight today's date
+                  <div
                     key={i}
 <<<<<<< HEAD
                     className={`p-2 text-center text-sm h-12 flex items-center justify-center rounded-lg ${
@@ -2186,6 +2211,7 @@ const AdminLogin = () => {
                       : 'text-gray-300'
                     }
                     `}
+                    onClick={() => handleDayClick(day)}
                     >
                     {dayNumber}
 >>>>>>> 88d25d1 (calendar shows tours)
@@ -2197,14 +2223,21 @@ const AdminLogin = () => {
         </div>
 
 <<<<<<< HEAD
+<<<<<<< HEAD
         {/* Upcoming Tours */}
 =======
         {/* Right Panel - Upcoming Tours */}
 >>>>>>> 88d25d1 (calendar shows tours)
+=======
+        {/* Right Panel - Today Tours */}
+>>>>>>> 75a6106 (selecting any day show that month along with tours that day, and today button works)
         <div className="space-y-6">
           <div className="bg-white rounded-xl shadow-sm border p-6">
-            <h3 className="text-lg font-bold text-gray-900 mb-4">Upcoming Tours</h3>
+            <h3 className="text-lg font-bold text-gray-900 mb-4">
+              Tours for {format(selectedDate, 'MMMM d, yyyy')}
+            </h3>
             <div className="space-y-4">
+<<<<<<< HEAD
 <<<<<<< HEAD
               {mockBookings.slice(0, 3).map((booking) => (
                 <div key={booking.id} className="border-l-4 border-blue-500 pl-4">
@@ -2221,6 +2254,10 @@ const AdminLogin = () => {
                     </span>
 =======
               {mockBookings.slice(0, 10).map((day, idx) => (
+=======
+              {filteredBookings.length > 0 ? (
+                filteredBookings.map((day, idx) => (
+>>>>>>> 75a6106 (selecting any day show that month along with tours that day, and today button works)
                 <div key={idx} className="border-l-4 border-blue-500 pl-4">
                   <div className="flex justify-between items-start">
                     <div>
@@ -2236,13 +2273,17 @@ const AdminLogin = () => {
 >>>>>>> 88d25d1 (calendar shows tours)
                   </div>
                 </div>
-              ))}
+              ))
+              ) : (
+                <p className="text-gray-500">No tours scheduled for today.</p>
+              )}
             </div>
           </div>
 
           <div className="bg-white rounded-xl shadow-sm border p-6">
             <h3 className="text-lg font-bold text-gray-900 mb-4">Today's Coverage</h3>
             <div className="space-y-3">
+<<<<<<< HEAD
 <<<<<<< HEAD
               {besas.filter(besa => besa.officeHours.monday.available).map((besa) => (
 =======
@@ -2258,6 +2299,18 @@ const AdminLogin = () => {
                   </span>
                 </div>
               ))}
+=======
+              {mockBesas
+                .filter(besa => besa.officeHours.monday?.available)
+                .map((besa) => (
+                  <div key={besa.id} className="flex justify-between items-center">
+                    <span className="text-sm text-gray-900">{besa.name}</span>
+                    <span className="text-sm font-medium text-blue-600">
+                      {besa.officeHours.monday.start} - {besa.officeHours.monday.end}
+                    </span>
+                  </div>
+                ))}
+>>>>>>> 75a6106 (selecting any day show that month along with tours that day, and today button works)
             </div>
           </div>
         </div>
