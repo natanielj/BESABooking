@@ -170,7 +170,7 @@ const mockBesas = [
     officeHours: {
       monday: { start: '11:00', end: '19:00', available: true },
       tuesday: { start: '11:00', end: '19:00', available: true },
-      wednesday: { start: '11:00', end: '19:00', available: true },
+      wednesday: { start: '', end: '', available: false },
       thursday: { start: '11:00', end: '19:00', available: true },
       friday: { start: '11:00', end: '17:00', available: true },
       saturday: { start: '', end: '', available: false },
@@ -245,6 +245,7 @@ const mockBookings = [
 
 
 type UserRole = 'public' | 'admin';
+
 
 function App() {
   const [currentRole, setCurrentRole] = useState<UserRole>('public');
@@ -2096,9 +2097,13 @@ const AdminLogin = () => {
   };
 
 <<<<<<< HEAD
+<<<<<<< HEAD
   const ScheduleView = () => (
 =======
   {/* Add toggle to switch between calendar/list view */}
+=======
+  {/* have 'Today's Coverage' update with day selected */}
+>>>>>>> bcf035e (besa coverage in schedule updates!)
   const ScheduleView = () => {
 
   const monthStart = startOfMonth(currentMonth);
@@ -2134,7 +2139,25 @@ const handleDayClick = (day: Date) => {
   const handlePrevMonth = () => setCurrentMonth(subMonths(currentMonth, 1));
   const handleNextMonth = () => setCurrentMonth(addMonths(currentMonth, 1));
 
+<<<<<<< HEAD
 
+=======
+  const toggleViewMode = () => {
+    setViewMode(viewMode === 'calendar' ? 'list' : 'calendar');
+  };
+
+  const groupedBookings = mockBookings.reduce((acc, booking) => {
+    const dateKey = format(new Date(booking.date), 'MM-dd-yyyy');
+    if (!acc[dateKey]) acc[dateKey] = [];
+    acc[dateKey].push(booking);
+    return acc;
+  }, {} as Record<string, typeof mockBookings>);
+
+  type Weekday = 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday';
+  const selectedWeekday = format(selectedDate, 'EEEE').toLowerCase() as Weekday;
+
+  
+>>>>>>> bcf035e (besa coverage in schedule updates!)
   return (
 >>>>>>> 88d25d1 (calendar shows tours)
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -2179,11 +2202,12 @@ const handleDayClick = (day: Date) => {
 =======
               {calendarDays.map((day, i) => {
                 const dayNumber = getDate(day);
+                const isSelected = isSameDay(day, selectedDate);
                 const isCurrentMonth = isSameMonth(day, currentMonth);
                 const hasBooking = mockBookings.some(
                   (booking) => isSameDay(new Date(booking.date), day)
                 );
-                const isToday = isSameMonth(day, new Date()) && getDate(day) === getDate(new Date());
+                // const isToday = isSameMonth(day, new Date()) && getDate(day) === getDate(new Date());
 
 >>>>>>> 88d25d1 (calendar shows tours)
                 return (
@@ -2201,10 +2225,9 @@ const handleDayClick = (day: Date) => {
                     {date > 0 && date <= 31 ? date : ''}
 =======
                     className={`p-2 text-center text-sm h-12 flex items-center justify-center rounded-lg
-                    ${
-                      isCurrentMonth
-                      ? isToday
-                      ? 'bg-blue-100 text-blue-800 font-medium' // Highlight today
+                    ${isCurrentMonth
+                      ? isSelected
+                      ? 'bg-blue-100 text-blue-800 font-medium' // Highlight day selected
                       : hasBooking
                       ? 'border-2 border-blue-500 text-blue-700 font-medium cursor-pointer hover:bg-blue-50'
                       : 'hover:bg-gray-100 cursor-pointer text-gray-900'
@@ -2282,7 +2305,9 @@ const handleDayClick = (day: Date) => {
           </div>
 
           <div className="bg-white rounded-xl shadow-sm border p-6">
-            <h3 className="text-lg font-bold text-gray-900 mb-4">Today's Coverage</h3>
+            <h3 className="text-lg font-bold text-gray-900 mb-4">
+              {format(selectedDate, 'MMMM d, yyyy')} Coverage
+            </h3>
             <div className="space-y-3">
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2302,12 +2327,12 @@ const handleDayClick = (day: Date) => {
               ))}
 =======
               {mockBesas
-                .filter(besa => besa.officeHours.monday?.available)
+                .filter(besa => besa.officeHours[selectedWeekday]?.available)
                 .map((besa) => (
                   <div key={besa.id} className="flex justify-between items-center">
                     <span className="text-sm text-gray-900">{besa.name}</span>
                     <span className="text-sm font-medium text-blue-600">
-                      {besa.officeHours.monday.start} - {besa.officeHours.monday.end}
+                      {besa.officeHours[selectedWeekday].start} - {besa.officeHours[selectedWeekday].end}
                     </span>
                   </div>
                 ))}
