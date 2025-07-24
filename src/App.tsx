@@ -2261,7 +2261,8 @@ const handleDayClick = (day: Date) => {
                 <div key={idx} className="border-l-4 border-blue-500 pl-4">
                   <div className="flex justify-between items-start">
                     <div>
-                      <p className="font-medium text-gray-900">{day.tourType}</p>
+                      <p className="font-sm text-gray-500">{day.tourType}</p>
+                      <p className="font-medium text-gray-900">{day.contactName}</p>
                       <p className="text-sm text-gray-500">{format(new Date(day.date), 'MMM d')} at {day.time}</p>
                       <p className="text-sm text-gray-600">{day.attendees} attendees</p>
                     </div>
