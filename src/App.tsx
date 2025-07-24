@@ -6,8 +6,12 @@ import { Calendar, Users, Settings, Clock,  Shield, Menu, X, LogOut, User, MapPi
 >>>>>>> 26b7b08 (updated tour options for add tour button & edit tour)
 import { Routes, Route, useNavigate, Navigate } from 'react-router-dom';
 <<<<<<< HEAD
+<<<<<<< HEAD
 import { mockTours, mockBesas, mockBookings } from '../data/mockData.ts';
 =======
+=======
+import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, addMonths, subMonths, isSameMonth, getDate, isSameDay } from 'date-fns';
+>>>>>>> 88d25d1 (calendar shows tours)
 import { signInWithEmailAndPassword, signInWithPopup } from 'firebase/auth';
 import { auth,googleProvider } from './firebase.ts'; 
 
@@ -197,7 +201,7 @@ const mockBookings = [
   {
     id: 1,
     tourType: 'Campus Tour',
-    date: '2024-01-15',
+    date: '06-17-2025',
     time: '10:00 AM',
     attendees: 12,
     maxAttendees: 15,
@@ -210,7 +214,7 @@ const mockBookings = [
   {
     id: 2,
     tourType: 'Academic Program Deep Dive',
-    date: '2024-01-15',
+    date: '06-15-2025',
     time: '2:00 PM',
     attendees: 6,
     maxAttendees: 8,
@@ -223,7 +227,7 @@ const mockBookings = [
   {
     id: 3,
     tourType: 'Student Life Experience',
-    date: '2024-01-16',
+    date: '06-15-2025',
     time: '11:00 AM',
     attendees: 8,
     maxAttendees: 12,
@@ -2080,7 +2084,42 @@ const AdminLogin = () => {
     );
   };
 
+<<<<<<< HEAD
   const ScheduleView = () => (
+=======
+  {/* Add toggle to switch between calendar/list view */}
+  const ScheduleView = () => {
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+
+  const monthStart = startOfMonth(currentMonth);
+  const monthEnd = endOfMonth(monthStart);
+  const startDate = startOfWeek(monthStart, { weekStartsOn: 0 });
+  const endDate = endOfWeek(monthEnd, { weekStartsOn: 0 });
+
+  const generateCalendarDays = () => {
+    const days = [];
+    let day = startDate;
+
+    while (day <= endDate) {
+      days.push(day);
+      day = addDays(day, 1);
+    }
+
+    return days;
+  };
+
+  const handleToday = () => {
+  setCurrentMonth(new Date());
+};
+
+
+  const handlePrevMonth = () => setCurrentMonth(subMonths(currentMonth, 1));
+  const handleNextMonth = () => setCurrentMonth(addMonths(currentMonth, 1));
+
+  const calendarDays = generateCalendarDays();
+
+  return (
+>>>>>>> 88d25d1 (calendar shows tours)
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Schedule Management</h1>
@@ -2108,12 +2147,24 @@ const AdminLogin = () => {
             </div>
             
             <div className="grid grid-cols-7 gap-1">
+<<<<<<< HEAD
               {Array.from({ length: 35 }, (_, i) => {
                 const date = i - 6;
                 const hasBooking = [8, 12, 15, 18, 22, 25].includes(date);
+=======
+              {calendarDays.map((day, i) => {
+                const dayNumber = getDate(day);
+                const isCurrentMonth = isSameMonth(day, currentMonth);
+                const hasBooking = mockBookings.some(
+                  (booking) => isSameDay(new Date(booking.date), day)
+                );
+                const isToday = isSameMonth(day, new Date()) && getDate(day) === getDate(new Date());
+
+>>>>>>> 88d25d1 (calendar shows tours)
                 return (
-                  <div
+                  <div // highlight today's date
                     key={i}
+<<<<<<< HEAD
                     className={`p-2 text-center text-sm h-12 flex items-center justify-center rounded-lg ${
                       date > 0 && date <= 31
                         ? hasBooking
@@ -2123,6 +2174,21 @@ const AdminLogin = () => {
                     }`}
                   >
                     {date > 0 && date <= 31 ? date : ''}
+=======
+                    className={`p-2 text-center text-sm h-12 flex items-center justify-center rounded-lg
+                    ${
+                      isCurrentMonth
+                      ? isToday
+                      ? 'bg-blue-100 text-blue-800 font-medium' // Highlight today
+                      : hasBooking
+                      ? 'border-2 border-blue-500 text-blue-700 font-medium cursor-pointer hover:bg-blue-50'
+                      : 'hover:bg-gray-100 cursor-pointer text-gray-900'
+                      : 'text-gray-300'
+                    }
+                    `}
+                    >
+                    {dayNumber}
+>>>>>>> 88d25d1 (calendar shows tours)
                   </div>
                 );
               })}
@@ -2130,11 +2196,16 @@ const AdminLogin = () => {
           </div>
         </div>
 
+<<<<<<< HEAD
         {/* Upcoming Tours */}
+=======
+        {/* Right Panel - Upcoming Tours */}
+>>>>>>> 88d25d1 (calendar shows tours)
         <div className="space-y-6">
           <div className="bg-white rounded-xl shadow-sm border p-6">
             <h3 className="text-lg font-bold text-gray-900 mb-4">Upcoming Tours</h3>
             <div className="space-y-4">
+<<<<<<< HEAD
               {mockBookings.slice(0, 3).map((booking) => (
                 <div key={booking.id} className="border-l-4 border-blue-500 pl-4">
                   <div className="flex justify-between items-start">
@@ -2148,6 +2219,21 @@ const AdminLogin = () => {
                     }`}>
                       {booking.status}
                     </span>
+=======
+              {mockBookings.slice(0, 10).map((day, idx) => (
+                <div key={idx} className="border-l-4 border-blue-500 pl-4">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="font-medium text-gray-900">{day.tourType}</p>
+                      <p className="text-sm text-gray-500">{format(new Date(day.date), 'MMM d')} at {day.time}</p>
+                      <p className="text-sm text-gray-600">{day.attendees} attendees</p>
+                    </div>
+                      <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                        day.status === 'confirmed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                        }`}>
+                        {day.status}
+                      </span>
+>>>>>>> 88d25d1 (calendar shows tours)
                   </div>
                 </div>
               ))}
@@ -2157,7 +2243,14 @@ const AdminLogin = () => {
           <div className="bg-white rounded-xl shadow-sm border p-6">
             <h3 className="text-lg font-bold text-gray-900 mb-4">Today's Coverage</h3>
             <div className="space-y-3">
+<<<<<<< HEAD
               {besas.filter(besa => besa.officeHours.monday.available).map((besa) => (
+=======
+              {[
+                { id: 1, name: 'mockbesas.name', officeHours: { monday: { available: true, start: '9:00 AM', end: '12:00 PM' } } },
+                { id: 2, name: 'mockbesas.name', officeHours: { monday: { available: true, start: '1:00 PM', end: '4:00 PM' } } }
+              ].filter(besa => besa.officeHours.monday.available).map((besa) => (
+>>>>>>> 88d25d1 (calendar shows tours)
                 <div key={besa.id} className="flex justify-between items-center">
                   <span className="text-sm text-gray-900">{besa.name}</span>
                   <span className="text-sm font-medium text-blue-600">
