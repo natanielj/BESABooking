@@ -6,13 +6,13 @@ import type { Auth } from 'firebase/auth';
 import { GoogleAuthProvider } from 'firebase/auth';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyC_Kbo16hYrwdgMQSO4TpRwa_y3AiAsHmU",
-  authDomain: "besa-booking-fec9f.firebaseapp.com",
-  projectId: "besa-booking-fec9f",
-  storageBucket: "besa-booking-fec9f.firebasestorage.app",
-  messagingSenderId: "858727290009",
-  appId: "1:858727290009:web:df97b6ecfd92935434d408",
-  measurementId: "G-VWHR6VE2XP"
+  apiKey: "AIzaSyBUtOkFHcZYETVyUZtb5_fiDhxRhcQHVkw",
+  authDomain: "besa-app.firebaseapp.com",
+  projectId: "besa-app",
+  storageBucket: "besa-app.firebasestorage.app",
+  messagingSenderId: "993937979015",
+  appId: "1:993937979015:web:be329cc32dcadf619e6a22",
+  measurementId: "G-1WFWN4H0Q3"
 };
 
 const app: FirebaseApp = initializeApp(firebaseConfig);
