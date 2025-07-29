@@ -641,8 +641,7 @@ const DynamicBookingForm: React.FC<DynamicBookingFormProps> = ({ onBack, presele
           <div className="flex items-center justify-between">
             <button
               onClick={onBack}
-              className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
-            >
+              className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors">
               <ArrowLeft className="w-5 h-5" />
               Back to Home
             </button>

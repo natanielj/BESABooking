@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Users, Clock, X, } from 'lucide-react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, useNavigate } from 'react-router-dom';
 import { mockTours } from '../data/mockData.ts';
 
 
@@ -27,7 +27,7 @@ function App() {
   const [tours, setTours] = useState(mockTours);
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
 
-  // const navigate = useNavigate();
+  const navigate = useNavigate();
 
 
   {/* MAIN HOMEPAGE*/ }
@@ -246,9 +246,10 @@ function App() {
       
       <Route
         path="/booking"
-        element={<DynamicBookingForm onBack={function (): void {
-          throw new Error('Function not implemented.');
-        } }></DynamicBookingForm>} />
+        element={
+          <DynamicBookingForm
+            onBack={() => navigate('/#tour-options')}
+          />}/>
     </Routes>
   );
 }
