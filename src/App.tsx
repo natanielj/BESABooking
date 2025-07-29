@@ -11,8 +11,8 @@ import DashboardView from './pages/admin/views/dashboard';
 import ScheduleView from './pages/admin/views/schedule';
 import ToursManagementView from './pages/admin/views/toursManagement';
 import BESAManagementView from './pages/admin/views/BESAManagements';
-import OfficeHoursView from './pages/admin/views/OfficeHoursView';
-import SettingsView from './pages/settings';
+import OfficeHoursView from './pages/admin/views/officeHoursView.tsx';
+import SettingsView from './pages/Settings';
 
 type UserRole = 'public' | 'admin';
 
