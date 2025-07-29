@@ -13,6 +13,7 @@ import ToursManagementView from './pages/admin/views/toursManagement';
 import BESAManagementView from './pages/admin/views/BESAManagements';
 import OfficeHoursView from './pages/admin/views/officeHoursView.tsx';
 import SettingsView from './pages/Settings';
+import DynamicBookingForm from './pages/DynamicBookingFlow.tsx';
 
 type UserRole = 'public' | 'admin';
 
@@ -234,49 +235,63 @@ function App() {
   );
 
   return (
+    // Move it back to use without login for now
     <Routes>
       <Route path="/" element={<PublicBookingView />} />
+      <Route path='/admin/dashboard' element={<DashboardLayout><DashboardView /></DashboardLayout>} />
+      <Route path='/admin/schedule' element={<DashboardLayout><ScheduleView /></DashboardLayout>} />
+      <Route path='/admin/tours' element={<DashboardLayout><ToursManagementView /></DashboardLayout>} />
+      <Route path='/admin/besas' element={<DashboardLayout><BESAManagementView /></DashboardLayout>} />
+      <Route path='/admin/office-hours' element={<DashboardLayout><OfficeHoursView /></DashboardLayout>} />
+      <Route path='/admin/settings' element={<DashboardLayout><SettingsView /></DashboardLayout>} />
+      
       <Route
-        path="/admin"
-        element={
-          isAdminAuthenticated ? (
-            <Navigate to="/admin/dashboard" />) : (<AdminLogin />)} />
-      <Route
-        path="/admin/dashboard"
-        element={
-          isAdminAuthenticated ? (
-            <DashboardLayout><DashboardView /></DashboardLayout>) : (<Navigate to="/admin" />)} />
-      <Route
-        path="/admin/schedule"
-        element={
-          isAdminAuthenticated ? (
-            <DashboardLayout><ScheduleView /></DashboardLayout>) : (<Navigate to="/admin" />)} />
-      <Route
-        path="/admin/tours"
-        element={
-          isAdminAuthenticated ? (
-            <DashboardLayout><ToursManagementView /></DashboardLayout>) : (<Navigate to="/admin" />)} />
-      <Route
-        path="/admin/besas"
-        element={
-          isAdminAuthenticated ? (
-            <DashboardLayout><BESAManagementView /></DashboardLayout>) : (<Navigate to="/admin" />)} />
-      <Route
-        path="/admin/office-hours"
-        element={
-          isAdminAuthenticated ? (
-            <DashboardLayout><OfficeHoursView /></DashboardLayout>) : (<Navigate to="/admin" />)} />
-      <Route
-        path="/admin/settings"
-        element={
-          isAdminAuthenticated ? (
-            <DashboardLayout><SettingsView /></DashboardLayout>) : (<Navigate to="/admin" />)} />
+        path="/booking"
+        element={<DynamicBookingForm onBack={function (): void {
+          throw new Error('Function not implemented.');
+        } }></DynamicBookingForm>} />
     </Routes>
   );
 }
 
 export default App;
 
+
+      // <Route
+      //   path="/admin"
+      //   element={
+      //     isAdminAuthenticated ? (
+      //       <Navigate to="/admin/dashboard" />) : (<AdminLogin />)} />
+      // <Route
+      //   path="/admin/dashboard"
+      //   element={
+      //     isAdminAuthenticated ? (
+      //       <DashboardLayout><DashboardView /></DashboardLayout>) : (<Navigate to="/admin" />)} />
+      // <Route
+      //   path="/admin/schedule"
+      //   element={
+      //     isAdminAuthenticated ? (
+      //       <DashboardLayout><ScheduleView /></DashboardLayout>) : (<Navigate to="/admin" />)} />
+      // <Route
+      //   path="/admin/tours"
+      //   element={
+      //     isAdminAuthenticated ? (
+      //       <DashboardLayout><ToursManagementView /></DashboardLayout>) : (<Navigate to="/admin" />)} />
+      // <Route
+      //   path="/admin/besas"
+      //   element={
+      //     isAdminAuthenticated ? (
+      //       <DashboardLayout><BESAManagementView /></DashboardLayout>) : (<Navigate to="/admin" />)} />
+      // <Route
+      //   path="/admin/office-hours"
+      //   element={
+      //     isAdminAuthenticated ? (
+      //       <DashboardLayout><OfficeHoursView /></DashboardLayout>) : (<Navigate to="/admin" />)} />
+      // <Route
+      //   path="/admin/settings"
+      //   element={
+      //     isAdminAuthenticated ? (
+      //       <DashboardLayout><SettingsView /></DashboardLayout>) : (<Navigate to="/admin" />)} />
 {/* ADMIN PAGE START*/ }
 
 
