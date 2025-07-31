@@ -1,7 +1,28 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { mockTours } from '../../../../data/mockData';
 import { Calendar,Clock, X, CalendarX, User, MapPin, Edit3, Plus, Trash2, CheckCircle2, BellDot, Timer } from 'lucide-react';
+import { addDoc, collection, getDocs, deleteDoc, doc } from 'firebase/firestore';
+import { db } from '/Users/arely/BESABooking/BESABooking/src/firebase.ts';
+
+type Tour = {
+  id?: string;
+  available: boolean;
+  break: string;
+  description: string;
+  duration: string;
+  endDate: string;
+  frequency: string;
+  holidayHours: string;
+  location: string;
+  maxAttendees: number;
+  notice: string;
+  startDate: string;
+  timeRange: string;
+  title: string;
+  zoomLink: string;
+};
+
 
 export default function ToursManagementView() {
   const defaultNewTour = {
@@ -24,9 +45,30 @@ export default function ToursManagementView() {
   const [showEditTourModal, setShowEditTourModal] = useState(false);
   const [editTour, setEditTour] = useState<any>(null);
   const [showNewTourModal, setShowNewTourModal] = useState(false);
-  const [newTour, setNewTour] = useState({ ...defaultNewTour });
+  // const [newTour, setNewTour] = useState({ ...defaultNewTour });
+  const [newTour, setNewTour] = useState<Tour>({ ...defaultNewTour });
 
-  const [tours, setTours] = useState(mockTours);
+
+  // const [tours, setTours] = useState(mockTours);
+  const [tours, setTours] = useState<Tour[]>([]);
+
+
+  useEffect(() => {
+  const fetchTours = async () => {
+    try {
+      const querySnapshot = await getDocs(collection(db, 'Tours'));
+      const tourData = querySnapshot.docs.map(doc => ({
+        id: doc.id,         // Use Firestore doc ID here as string
+        ...doc.data(),
+      })) as Tour[];
+      setTours(tourData);
+    } catch (error) {
+      console.error('Error fetching tours:', error);
+    }
+  };
+
+  fetchTours();
+}, []);
 
 
   return (
@@ -142,14 +184,22 @@ export default function ToursManagementView() {
                 </button>
                 <button
                   className="px-3 py-1 text-red-600 hover:bg-red-50 rounded-lg text-sm font-medium flex items-center space-x-1"
-                  onClick={() => {
+                  onClick={async () => {
                     if (window.confirm(`Are you sure you want to delete ${tour.title}? This action cannot be undone.`)) {
-                      setTours(prev => prev.filter(t => t.id !== tour.id));
+                      try {
+                        await deleteDoc(doc(db, 'Tours', tour.id!)); // `tour.id` is required and should be defined
+                        setTours(prev => prev.filter(t => t.id !== tour.id));
+                      } catch (error) {
+                        console.error('Error deleting tour:', error);
+                        alert('Failed to delete tour. Please try again.');
+                      }
                     }
-                  }}>
+                  }}
+                >
                   <Trash2 className="h-3 w-3" />
                   <span>Delete</span>
                 </button>
+
               </div>
             </div>
           </div>
@@ -173,19 +223,24 @@ export default function ToursManagementView() {
 
             <form
               className="space-y-4"
-              onSubmit={(e) => {
-                e.preventDefault();
-                setTours((prev) => [
-                  ...prev,
-                  {
-                    ...newTour,
-                    id: prev.length ? Math.max(...prev.map((t) => t.id)) + 1 : 1,
-                  },
+              onSubmit={async (e) => {
+              e.preventDefault();
+              try {
+                const tourToSave = { ...newTour };
+                delete tourToSave.id; 
+
+                const docRef = await addDoc(collection(db, 'Tours'), tourToSave);
+
+                setTours((prev) => [...prev, 
+                  {...newTour, id: docRef.id, },
                 ]);
+
                 setShowNewTourModal(false);
                 setNewTour(defaultNewTour);
-              }}
-            >
+              } catch (error) {
+                console.error('Error adding new tour:', error);
+              }
+            }}>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
                 <input

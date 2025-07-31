@@ -1,4 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '/Users/arely/BESABooking/BESABooking/src/firebase.ts'; 
+
 import {
   format,
   startOfMonth,
@@ -13,12 +16,48 @@ import {
   getDate
 } from 'date-fns';
 
-import { mockTours, mockBesas, mockBookings } from '../../../../data/mockData';
+import { mockBesas, mockBookings } from '../../../../data/mockData';
+
+type Tour = {
+  id: string;
+  title: string;
+  description: string;
+  startDate: string;
+  endDate: string;
+  duration: string;
+  available: boolean;
+  maxAttendees: number;
+  break: string;
+  holidayHours: string;
+  frequency: string;
+  location: string;
+  zoomLink: string;
+  notice: string;
+  timeRange: string;
+};
 
 export default function ScheduleView() {
   const [besas, setBesas] = useState(mockBesas);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [tours, setTours] = useState<Tour[]>([]);
+
+  useEffect(() => {
+    const fetchTours = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, "mockTours"));
+        const tourData = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as Tour[];
+        setTours(tourData);
+      } catch (error) {
+        console.error("Error fetching tours from Firestore:", error);
+      }
+    };
+
+    fetchTours();
+  }, []);
 
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(monthStart);
@@ -56,6 +95,7 @@ export default function ScheduleView() {
   );
 
   const selectedWeekday = format(selectedDate, 'EEEE').toLowerCase() as keyof typeof mockBesas[0]['officeHours'];
+
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
