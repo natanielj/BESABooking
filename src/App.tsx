@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Users, Clock, X, } from 'lucide-react';
 import { Routes, Route, useNavigate } from 'react-router-dom';
-import { mockTours } from '../data/mockData.ts';
+// import { mockTours } from '../data/mockData.ts';
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '/Users/arely/BESABooking/BESABooking/src/firebase.ts'; 
 
 
 //pages and views
@@ -17,18 +19,77 @@ import DynamicBookingForm from './pages/DynamicBookingFlow.tsx';
 
 type UserRole = 'public' | 'admin';
 
+type Tour = {
+  id: number;
+  available: boolean;
+  break: string;
+  description: string;
+  duration: string;
+  endDate: string;
+  frequency: string;
+  holidayHours: string;
+  location: string;
+  maxAttendees: number;
+  notice: string;
+  startDate: string;
+  timeRange: string;
+  title: string;
+  zoomLink: string;
+};
+
 function App() {
   // const [currentRole, setCurrentRole] = useState<UserRole>('public');
   // const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [selectedTour, setSelectedTour] = useState<number | null>(null);
+  const [selectedTour, setSelectedTour] = useState<Tour | null>(null);
+
   // const [selectedBesa, setSelectedBesa] = useState<number | null>(null);
   // const [editingOfficeHours, setEditingOfficeHours] = useState<number | null>(null);
   //schedule view // const [besas, setBesas] = useState(mockBesas);
-  const [tours, setTours] = useState(mockTours);
+  // const [tours, setTours] = useState(mockTours);
+  const [tours, setTours] = useState<Tour[]>([]);
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
 
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const fetchTours = async () => {
+  try {
+    const querySnapshot = await getDocs(collection(db, 'Tours'));
+    console.log('Firestore docs:', querySnapshot.docs);
+
+    const tourData: Tour[] = querySnapshot.docs.map(doc => {
+      const data = doc.data();
+
+      return {
+        id: data.id, // number, as stored in Firestore doc field
+        available: data.available ?? false,
+        break: data.Break ?? '', // Firestore field is "Break" (uppercase B)
+        description: data.description ?? '',
+        duration: data.duration ?? '',
+        endDate: data.endDate ?? '',
+        frequency: data.frequency ?? '',
+        holidayHours: data.holidayHours ?? '',
+        location: data.location ?? '',
+        maxAttendees: data.maxAttendees ?? 0,
+        notice: data.notice ?? '',
+        startDate: data.startDate ?? '',
+        timeRange: data.timeRange ?? '',
+        title: data.title ?? '',
+        zoomLink: data.zoomlink ?? '', // Note lowercase "zoomlink" in Firestore
+      };
+    });
+
+    console.log('Fetched tours:', tourData);
+    setTours(tourData);
+  } catch (error) {
+    console.error('Error fetching tours:', error);
+  }
+};
+
+    fetchTours();
+  }, []);
+
+  
 
   {/* MAIN HOMEPAGE*/ }
   const PublicBookingView = () => (
@@ -68,50 +129,53 @@ function App() {
 
       {/* Tour Options */}
       <div id="tour-options" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">Choose The Tour That Best Suits You!</h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Select from our variety of tour options designed to accomdate tour sizes and interests.
-          </p>
-        </div>
+      <div className="text-center mb-12">
+        <h2 className="text-3xl font-bold text-gray-900 mb-4">Choose The Tour That Best Suits You!</h2>
+        <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          Select from our variety of tour options designed to accommodate tour sizes and interests.
+        </p>
+      </div>
 
-        <div className="grid md:grid-cols-3 gap-8">
-          {tours
-            .filter((tour) => tour.available) // Only show available tours
-            .map((tour) => (
-              <div
-                key={tour.id}
-                className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border-b-4 border-orange-300">
-                <div className="p-6 flex flex-col flex-grow">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-xl font-bold text-gray-900">{tour.title}</h3>
-                    <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-sm font-medium">
-                      Available
-                    </span>
+      <div className="grid md:grid-cols-3 gap-8">
+        {tours
+          .filter((tour) => tour.available) // ✅ Only show available tours
+          .map((tour) => (
+            <div
+              key={tour.id}
+              className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border-b-4 border-orange-300"
+            >
+              <div className="p-6 flex flex-col flex-grow">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xl font-bold text-gray-900">{tour.title}</h3>
+                  <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-sm font-medium">
+                    Available
+                  </span>
+                </div>
+                <div className="flex items-center space-x-4 mb-4 text-gray-600">
+                  <div className="flex items-center space-x-1">
+                    <Clock className="h-4 w-4" />
+                    <span className="text-sm">{tour.duration}</span>
                   </div>
-                  <div className="flex items-center space-x-4 mb-4 text-gray-600">
-                    <div className="flex items-center space-x-1">
-                      <Clock className="h-4 w-4" />
-                      <span className="text-sm">{tour.duration}</span>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <Users className="h-4 w-4" />
-                      <span className="text-sm">Max {tour.maxAttendees}</span>
-                    </div>
-                  </div>
-                  <div className="flex-grow flex flex-col justify-between">
-                    <p className="text-gray-600 mb-6 max-h-32 overflow-y-auto">{tour.description}</p>
-                    <button
-                      onClick={() => window.open('/booking', '_blank')}
-                      className="w-full bg-blue-700 text-white py-2 px-4 rounded-lg hover:bg-blue-900 transition-colors font-medium">
-                      Select This Tour
-                    </button>
+                  <div className="flex items-center space-x-1">
+                    <Users className="h-4 w-4" />
+                    <span className="text-sm">Max {tour.maxAttendees}</span>
                   </div>
                 </div>
+                <div className="flex-grow flex flex-col justify-between">
+                  <p className="text-gray-600 mb-6 max-h-32 overflow-y-auto">{tour.description}</p>
+                  <button
+                    onClick={() => setSelectedTour(tour)}
+                    className="w-full bg-blue-700 text-white py-2 px-4 rounded-lg hover:bg-blue-900 transition-colors font-medium"
+                  >
+                    Select This Tour
+                  </button>
+                </div>
               </div>
-            ))}
-        </div>
+            </div>
+          ))}
       </div>
+    </div>
+  );
 
       {/* Tour Selection Modal */}
       {selectedTour && (
@@ -167,8 +231,10 @@ function App() {
                       Number of Attendees *
                     </label>
                     <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                      {Array.from({ length: mockTours.find(t => t.id === selectedTour)?.maxAttendees || 15 }, (_, i) => (
-                        <option key={i + 1} value={i + 1}>{i + 1} attendee{i > 0 ? 's' : ''}</option>
+                      {Array.from({ length: selectedTour?.maxAttendees || 15 }, (_, i) => (
+                        <option key={i + 1} value={i + 1}>
+                          {i + 1} attendee{i > 0 ? 's' : ''}
+                        </option>
                       ))}
                     </select>
                   </div>

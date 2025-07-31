@@ -1,23 +1,23 @@
 
 // Mock data
 export const mockTours = [
-  {
-    id: 1,
-    title: 'Baskin Engineering Group In-Person Tours',
-    duration: '1 Hour',
-    maxAttendees: 5,
-    description: 'This is an in-person tour of the Jack Baskin Engineering Building, led by the Baskin Engineering Student Ambassadors. During the tour, we will explore key areas that define the engineering experience at UCSC, such as classes, advising, research, student clubs, and more. You will also get a look inside Slugworks, our student-focused makerspace in the Baskin basement!',
-    available: true,
-    frequency: 'Every Hour',
-    break: 'None',
-    timeRange: 'Monday - Friday, 9:00 AM - 5:00 PM',
-    startDate: '2024-01-01',
-    endDate: '2024-12-31',
-    notice: 'Please arrive 10 minutes early to check in at the Baskin Engineering front desk.',
-    location: 'Jack Baskin Engineering Building, UCSC',
-    zoomLink: '',
-    holidayHours: 'Closed on university holidays'
-  },
+  // {
+  //   id: 1,
+  //   title: 'Baskin Engineering Group In-Person Tours',
+  //   duration: '1 Hour',
+  //   maxAttendees: 5,
+  //   description: 'This is an in-person tour of the Jack Baskin Engineering Building, led by the Baskin Engineering Student Ambassadors. During the tour, we will explore key areas that define the engineering experience at UCSC, such as classes, advising, research, student clubs, and more. You will also get a look inside Slugworks, our student-focused makerspace in the Baskin basement!',
+  //   available: true,
+  //   frequency: 'Every Hour',
+  //   break: 'None',
+  //   timeRange: 'Monday - Friday, 9:00 AM - 5:00 PM',
+  //   startDate: '2024-01-01',
+  //   endDate: '2024-12-31',
+  //   notice: 'Please arrive 10 minutes early to check in at the Baskin Engineering front desk.',
+  //   location: 'Jack Baskin Engineering Building, UCSC',
+  //   zoomLink: '',
+  //   holidayHours: 'Closed on university holidays'
+  // },
   {
     id: 2,
     title: 'Baskin Engineering Group Virtual Tours',
