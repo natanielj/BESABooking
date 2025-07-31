@@ -75,7 +75,7 @@ function App() {
         startDate: data.startDate ?? '',
         timeRange: data.timeRange ?? '',
         title: data.title ?? '',
-        zoomLink: data.zoomlink ?? '', // Note lowercase "zoomlink" in Firestore
+        zoomLink: data.zoomlink ?? '',
       };
     });
 
@@ -138,7 +138,7 @@ function App() {
 
       <div className="grid md:grid-cols-3 gap-8">
         {tours
-          .filter((tour) => tour.available) // ✅ Only show available tours
+          .filter((tour) => tour.available)
           .map((tour) => (
             <div
               key={tour.id}
@@ -164,7 +164,7 @@ function App() {
                 <div className="flex-grow flex flex-col justify-between">
                   <p className="text-gray-600 mb-6 max-h-32 overflow-y-auto">{tour.description}</p>
                   <button
-                    onClick={() => setSelectedTour(tour)}
+                    onClick={() => window.location.href = '/booking'}
                     className="w-full bg-blue-700 text-white py-2 px-4 rounded-lg hover:bg-blue-900 transition-colors font-medium"
                   >
                     Select This Tour
