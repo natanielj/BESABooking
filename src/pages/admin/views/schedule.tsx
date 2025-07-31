@@ -69,15 +69,28 @@ export default function ScheduleView() {
         <div className="lg:col-span-2">
           <div className="bg-white rounded-xl shadow-sm border p-6">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold text-gray-900">
-                {format(currentMonth, 'MMMM yyyy')}
-              </h2>
-              <div className="flex space-x-2">
-                <button onClick={handlePrevMonth} className="text-sm px-3 py-1 text-blue-600 hover:bg-blue-50 rounded-lg">Previous</button>
-                <button onClick={handleToday} className="text-sm px-3 py-1 text-blue-600 hover:bg-blue-50 rounded-lg">Today</button>
-                <button onClick={handleNextMonth} className="text-sm px-3 py-1 text-blue-600 hover:bg-blue-50 rounded-lg">Next</button>
+            {/* Left side: Month navigation */}
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={handlePrevMonth}
+                  className="text-lg px-3 py-1 text-black hover:bg-blue-50 rounded-lg">&lt;
+                </button>
+                <h2 className="text-xl font-bold text-gray-900">
+                  {format(currentMonth, 'MMMM yyyy')}
+                </h2>
+                <button
+                  onClick={handleNextMonth}
+                  className="text-lg px-3 py-1 text-black hover:bg-blue-50 rounded-lg">&gt;
+                </button>
               </div>
+
+              {/* Right side: Today button */}
+                <button
+                  onClick={handleToday}
+                  className="text-md px-3 py-1 text-blue-600 hover:bg-blue-50 rounded-lg">Today
+                </button>
             </div>
+
 
             <div className="grid grid-cols-7 gap-1 mb-4">
               {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
