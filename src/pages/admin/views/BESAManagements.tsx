@@ -1,14 +1,23 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X, User, Save } from 'lucide-react';
-import { mockBesas } from '../../../../data/mockData.ts';
+import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { db } from '/Users/arely/BESABooking/BESABooking/src/firebase.ts';
+// import { mockBesas } from '../../../../data/mockData.ts';
 
-// Rendering Problem: User needs to click screen after every input
-// Edit button has more time frames, email change option, name change, etc.
+type BesaType = {
+  id: string;          
+  name: string;
+  email: string;
+  role: string;
+  status: string;
+  toursThisWeek?: number;
+  totalTours?: number;
+};
 
 export default function BESAManagementView() {
-  const [besas, setBesas] = useState(mockBesas);
-  const [selectedBesa, setSelectedBesa] = useState<number | null>(null);
+  const [besas, setBesas] = useState<BesaType[]>([]);
+  const [selectedBesa, setSelectedBesa] = useState<string | null>(null);
   const [showNewBesaModal, setShowNewBesaModal] = useState(false);
   const [newBesa, setNewBesa] = useState({
     name: '',
@@ -17,16 +26,98 @@ export default function BESAManagementView() {
     status: 'active',
   });
 
+  useEffect(() => {
+    const fetchBesas = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, "Besas"));
+        const besasData = querySnapshot.docs.map(doc => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            name: data.name,
+            email: data.email,
+            role: data.role,
+            status: data.status,
+            toursThisWeek: data.toursThisWeek ?? 0,
+            totalTours: data.totalTours ?? 0,
+          } as BesaType;
+        });
+        setBesas(besasData);
+      } catch (error) {
+        console.error("Error fetching BESAs from Firestore:", error);
+      }
+    };
+
+    fetchBesas();
+  }, []);
+
   const updateBesaField = (
-    id: number,
+    id: string,
     field: 'name' | 'email' | 'role' | 'status',
-    value: string) => {
+    value: string
+  ) => {
     setBesas(prevBesas =>
       prevBesas.map(besa =>
         besa.id === id ? { ...besa, [field]: value } : besa
       )
     );
   };
+
+  const handleAddNewBesa = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  try {
+    const docRef = await addDoc(collection(db, 'Besas'), {
+      ...newBesa,
+      toursThisWeek: 0,
+      totalTours: 0,
+      officeHours: defaultOfficeHours,
+    });
+    setBesas(prev => [...prev, { id: docRef.id, ...newBesa, toursThisWeek: 0, totalTours: 0 }]);
+    setShowNewBesaModal(false);
+    setNewBesa({ name: '', email: '', role: 'BESA', status: 'active' });
+  } catch (error) {
+    console.error("Error adding new BESA:", error);
+    alert('Failed to add new BESA. Please try again.');
+  }
+};
+
+const defaultOfficeHours = {
+  Monday:    { available: false, start: '', end: '' },
+  Tuesday:   { available: false, start: '', end: '' },
+  Wednesday: { available: false, start: '', end: '' },
+  Thursday:  { available: false, start: '', end: '' },
+  Friday:    { available: false, start: '', end: '' },
+  Saturday:  { available: false, start: '', end: '' },
+  Sunday:    { available: false, start: '', end: '' }
+};
+
+const saveBesaChanges = async () => {
+  if (selectedBesa === null) return;
+  try {
+    const besaToUpdate = besas.find(b => b.id === selectedBesa);
+    if (!besaToUpdate) return;
+
+    // Reference to Firestore doc
+    const besaDocRef = doc(db, 'Besas', besaToUpdate.id);
+
+    // Update Firestore with current local BESA data
+    await updateDoc(besaDocRef, {
+      name: besaToUpdate.name,
+      email: besaToUpdate.email,
+      role: besaToUpdate.role,
+      status: besaToUpdate.status,
+      officeHours: defaultOfficeHours,
+    });
+
+    setSelectedBesa(null); // close modal after save
+  } catch (error) {
+    console.error('Error updating BESA in Firestore:', error);
+    alert('Failed to save changes. Please try again.');
+  }
+};
+
+
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -98,9 +189,16 @@ export default function BESAManagementView() {
                     </button>
                     <button
                       className="text-red-600 hover:text-red-900"
-                      onClick={() => {
+                      onClick={async () => {
                         if (window.confirm(`Are you sure you want to deactivate and delete ${besa.name}? This action cannot be undone.`)) {
-                          setBesas(prev => prev.filter(b => b.id !== besa.id));
+                          try {
+                            const besaDocRef = doc(db, 'Besas', besa.id);
+                            await deleteDoc(besaDocRef);
+                            setBesas(prev => prev.filter(b => b.id !== besa.id));
+                          } catch (error) {
+                            console.error('Error deleting BESA:', error);
+                            alert('Failed to delete BESA. Please try again.');
+                          }
                         }
                       }}>
                       Deactivate
@@ -183,7 +281,7 @@ export default function BESAManagementView() {
                   Cancel
                 </button>
                 <button
-                  onClick={() => setSelectedBesa(null)}
+                  onClick={saveBesaChanges}
                   className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center space-x-2">
                   <Save className="h-4 w-4" />
                   <span>Save Changes</span>
@@ -209,7 +307,7 @@ export default function BESAManagementView() {
             </div>
 
             {/* Change State to be on click*/}
-            <form>
+            <form onSubmit={handleAddNewBesa}>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
                 <input

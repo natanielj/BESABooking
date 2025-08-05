@@ -1,12 +1,42 @@
-
-import { useState } from 'react';
-import { mockBesas } from '../../../../data/mockData'; 
+// Work on having the days show in order - Monday to Sunday
+import { useState, useEffect } from 'react';
 import { Edit3, Save} from 'lucide-react';
+import { collection, getDocs, doc, updateDoc } from 'firebase/firestore';
+import { db } from '/Users/arely/BESABooking/BESABooking/src/firebase.ts';
 
+interface DayHours {
+  start: string;
+  end: string;
+  available: boolean;
+}
+
+interface Besa {
+  id: string;
+  name: string;
+  email: string;
+  status: string;
+  role: string;
+  officeHours: {
+    [day: string]: DayHours;
+  };
+}
 
 export default function OfficeHoursView() {
-  const [besas, setBesas] = useState(mockBesas);
-  const [editingOfficeHours, setEditingOfficeHours] = useState<number | null>(null);
+  const [besas, setBesas] = useState<Besa[]>([]);
+  const [editingOfficeHours, setEditingOfficeHours] = useState<string | null>(null);
+
+
+  useEffect(() => {
+    const fetchBesas = async () => {
+      const snapshot = await getDocs(collection(db, 'Besas'));
+      const besaData = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...(doc.data() as Omit<Besa, 'id'>),
+      }));
+      setBesas(besaData);
+    };
+      fetchBesas();
+    }, []);
 
   const getCompiledSchedule = () => {
     const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
@@ -14,14 +44,14 @@ export default function OfficeHoursView() {
 
     days.forEach(day => {
       const availableBesas = besas.filter(besa =>
-        besa.officeHours[day as keyof typeof besa.officeHours].available
+        besa.officeHours?.[day]?.available
       );
 
       if (availableBesas.length > 0) {
         const times = availableBesas.map(besa => ({
-          start: besa.officeHours[day as keyof typeof besa.officeHours].start,
-          end: besa.officeHours[day as keyof typeof besa.officeHours].end,
-          name: besa.name
+          start: besa.officeHours[day].start,
+          end: besa.officeHours[day].end,
+          name: besa.name,
         }));
 
         const earliestStart = times.reduce((earliest, current) =>
@@ -42,7 +72,9 @@ export default function OfficeHoursView() {
 
     return schedule;
   };
+
   const compiledSchedule = getCompiledSchedule();
+  const orderedDays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
   const dayNames = {
     monday: 'Monday',
     tuesday: 'Tuesday',
@@ -54,7 +86,7 @@ export default function OfficeHoursView() {
   };
 
 
-  const updateBesaOfficeHours = (besaId: number, day: string, field: string, value: string | boolean) => {
+  const updateBesaOfficeHours = (besaId: string, day: string, field: string, value: string | boolean) => {
     setBesas(prev => prev.map(besa =>
       besa.id === besaId
         ? {
@@ -69,6 +101,19 @@ export default function OfficeHoursView() {
         }
         : besa
     ));
+  };
+
+  const saveOfficeHoursChanges = async (besa: Besa) => {
+  try {
+    const besaDocRef = doc(db, 'Besas', besa.id);
+    await updateDoc(besaDocRef, {
+      officeHours: besa.officeHours,
+    });
+    console.log('Office hours saved!');
+  } catch (error) {
+    console.error('Failed to save office hours:', error);
+    alert('Failed to save changes. Please try again.');
+    }
   };
 
 
@@ -91,9 +136,15 @@ export default function OfficeHoursView() {
                   <p className="text-sm text-gray-500">{besa.email}</p>
                 </div>
                 <button
-                  onClick={() => setEditingOfficeHours(editingOfficeHours === besa.id ? null : besa.id)}
-                  className="flex items-center space-x-1 px-3 py-1 text-blue-600 hover:bg-blue-50 rounded-lg text-sm font-medium"
-                >
+                  onClick={async () => {
+                    if (editingOfficeHours === besa.id) {
+                      await saveOfficeHoursChanges(besa);
+                      setEditingOfficeHours(null);
+                    } else {
+                      setEditingOfficeHours(besa.id);
+                    }
+                  }}
+                  className="flex items-center space-x-1 px-3 py-1 text-blue-600 hover:bg-blue-50 rounded-lg text-sm font-medium">
                   <Edit3 className="h-3 w-3" />
                   <span>{editingOfficeHours === besa.id ? 'Cancel' : 'Edit'}</span>
                 </button>
@@ -141,9 +192,22 @@ export default function OfficeHoursView() {
               {editingOfficeHours === besa.id && (
                 <div className="mt-4 flex justify-end">
                   <button
-                    onClick={() => setEditingOfficeHours(null)}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm flex items-center space-x-1"
-                  >
+                    onClick={async () => {
+                      const besaToSave = besas.find(b => b.id === editingOfficeHours);
+                      if (!besaToSave) return;
+
+                      try {
+                        const besaDocRef = doc(db, 'Besas', besaToSave.id);
+                        await updateDoc(besaDocRef, {
+                          officeHours: besaToSave.officeHours,
+                        });
+                        setEditingOfficeHours(null); 
+                      } catch (error) {
+                        console.error('Failed to save office hours:', error);
+                        alert('Failed to save changes. Please try again.');
+                      }
+                    }}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm flex items-center space-x-1">
                     <Save className="h-3 w-3" />
                     <span>Save Changes</span>
                   </button>

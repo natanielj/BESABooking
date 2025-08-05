@@ -16,7 +16,7 @@ import {
   getDate
 } from 'date-fns';
 
-import { mockBesas, mockBookings } from '../../../../data/mockData';
+import { mockBookings } from '../../../../data/mockData';
 
 type Tour = {
   id: string;
@@ -36,11 +36,48 @@ type Tour = {
   timeRange: string;
 };
 
+type OfficeHours = {
+  start: string;
+  end: string;
+  available: boolean;
+};
+
+type Besa = {
+  id: string;
+  name: string;
+  officeHours: {
+    monday: OfficeHours;
+    tuesday: OfficeHours;
+    wednesday: OfficeHours;
+    thursday: OfficeHours;
+    friday: OfficeHours;
+    saturday: OfficeHours;
+    sunday: OfficeHours;
+  };
+};
+
 export default function ScheduleView() {
-  const [besas, setBesas] = useState(mockBesas);
+  const [besas, setBesas] = useState<Besa[]>([]);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [tours, setTours] = useState<Tour[]>([]);
+
+  useEffect(() => {
+    const fetchBesas = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, "Besas"));
+        const besasData = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as Besa[];
+        setBesas(besasData);
+      } catch (error) {
+        console.error("Error fetching besas from Firestore:", error);
+      }
+    };
+
+    fetchBesas();
+  }, []);
 
   useEffect(() => {
     const fetchTours = async () => {
@@ -94,8 +131,7 @@ export default function ScheduleView() {
     booking => format(new Date(booking.date), 'MM-dd-yyyy') === selectedDateKey
   );
 
-  const selectedWeekday = format(selectedDate, 'EEEE').toLowerCase() as keyof typeof mockBesas[0]['officeHours'];
-
+  const selectedWeekday = format(selectedDate, 'EEEE').toLowerCase() as keyof Besa['officeHours'];
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
