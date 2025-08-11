@@ -70,6 +70,7 @@ export default function ScheduleView() {
           id: doc.id,
           ...doc.data(),
         })) as Besa[];
+        console.log("Fetched BESAs:", besasData);
         setBesas(besasData);
       } catch (error) {
         console.error("Error fetching besas from Firestore:", error);

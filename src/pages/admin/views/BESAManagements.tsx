@@ -83,13 +83,13 @@ export default function BESAManagementView() {
 };
 
 const defaultOfficeHours = {
-  Monday:    { available: false, start: '', end: '' },
-  Tuesday:   { available: false, start: '', end: '' },
-  Wednesday: { available: false, start: '', end: '' },
-  Thursday:  { available: false, start: '', end: '' },
-  Friday:    { available: false, start: '', end: '' },
-  Saturday:  { available: false, start: '', end: '' },
-  Sunday:    { available: false, start: '', end: '' }
+  monday:    { available: false, start: '', end: '' },
+  tuesday:   { available: false, start: '', end: '' },
+  wednesday: { available: false, start: '', end: '' },
+  thursday:  { available: false, start: '', end: '' },
+  friday:    { available: false, start: '', end: '' },
+  saturday:  { available: false, start: '', end: '' },
+  sunday:    { available: false, start: '', end: '' }
 };
 
 const saveBesaChanges = async () => {
@@ -98,10 +98,8 @@ const saveBesaChanges = async () => {
     const besaToUpdate = besas.find(b => b.id === selectedBesa);
     if (!besaToUpdate) return;
 
-    // Reference to Firestore doc
     const besaDocRef = doc(db, 'Besas', besaToUpdate.id);
 
-    // Update Firestore with current local BESA data
     await updateDoc(besaDocRef, {
       name: besaToUpdate.name,
       email: besaToUpdate.email,
@@ -110,7 +108,7 @@ const saveBesaChanges = async () => {
       officeHours: defaultOfficeHours,
     });
 
-    setSelectedBesa(null); // close modal after save
+    setSelectedBesa(null); 
   } catch (error) {
     console.error('Error updating BESA in Firestore:', error);
     alert('Failed to save changes. Please try again.');
