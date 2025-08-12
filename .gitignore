@@ -28,3 +28,5 @@ password.txt
 /project/
 
 src/firebase.ts
+package.json
+package-lock.json

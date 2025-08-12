@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { Edit3, Save} from 'lucide-react';
 import { collection, getDocs, doc, updateDoc } from 'firebase/firestore';
-import { db } from '/Users/arely/BESABooking/BESABooking/src/firebase.ts';
+import { db } from '../../../../src/firebase.ts';
 
 interface DayHours {
   start: string;

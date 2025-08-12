@@ -3,7 +3,7 @@ import { Users, Clock, X, } from 'lucide-react';
 import { Routes, Route, useNavigate } from 'react-router-dom';
 // import { mockTours } from '../data/mockData.ts';
 import { collection, getDocs } from 'firebase/firestore';
-import { db } from '/Users/arely/BESABooking/BESABooking/src/firebase.ts'; 
+import { db } from './firebase.ts'; 
 
 
 //pages and views

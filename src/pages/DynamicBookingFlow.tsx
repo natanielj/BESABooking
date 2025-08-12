@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Calendar, Clock, Users, User, Mail, Phone, MapPin, ArrowLeft, ArrowRight, Check, AlertCircle, Star, Heart, GraduationCap, BookOpen } from 'lucide-react';
+import { db } from "../firebase.ts";
 
 interface BookingData {
   // Date & Tour Type
