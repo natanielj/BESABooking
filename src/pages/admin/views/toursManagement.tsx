@@ -1,6 +1,5 @@
 
 import { useState, useEffect } from 'react';
-import { mockTours } from '../../../../data/mockData';
 import { Calendar,Clock, X, CalendarX, User, MapPin, Edit3, Plus, Trash2, CheckCircle2, BellDot, Timer } from 'lucide-react';
 import { addDoc, collection, getDocs, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '/Users/arely/BESABooking/BESABooking/src/firebase.ts';
@@ -49,7 +48,6 @@ export default function ToursManagementView() {
   const [newTour, setNewTour] = useState<Tour>({ ...defaultNewTour });
 
 
-  // const [tours, setTours] = useState(mockTours);
   const [tours, setTours] = useState<Tour[]>([]);
 
 

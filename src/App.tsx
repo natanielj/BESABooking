@@ -164,7 +164,7 @@ function App() {
                 <div className="flex-grow flex flex-col justify-between">
                   <p className="text-gray-600 mb-6 max-h-32 overflow-y-auto">{tour.description}</p>
                   <button
-                    onClick={() => window.location.href = '/booking'}
+                    onClick={() => window.location.href = '/booking?tour=${tour.id}'}
                     className="w-full bg-blue-700 text-white py-2 px-4 rounded-lg hover:bg-blue-900 transition-colors font-medium"
                   >
                     Select This Tour
@@ -178,7 +178,7 @@ function App() {
   );
 
       {/* Tour Selection Modal */}
-      {selectedTour && (
+      {/* {selectedTour && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
@@ -295,7 +295,7 @@ function App() {
             </div>
           </div>
         </div>
-      )}
+      )} */}
     </div>
   );
 
@@ -313,9 +313,9 @@ function App() {
       <Route
         path="/booking"
         element={
-          <DynamicBookingForm
-            onBack={() => navigate('/#tour-options')}
-          />}/>
+          <DynamicBookingForm/>
+        }
+      />
     </Routes>
   );
 }
