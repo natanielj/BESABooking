@@ -16,7 +16,6 @@ import {
   getDate
 } from 'date-fns';
 
-import { mockBookings } from '../../../../data/mockData';
 
 type Tour = {
   id: string;
@@ -61,6 +60,8 @@ export default function ScheduleView() {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [tours, setTours] = useState<Tour[]>([]);
+  const [bookings, setBookings] = useState<any[]>([]);
+
 
   useEffect(() => {
     const fetchBesas = async () => {
@@ -97,6 +98,24 @@ export default function ScheduleView() {
     fetchTours();
   }, []);
 
+  useEffect(() => {
+  const fetchBookings = async () => {
+    try {
+      const querySnapshot = await getDocs(collection(db, "Bookings"));
+      const bookingsData = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setBookings(bookingsData);
+    } catch (error) {
+      console.error("Error fetching bookings from Firestore:", error);
+    }
+  };
+
+  fetchBookings();
+}, []);
+
+
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(monthStart);
   const startDate = startOfWeek(monthStart, { weekStartsOn: 0 });
@@ -128,7 +147,7 @@ export default function ScheduleView() {
   const handleNextMonth = () => setCurrentMonth(addMonths(currentMonth, 1));
 
   const selectedDateKey = format(selectedDate, 'MM-dd-yyyy');
-  const filteredBookings = mockBookings.filter(
+  const filteredBookings = bookings.filter(
     booking => format(new Date(booking.date), 'MM-dd-yyyy') === selectedDateKey
   );
 
@@ -181,7 +200,7 @@ export default function ScheduleView() {
               {calendarDays.map((day, i) => {
                 const isSelected = isSameDay(day, selectedDate);
                 const isCurrentMonth = isSameMonth(day, currentMonth);
-                const hasBooking = mockBookings.some(
+                const hasBooking = bookings.some(
                   booking => isSameDay(new Date(booking.date), day)
                 );
                 return (

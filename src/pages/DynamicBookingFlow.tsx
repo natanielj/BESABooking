@@ -1,5 +1,8 @@
-import React, { useState } from 'react';
-import { Calendar, Clock, Users, User, Mail, Phone, MapPin, ArrowLeft, ArrowRight, Check, AlertCircle, Star, Heart, GraduationCap, BookOpen } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Calendar, Clock, Users, User, Mail, Phone, MapPin, ArrowLeft, ArrowRight, Check, AlertCircle, Star, Heart, GraduationCap, BookOpen, Book } from 'lucide-react';
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '/Users/arely/BESABooking/BESABooking/src/firebase.ts';
 
 interface BookingData {
   // Date & Tour Type
@@ -23,12 +26,53 @@ interface BookingData {
   marketingConsent: boolean;
 }
 
-interface DynamicBookingFormProps {
-  onBack: () => void;
-  preselectedTour?: string;
+interface Tour {
+  id: string;
+  title: string;
+  description: string;
+  duration: string;
+  maxAttendees: number;
 }
 
-const DynamicBookingForm: React.FC<DynamicBookingFormProps> = ({ onBack, preselectedTour = '' }) => {
+interface DynamicBookingFormProps {
+  onBack: () => void | Promise<void>;
+  preselectedTour?: string;
+  tours: Tour[]; 
+}
+
+function BookingPage() {
+  const [tours, setTours] = useState<Tour[]>([]);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchTours = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, "Tours"));
+        const toursData = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          title: doc.data().title || "",
+          description: doc.data().description || "",
+          duration: doc.data().duration || "",
+          maxAttendees: doc.data().maxAttendees || 0,
+        })) as Tour[];
+        setTours(toursData);
+      } catch (error) {
+        console.error("Error fetching tours:", error);
+      }
+    };
+
+    fetchTours();
+  }, []);
+
+  return <DynamicBookingForm tours={tours} onBack={() => navigate('/')} />;
+}
+
+const DynamicBookingForm: React.FC<DynamicBookingFormProps> = ({
+  onBack,
+  preselectedTour = '',
+  tours, 
+}) => {
+  const [selectedTour, setSelectedTour] = useState<string | null>(null);
   const [currentSection, setCurrentSection] = useState(1);
   const [bookingData, setBookingData] = useState<BookingData>({
     tourType: preselectedTour,
@@ -50,69 +94,7 @@ const DynamicBookingForm: React.FC<DynamicBookingFormProps> = ({ onBack, presele
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [availableTimes, setAvailableTimes] = useState<string[]>([]);
 
-  const tourTypes = [
-    {
-      id: 'campus-walking',
-      name: 'Campus Walking Tour',
-      duration: '60 minutes',
-      maxSize: 15,
-      description: 'Comprehensive overview of campus facilities, student life, and academic buildings',
-      icon: MapPin,
-      color: 'from-blue-500 to-blue-600',
-      highlights: ['Main Campus', 'Student Center', 'Library', 'Dining Halls']
-    },
-    {
-      id: 'engineering-lab',
-      name: 'Engineering Lab Tour',
-      duration: '90 minutes',
-      maxSize: 10,
-      description: 'In-depth exploration of engineering facilities, labs, and research centers',
-      icon: GraduationCap,
-      color: 'from-purple-500 to-purple-600',
-      highlights: ['Research Labs', 'Maker Spaces', 'Computer Labs', 'Faculty Meetings']
-    },
-    {
-      id: 'business-school',
-      name: 'Business School Tour',
-      duration: '75 minutes',
-      maxSize: 12,
-      description: 'Focus on business programs, career services, and networking opportunities',
-      icon: Star,
-      color: 'from-green-500 to-green-600',
-      highlights: ['Trading Floor', 'Case Study Rooms', 'Career Center', 'Alumni Network']
-    },
-    {
-      id: 'student-life',
-      name: 'Student Life Tour',
-      duration: '60 minutes',
-      maxSize: 15,
-      description: 'Explore dorms, dining, recreation, and student organizations',
-      icon: Users,
-      color: 'from-orange-500 to-orange-600',
-      highlights: ['Residence Halls', 'Dining Centers', 'Recreation Center', 'Student Clubs']
-    },
-    {
-      id: 'research-facilities',
-      name: 'Research Facilities Tour',
-      duration: '120 minutes',
-      maxSize: 8,
-      description: 'Deep dive into research labs, libraries, and graduate programs',
-      icon: BookOpen,
-      color: 'from-indigo-500 to-indigo-600',
-      highlights: ['Research Labs', 'Graduate Library', 'PhD Programs', 'Faculty Research']
-    },
-    {
-      id: 'custom',
-      name: 'Custom Tour',
-      duration: 'Flexible',
-      maxSize: 20,
-      description: 'Personalized tour based on your specific interests and needs',
-      icon: Star,
-      color: 'from-gray-500 to-gray-600',
-      highlights: ['Tailored Experience', 'Flexible Schedule', 'Personal Guide', 'Custom Focus']
-    }
-  ];
-
+  
   const timeSlotsByTour = {
     'campus-walking': ['9:00 AM', '10:30 AM', '12:00 PM', '1:30 PM', '3:00 PM', '4:30 PM'],
     'engineering-lab': ['9:00 AM', '11:00 AM', '1:00 PM', '3:00 PM'],
@@ -135,6 +117,7 @@ const DynamicBookingForm: React.FC<DynamicBookingFormProps> = ({ onBack, presele
     { id: 3, title: 'Preferences & Booking Info', description: 'Complete your booking information' }
   ];
 
+  {/* Update booking data and reset errors when a field changes */}
   const updateBookingData = (field: keyof BookingData, value: any) => {
     setBookingData(prev => ({ ...prev, [field]: value }));
     if (errors[field]) {
@@ -155,6 +138,7 @@ const DynamicBookingForm: React.FC<DynamicBookingFormProps> = ({ onBack, presele
     }
   }, [preselectedTour]);
 
+  {/* Validate current section data */}
   const validateSection = (section: number): boolean => {
     const newErrors: Record<string, string> = {};
 
@@ -181,16 +165,19 @@ const DynamicBookingForm: React.FC<DynamicBookingFormProps> = ({ onBack, presele
     return Object.keys(newErrors).length === 0;
   };
 
+  {/* Navigate to the next section */}
   const nextSection = () => {
     if (validateSection(currentSection)) {
       setCurrentSection(prev => Math.min(prev + 1, 3));
     }
   };
 
+  {/* Navigate to the previous section */}
   const prevSection = () => {
     setCurrentSection(prev => Math.max(prev - 1, 1));
   };
 
+  {/* Handle form submission */}
   const handleSubmit = () => {
     if (validateSection(currentSection)) {
       alert('Booking submitted successfully!');
@@ -198,6 +185,7 @@ const DynamicBookingForm: React.FC<DynamicBookingFormProps> = ({ onBack, presele
     }
   };
 
+  {/* Clicking on a tour type toggle*/}
   const toggleInterest = (interest: string) => {
     const currentInterests = bookingData.interests;
     const newInterests = currentInterests.includes(interest)
@@ -206,6 +194,7 @@ const DynamicBookingForm: React.FC<DynamicBookingFormProps> = ({ onBack, presele
     updateBookingData('interests', newInterests);
   };
 
+  {/* Current Section Indicator On Top*/}
   const renderSectionIndicator = () => (
     <div className="flex items-start justify-center mb-8">
       {sections.map((section, index) => (
@@ -237,102 +226,81 @@ const DynamicBookingForm: React.FC<DynamicBookingFormProps> = ({ onBack, presele
     </div>
   );
 
+  {/* Date & Type of Tour Section */}
   const renderSection1 = () => (
     <div className="space-y-8">
+      {/* Title and Description */}
       <div className="text-center mb-8">
         <h2 className="text-2xl font-bold text-gray-900 mb-2">Choose Your Tour Experience</h2>
         <p className="text-gray-600">Select the tour that best matches your interests and preferred date</p>
       </div>
 
       <div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-6">Available Tour Types</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-6">Available Tours</h3>
         <div className="grid gap-6">
-          {tourTypes.map((tour) => {
-            const IconComponent = tour.icon;
-            return (
-              <div
-                key={tour.id}
-                onClick={() => updateBookingData('tourType', tour.id)}
-                className={`p-6 border-2 rounded-xl cursor-pointer transition-all hover:shadow-lg ${
-                  bookingData.tourType === tour.id
-                    ? 'border-blue-500 bg-blue-50 shadow-md'
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex items-start space-x-4">
-                    <div className={`p-3 rounded-lg bg-gradient-to-r ${tour.color}`}>
-                      <IconComponent className="w-6 h-6 text-white" />
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="font-semibold text-gray-900 text-lg">{tour.name}</h4>
-                      <p className="text-gray-600 mt-1">{tour.description}</p>
-                      
-                      <div className="flex items-center gap-6 mt-3 text-sm text-gray-500">
-                        <span className="flex items-center gap-1">
-                          <Clock className="w-4 h-4" />
-                          {tour.duration}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Users className="w-4 h-4" />
-                          Max {tour.maxSize} people
-                        </span>
-                      </div>
-
-                      <div className="mt-4">
-                        <p className="text-sm font-medium text-gray-700 mb-2">Tour Highlights:</p>
-                        <div className="flex flex-wrap gap-2">
-                          {tour.highlights.map((highlight) => (
-                            <span key={highlight} className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full">
-                              {highlight}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                    bookingData.tourType === tour.id
-                      ? 'border-blue-500 bg-blue-500'
-                      : 'border-gray-300'
-                  }`}>
-                    {bookingData.tourType === tour.id && (
-                      <div className="w-2 h-2 rounded-full bg-white" />
-                    )}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-        {errors.tourType && (
-          <p className="text-red-500 text-sm mt-2 flex items-center gap-1">
-            <AlertCircle className="w-4 h-4" />
-            {errors.tourType}
-          </p>
-        )}
-      </div>
-
-      <div>
-        <label className="block text-lg font-semibold text-gray-900 mb-4">
-          Preferred Date
-        </label>
-        <input
-          type="date"
-          value={bookingData.date}
-          onChange={(e) => updateBookingData('date', e.target.value)}
-          min={new Date().toISOString().split('T')[0]}
-          className={`w-full px-4 py-3 border-2 rounded-lg text-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-            errors.date ? 'border-red-500' : 'border-gray-300'
-          }`}
-        />
-        {errors.date && (
-          <p className="text-red-500 text-sm mt-2">{errors.date}</p>
-        )}
+          {tours.map((tour) => (
+          <div key={tour.id} className={`tour-card ${selectedTour === tour.id ? 'selected' : ''}`}>
+            <h3 className="text-lg font-semibold text-indigo-600 mb-2">
+              {tour.title}
+            </h3>
+            <p className="text-gray-600 text-sm mb-4 line-clamp-3">
+              {tour.description}
+            </p>
+            <div className="text-sm text-gray-700 space-y-1">
+              <span className="flex items-center gap-1">
+                <Clock className="w-4 h-4" />
+                  {tour.duration}
+              </span>
+              <span className="flex items-center gap-1">
+                <Users className="w-4 h-4" />
+                  Max {tour.maxAttendees} people
+              </span>
+            </div>
+            <button
+              onClick={() => {
+                  setSelectedTour(tour.id);
+                  updateBookingData('tourType', tour.id);
+                }}
+                className={`mt-4 px-4 py-2 rounded-lg font-semibold ${
+                  selectedTour === tour.id
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-200 text-gray-700 hover:bg-blue-100'
+                }`}>
+                {selectedTour === tour.id ? 'Selected' : 'Select This Tour'}
+            </button>
+          </div>
+        ))}
       </div>
     </div>
-  );
 
+    {errors.tourType && (
+      <p className="text-red-500 text-sm mt-2 flex items-center gap-1">
+        <AlertCircle className="w-4 h-4" />
+        {errors.tourType}
+      </p>
+    )}
+
+    <div>
+      <label className="block text-lg font-semibold text-gray-900 mb-4">
+        Preferred Date
+      </label>
+      <input
+        type="date"
+        value={bookingData.date}
+        onChange={(e) => updateBookingData('date', e.target.value)}
+        min={new Date().toISOString().split('T')[0]}
+        className={`w-full px-4 py-3 border-2 rounded-lg text-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+          errors.date ? 'border-red-500' : 'border-gray-300'
+        }`}
+      />
+      {errors.date && (
+        <p className="text-red-500 text-sm mt-2">{errors.date}</p>
+      )}
+    </div>
+  </div>
+);
+
+  {/* Available Times Section */}
   const renderSection2 = () => (
     <div className="space-y-8">
       <div className="text-center mb-8">
@@ -348,10 +316,10 @@ const DynamicBookingForm: React.FC<DynamicBookingFormProps> = ({ onBack, presele
             </div>
             <div>
               <p className="font-medium text-blue-900">
-                {tourTypes.find(t => t.id === bookingData.tourType)?.name}
+                {tours.find(t => t.id === bookingData.tourType)?.title}
               </p>
               <p className="text-blue-700 text-sm">
-                {bookingData.date} • {tourTypes.find(t => t.id === bookingData.tourType)?.duration}
+                {bookingData.date} • {tours.find(t => t.id === bookingData.tourType)?.duration}
               </p>
             </div>
           </div>
@@ -399,7 +367,7 @@ const DynamicBookingForm: React.FC<DynamicBookingFormProps> = ({ onBack, presele
           <button
             type="button"
             onClick={() => {
-              const maxSize = tourTypes.find(t => t.id === bookingData.tourType)?.maxSize || 15;
+              const maxSize = tours.find(t => t.id === bookingData.tourType)?.maxAttendees || 15;
               updateBookingData('groupSize', Math.min(maxSize, bookingData.groupSize + 1));
             }}
             className="w-10 h-10 rounded-full border-2 border-gray-300 flex items-center justify-center hover:bg-gray-50"
@@ -408,7 +376,7 @@ const DynamicBookingForm: React.FC<DynamicBookingFormProps> = ({ onBack, presele
           </button>
         </div>
         <p className="text-sm text-gray-500 mt-2">
-          Maximum group size: {tourTypes.find(t => t.id === bookingData.tourType)?.maxSize || 15} people
+          Maximum group size: {tours.find(t => t.id === bookingData.tourType)?.maxAttendees || 15} people
         </p>
         {errors.groupSize && (
           <p className="text-red-500 text-sm mt-2">{errors.groupSize}</p>
@@ -417,6 +385,7 @@ const DynamicBookingForm: React.FC<DynamicBookingFormProps> = ({ onBack, presele
     </div>
   );
 
+  {/* Preferences & Booking Info Section */}
   const renderSection3 = () => (
     <div className="space-y-8">
       <div className="text-center mb-8">
@@ -541,8 +510,7 @@ const DynamicBookingForm: React.FC<DynamicBookingFormProps> = ({ onBack, presele
               onChange={(e) => updateBookingData('role', e.target.value)}
               className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
                 errors.role ? 'border-red-500' : 'border-gray-300'
-              }`}
-            >
+              }`}>
               <option value="">Select your role</option>
               <option value="prospective-student">Prospective Student</option>
               <option value="parent">Parent/Guardian</option>
@@ -624,7 +592,7 @@ const DynamicBookingForm: React.FC<DynamicBookingFormProps> = ({ onBack, presele
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
         <h4 className="font-semibold text-blue-900 mb-3">Booking Summary</h4>
         <div className="space-y-2 text-sm text-blue-800">
-          <p><span className="font-medium">Tour:</span> {tourTypes.find(t => t.id === bookingData.tourType)?.name}</p>
+          <p><span className="font-medium">Tour:</span> {tours.find(t => t.id === bookingData.tourType)?.title}</p>
           <p><span className="font-medium">Date & Time:</span> {bookingData.date} at {bookingData.timeSlot}</p>
           <p><span className="font-medium">Group Size:</span> {bookingData.groupSize} people</p>
           <p><span className="font-medium">Contact:</span> {bookingData.firstName} {bookingData.lastName}</p>
@@ -634,6 +602,7 @@ const DynamicBookingForm: React.FC<DynamicBookingFormProps> = ({ onBack, presele
   );
 
   return (
+    // Main Title and Header + Back To Home Button
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
@@ -671,8 +640,7 @@ const DynamicBookingForm: React.FC<DynamicBookingFormProps> = ({ onBack, presele
                 currentSection === 1
                   ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                   : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-            >
+              }`}>
               <ArrowLeft className="w-4 h-4" />
               Previous
             </button>
@@ -680,16 +648,14 @@ const DynamicBookingForm: React.FC<DynamicBookingFormProps> = ({ onBack, presele
             {currentSection < 3 ? (
               <button
                 onClick={nextSection}
-                className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              >
+                className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
                 Continue
                 <ArrowRight className="w-4 h-4" />
               </button>
             ) : (
               <button
                 onClick={handleSubmit}
-                className="flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-              >
+                className="flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
                 <Check className="w-4 h-4" />
                 Complete Booking
               </button>
@@ -701,4 +667,6 @@ const DynamicBookingForm: React.FC<DynamicBookingFormProps> = ({ onBack, presele
   );
 };
 
-export default DynamicBookingForm;
+
+
+export default BookingPage;
