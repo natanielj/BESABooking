@@ -62,7 +62,7 @@ export default function ScheduleView() {
   const [tours, setTours] = useState<Tour[]>([]);
   const [bookings, setBookings] = useState<any[]>([]);
 
-
+{/* Fetch BESAS from firebase */}
   useEffect(() => {
     const fetchBesas = async () => {
       try {
@@ -81,6 +81,7 @@ export default function ScheduleView() {
     fetchBesas();
   }, []);
 
+  {/* Fetch Tours from firebase */}
   useEffect(() => {
     const fetchTours = async () => {
       try {
@@ -98,6 +99,7 @@ export default function ScheduleView() {
     fetchTours();
   }, []);
 
+  {/* Fetch Bookings from firebase */}
   useEffect(() => {
   const fetchBookings = async () => {
     try {

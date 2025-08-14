@@ -1,12 +1,65 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import type { UserRole } from "../../../appTypes.d.ts";
 import { Calendar, Users } from 'lucide-react';
 import { mockBookings } from '../../../../data/mockData.ts';
+import { db } from '/Users/arely/BESABooking/BESABooking/src/firebase.ts'; 
+import { collection, getDocs, query, where, Timestamp } from "firebase/firestore";
 
-
+interface Booking {
+  id: string;
+  tourType: string;
+  date: string; // ISO string or formatted date
+  time: string;
+  attendees: number;
+  maxAttendees: number;
+  besa: string;
+  contactName: string;
+  contactEmail: string;
+  status: string;
+}
 
 export default function DashboardView() {
-  const [currentRole, setCurrentRole] = useState<UserRole>('public');
+  const [currentRole, setCurrentRole] = useState<UserRole>("public");
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [todaysTours, setTodaysTours] = useState(0);
+  const [weeklyTours, setWeeklyTours] = useState(0);
+
+  useEffect(() => {
+    const fetchBookings = async () => {
+      try {
+        const bookingsRef = collection(db, "Bookings");
+        const snapshot = await getDocs(bookingsRef);
+        const data = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as Booking[];
+
+        setBookings(data);
+
+        // Calculate stats
+        const today = new Date();
+        const todayStr = today.toISOString().split("T")[0]; // YYYY-MM-DD
+
+        const startOfWeek = new Date(today);
+        startOfWeek.setDate(today.getDate() - today.getDay()); // Sunday
+        const endOfWeek = new Date(today);
+        endOfWeek.setDate(startOfWeek.getDate() + 6); // Saturday
+
+        const todayCount = data.filter((b) => b.date === todayStr).length;
+        const weekCount = data.filter((b) => {
+          const bookingDate = new Date(b.date);
+          return bookingDate >= startOfWeek && bookingDate <= endOfWeek;
+        }).length;
+
+        setTodaysTours(todayCount);
+        setWeeklyTours(weekCount);
+      } catch (error) {
+        console.error("Error fetching bookings:", error);
+      }
+    };
+
+    fetchBookings();
+  }, []);
 
 
   return (
@@ -29,7 +82,7 @@ export default function DashboardView() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Today's Tours</p>
-              <p className="text-3xl font-bold text-gray-900">4</p>
+              <p className="text-3xl font-bold text-gray-900">{todaysTours}</p>
             </div>
             <div className="bg-blue-100 p-3 rounded-lg">
               <Calendar className="h-6 w-6 text-blue-600" />
@@ -41,7 +94,7 @@ export default function DashboardView() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">This Week</p>
-              <p className="text-3xl font-bold text-gray-900">23</p>
+              <p className="text-3xl font-bold text-gray-900">{weeklyTours}</p>
             </div>
             <div className="bg-green-100 p-3 rounded-lg">
               <Users className="h-6 w-6 text-green-600" />
@@ -68,7 +121,7 @@ export default function DashboardView() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {mockBookings.map((booking) => (
+              {bookings.map((booking) => (
                 <tr key={booking.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900">{booking.tourType}</div>
