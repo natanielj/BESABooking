@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Calendar, Clock, Users, User, Mail, Phone, MapPin, ArrowLeft, ArrowRight, Check, AlertCircle, Star, Heart, GraduationCap, BookOpen, Book } from 'lucide-react';
-import { collection, getDocs, addDoc } from 'firebase/firestore';
+import { collection, getDocs, addDoc, doc, setDoc } from 'firebase/firestore';
 import { db } from '/Users/arely/BESABooking/BESABooking/src/firebase.ts';
 
 {/* Select tour date with the tour section not just a button */}
+{/* Create a "thank you for booking!" page */}
+{/* Show error message when booking a date prior to today or on an unavailable day (weekend, holdaisy, etc) */}
 
 interface BookingData {
   id?: string;
@@ -255,13 +257,18 @@ const DynamicBookingForm: React.FC<DynamicBookingFormProps> = ({
   const handleSubmit = async () => {
   if (validateSection(currentSection)) {
     try {
-      // Add booking to Firestore
-      await addDoc(collection(db, "Bookings"), {
+      // Generate a new document reference with an ID
+      const bookingsRef = collection(db, "Bookings");
+      const newDocRef = doc(bookingsRef);
+      const bookingWithId = {
         ...bookingData,
+        id: newDocRef.id,
         createdAt: new Date().toISOString(),
-      });
+      };
+      // Save booking with matching document ID and field id
+      await setDoc(newDocRef, bookingWithId);
       alert('Booking submitted successfully!');
-      console.log('Booking Data:', bookingData);
+      console.log('Booking Data:', bookingWithId);
       // Optionally, redirect or reset form here
     } catch (error) {
       console.error("Error saving booking:", error);
@@ -512,218 +519,6 @@ const DynamicBookingForm: React.FC<DynamicBookingFormProps> = ({
     </div>
   );
 };
-//   const renderSection2 = () => {
-//   const selectedTour = tours.find(t => t.id === bookingData.id);
-//   console.log("Selected Tour:", selectedTour);
-
-//   if (!selectedTour) return null;
-
-//   // Parse duration like "1 Hour" or "30 Minutes" → minutes
-//   const parseDuration = (durationStr: string) => {
-//     if (!durationStr) return 0;
-//     const match = durationStr.match(/(\d+)/);
-//     return match ? parseInt(match[1]) * (durationStr.includes("Hour") ? 60 : 1) : 0;
-//   };
-
-//   // Parse break duration string → minutes
-//   const parseBreak = (breakStr: string) => {
-//     if (!breakStr) return 0;
-//     const match = breakStr.match(/(\d+)/);
-//     return match ? parseInt(match[1]) : 0;
-//   };
-
-//   const durationMinutes = parseDuration(selectedTour.duration);
-//   const breakMinutes = parseBreak(selectedTour.break);
-//   const timeRangeStr = selectedTour.timeRange;
-//   console.log("Parsed Duration (mins):", durationMinutes);
-//   console.log("Parsed Break (mins):", breakMinutes);
-//   console.log("Time Range:", timeRangeStr);
-
-//   // Convert "9:00 AM" → minutes from midnight
-//   const toMinutes = (timeStr: string) => {
-//     const [time, modifier] = timeStr.trim().split(" ");
-//     let [hours, minutes] = time.split(":").map(Number);
-//     if (modifier?.toLowerCase() === "pm" && hours !== 12) hours += 12;
-//     if (modifier?.toLowerCase() === "am" && hours === 12) hours = 0;
-//     return hours * 60 + minutes;
-//   };
-
-//   // Generate time slots
-//   const generateTimeSlots = (range: string, durationMins: number, breakMins: number) => {
-//     if (!range) return [];
-//     const [startStr, endStr] = range.split(" - ");
-//     if (!startStr || !endStr) return [];
-
-//     const startMinutes = toMinutes(startStr);
-//     const endMinutes = toMinutes(endStr);
-//     const step = durationMins + breakMins;
-
-//     let slots: string[] = [];
-//     for (let mins = startMinutes; mins + durationMins <= endMinutes; mins += step) {
-//       const hours = Math.floor(mins / 60);
-//       const minutes = mins % 60;
-//       const ampm = hours >= 12 ? "PM" : "AM";
-//       const displayHours = ((hours + 11) % 12) + 1;
-//       slots.push(`${displayHours}:${minutes.toString().padStart(2, "0")} ${ampm}`);
-//     }
-
-//     return slots;
-//   };
-
-//   const availableTimes = generateTimeSlots(timeRangeStr, durationMinutes, breakMinutes);
-
-//   const updateGroupSize = (newSize: number) => {
-//     const maxSize = selectedTour.maxAttendees || 15;
-//     updateBookingData("maxAttendees", Math.min(Math.max(1, newSize), maxSize));
-//   };
-
-//   return (
-//     <div className="space-y-8">
-//       <div className="text-center mb-8">
-//         <h2 className="text-2xl font-bold text-gray-900 mb-2">Select Your Time Slot</h2>
-//         <p className="text-gray-600">Choose from available times for your selected tour</p>
-//       </div>
-
-//       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-//         <div className="flex items-center space-x-3">
-//           <div className="p-2 bg-blue-600 rounded-lg">
-//             <Calendar className="w-5 h-5 text-white" />
-//           </div>
-//           <div>
-//             <p className="font-medium text-blue-900">{selectedTour.title}</p>
-//             <p className="text-blue-700 text-sm">
-//               {bookingData.date} • {selectedTour.duration}
-//             </p>
-//           </div>
-//         </div>
-//       </div>
-
-//       <div>
-//         <h3 className="text-lg font-semibold text-gray-900 mb-4">Available Time Slots</h3>
-//         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-//           {availableTimes.length > 0 ? (
-//             availableTimes.map((time) => (
-//               <button
-//                 key={time}
-//                 onClick={() => updateBookingData("time", time)}
-//                 className={`p-4 border-2 rounded-lg text-center transition-all hover:shadow-md ${
-//                   bookingData.time === time
-//                     ? "border-blue-500 bg-blue-50 text-blue-700"
-//                     : "border-gray-200 hover:border-gray-300"
-//                 }`}
-//               >
-//                 <Clock className="w-5 h-5 mx-auto mb-2 text-gray-600" />
-//                 <span className="font-medium">{time}</span>
-//               </button>
-//             ))
-//           ) : (
-//             <p>No available times</p>
-//           )}
-//         </div>
-//         {errors.time && <p className="text-red-500 text-sm mt-2">{errors.time}</p>}
-//       </div>
-
-//       <div>
-//         <label className="block text-lg font-semibold text-gray-900 mb-4">Group Size</label>
-//         <div className="flex items-center space-x-4">
-//           <button type="button" onClick={() => updateGroupSize(bookingData.maxAttendees - 1)} className="w-10 h-10 rounded-full border-2 border-gray-300 flex items-center justify-center hover:bg-gray-50">-</button>
-//           <span className="text-2xl font-semibold text-gray-900 min-w-12 text-center">{bookingData.maxAttendees}</span>
-//           <button type="button" onClick={() => updateGroupSize(bookingData.maxAttendees + 1)} className="w-10 h-10 rounded-full border-2 border-gray-300 flex items-center justify-center hover:bg-gray-50">+</button>
-//         </div>
-//         <p className="text-sm text-gray-500 mt-2">Maximum group size: {selectedTour.maxAttendees}</p>
-//         {errors.maxAttendees && <p className="text-red-500 text-sm mt-2">{errors.maxAttendees}</p>}
-//       </div>
-//     </div>
-//   );
-// };
-
-// const renderSection2 = () => {
-//     const selectedTourObj = tours.find(t => t.id === bookingData.id);
-//     if (!selectedTourObj) return null;
-
-//     // Generate available time slots based on weeklyHours and dateSpecificHours
-//     const getAvailableTimes = () => {
-//       const date = bookingData.date;
-//       if (!date) return [];
-//       // Check dateSpecificHours first
-//       const dateSpecific = selectedTourObj.dateSpecificHours?.find(d => d.date === date && !d.unavailable);
-//       if (dateSpecific) {
-//         return dateSpecific.slots.map(slot => slot.start + " - " + slot.end);
-//       }
-//       // Otherwise, use weeklyHours
-//       const dayOfWeek = new Date(date).toLocaleDateString('en-US', { weekday: 'long' });
-//       const weekly = selectedTourObj.weeklyHours?.[dayOfWeek];
-//       if (weekly && weekly.length > 0) {
-//         return weekly.map(slot => slot.start + " - " + slot.end);
-//       }
-//       return [];
-//     };
-
-//     const availableTimes = getAvailableTimes();
-
-//     const updateGroupSize = (newSize: number) => {
-//       const maxSize = selectedTourObj.maxAttendees || 15;
-//       updateBookingData("maxAttendees", Math.min(Math.max(1, newSize), maxSize));
-//     };
-
-//     return (
-//       <div className="space-y-8">
-//         <div className="text-center mb-8">
-//           <h2 className="text-2xl font-bold text-gray-900 mb-2">Select Your Time Slot</h2>
-//           <p className="text-gray-600">Choose from available times for your selected tour</p>
-//         </div>
-//         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-//           <div className="flex items-center space-x-3">
-//             <div className="p-2 bg-blue-600 rounded-lg">
-//               <Calendar className="w-5 h-5 text-white" />
-//             </div>
-//             <div>
-//               <p className="font-medium text-blue-900">{selectedTourObj.title}</p>
-//               <p className="text-blue-700 text-sm">
-//                 {bookingData.date} • {selectedTourObj.duration} {selectedTourObj.durationUnit}
-//               </p>
-//             </div>
-//           </div>
-//         </div>
-//         <div>
-//           <h3 className="text-lg font-semibold text-gray-900 mb-4">Available Time Slots</h3>
-//           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-//             {availableTimes.length > 0 ? (
-//               availableTimes.map((time) => (
-//                 <button
-//                   key={time}
-//                   onClick={() => updateBookingData("time", time)}
-//                   className={`p-4 border-2 rounded-lg text-center transition-all hover:shadow-md ${
-//                     bookingData.time === time
-//                       ? "border-blue-500 bg-blue-50 text-blue-700"
-//                       : "border-gray-200 hover:border-gray-300"
-//                   }`}
-//                 >
-//                   <Clock className="w-5 h-5 mx-auto mb-2 text-gray-600" />
-//                   <span className="font-medium">{time}</span>
-//                 </button>
-//               ))
-//             ) : (
-//               <p>No available times</p>
-//             )}
-//           </div>
-//           {errors.time && <p className="text-red-500 text-sm mt-2">{errors.time}</p>}
-//         </div>
-//         <div>
-//           <label className="block text-lg font-semibold text-gray-900 mb-4">Group Size</label>
-//           <div className="flex items-center space-x-4">
-//             <button type="button" onClick={() => updateGroupSize(bookingData.maxAttendees - 1)} className="w-10 h-10 rounded-full border-2 border-gray-300 flex items-center justify-center hover:bg-gray-50">-</button>
-//             <span className="text-2xl font-semibold text-gray-900 min-w-12 text-center">{bookingData.maxAttendees}</span>
-//             <button type="button" onClick={() => updateGroupSize(bookingData.maxAttendees + 1)} className="w-10 h-10 rounded-full border-2 border-gray-300 flex items-center justify-center hover:bg-gray-50">+</button>
-//           </div>
-//           <p className="text-sm text-gray-500 mt-2">Maximum group size: {selectedTourObj.maxAttendees}</p>
-//           {errors.maxAttendees && <p className="text-red-500 text-sm mt-2">{errors.maxAttendees}</p>}
-//         </div>
-//       </div>
-//     );
-//   };
-
-
 
   {/* Preferences & Booking Info Section */}
   const renderSection3 = () => (
@@ -888,48 +683,8 @@ const DynamicBookingForm: React.FC<DynamicBookingFormProps> = ({
         </div>
 
         <div className="grid md:grid-cols-2 gap-4">
-          {/* <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Accessibility Needs
-            </label>
-            <textarea
-              value={bookingData.accessibility}
-              onChange={(e) => updateBookingData('accessibility', e.target.value)}
-              rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Please describe any accessibility accommodations needed..."
-            />
-          </div> */}
-
-          {/* <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Special Requests
-            </label>
-            <textarea
-              value={bookingData.specialRequests}
-              onChange={(e) => updateBookingData('specialRequests', e.target.value)}
-              rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Any special requests or questions about your visit..."
-            />
-          </div> */}
         </div>
       </div>
-
-      {/* Marketing Consent */}
-      {/* <div className="border-t pt-6">
-        <label className="flex items-center space-x-3 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={bookingData.marketingConsent}
-            onChange={(e) => updateBookingData('marketingConsent', e.target.checked)}
-            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-          />
-          <span className="text-sm text-gray-700">
-            I would like to receive updates about campus events and programs
-          </span>
-        </label>
-      </div> */}
 
       {/* Booking Summary */}
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
