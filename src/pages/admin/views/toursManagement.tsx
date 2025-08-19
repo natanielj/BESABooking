@@ -3,6 +3,13 @@ import { ArrowLeft, ArrowRight, Calendar, Clock, MapPin, Users, Settings, FileTe
 import { db } from "/Users/arely/BESABooking/BESABooking/src/firebase.ts";
 import { collection, getDocs, onSnapshot, deleteDoc, doc, updateDoc, addDoc } from "firebase/firestore";
 
+{/* Create Tour Button adaptable for small screen */}
+{/* Instead of 'drafts' make it 'unpublished' */}
+{/* Allow to move order of tours (group first, etc) */}
+{/* Have it show the dates range instead of days in the front */}
+{/* View button, show all tour properties */}
+{/* Availabilty: allow for holiday dates */}
+
 type Tour = {
   id?: string;
   title: string;
@@ -773,41 +780,6 @@ function TourFormPage({ onBack, editingTour, onSaveTour }: { onBack: () => void;
                     );
                   })}
                 </div>
-              </div>
-            </div>
-
-            {/* Publish Options */}
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
-              <h4 className="font-medium text-gray-900 mb-4">Publishing Options</h4>
-              
-              <div className="space-y-3">
-                <label className="flex items-center space-x-3">
-                  <input
-                    type="radio"
-                    name="publishOption"
-                    checked={!tour.published}
-                    onChange={() => updateTour({ published: false })}
-                    className="text-blue-600 focus:ring-blue-500"
-                  />
-                  <div>
-                    <div className="font-medium text-gray-900">Save as Draft</div>
-                    <div className="text-sm text-gray-600">Tour won't be visible to users yet</div>
-                  </div>
-                </label>
-                
-                <label className="flex items-center space-x-3">
-                  <input
-                    type="radio"
-                    name="publishOption"
-                    checked={tour.published}
-                    onChange={() => updateTour({ published: true })}
-                    className="text-blue-600 focus:ring-blue-500"
-                  />
-                  <div>
-                    <div className="font-medium text-gray-900">Publish Immediately</div>
-                    <div className="text-sm text-gray-600">Tour will be available for booking right away</div>
-                  </div>
-                </label>
               </div>
             </div>
           </div>
