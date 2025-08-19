@@ -20,21 +20,62 @@ import DynamicBookingForm from './pages/DynamicBookingFlow.tsx';
 type UserRole = 'public' | 'admin';
 
 type Tour = {
-  id: number;
-  available: boolean;
-  break: string;
-  description: string;
-  duration: string;
-  endDate: string;
-  frequency: string;
-  holidayHours: string;
-  location: string;
-  maxAttendees: number;
-  notice: string;
-  startDate: string;
-  timeRange: string;
+  id?: string;
   title: string;
+  description: string;
+  duration: number;
+  durationUnit: 'minutes' | 'hours';
+  maxAttendees: number;
+  location: string;
   zoomLink: string;
+  autoGenerateZoom: boolean;
+  // Availability
+  weeklyHours: {
+    [key: string]: { start: string; end: string }[];
+  };
+  dateSpecificHours: Array<{
+    date: string;
+    slots: { start: string; end: string }[];
+    unavailable: boolean;
+  }>;
+  frequency: number;
+  frequencyUnit: 'minutes' | 'hours';
+  // Scheduling Rules
+  registrationLimit: number;
+  minNotice: number;
+  minNoticeUnit: 'hours' | 'days' | 'weeks';
+  maxNotice: number;
+  maxNoticeUnit: 'days' | 'weeks' | 'months';
+  bufferTime: number;
+  bufferUnit: 'minutes' | 'hours';
+  cancellationPolicy: string;
+  reschedulingPolicy: string;
+  // Intake Form
+  intakeForm: {
+    firstName: boolean;
+    lastName: boolean;
+    email: boolean;
+    phone: boolean;
+    attendeeCount: boolean;
+    majorsInterested: boolean;
+    customQuestions: Array<{
+      question: string;
+      type: 'text' | 'textarea' | 'select' | 'checkbox';
+      required: boolean;
+      options?: string[];
+    }>;
+  };
+  // Notifications
+  reminderEmails: Array<{
+    timing: number;
+    unit: 'hours' | 'days' | 'weeks';
+  }>;
+  sessionInstructions: string;
+  // Status
+  published: boolean;
+  createdAt?: string;
+  upcomingBookings?: number;
+  totalBookings?: number;
 };
 
 function App() {
@@ -52,44 +93,61 @@ function App() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchTours = async () => {
-  try {
-    const querySnapshot = await getDocs(collection(db, 'Tours'));
-    console.log('Firestore docs:', querySnapshot.docs);
+  const fetchTours = async () => {
+    try {
+      const querySnapshot = await getDocs(collection(db, 'Tours'));
+      const tourData: Tour[] = querySnapshot.docs.map(doc => {
+        const data = doc.data();
 
-    const tourData: Tour[] = querySnapshot.docs.map(doc => {
-      const data = doc.data();
+        return {
+          id: doc.id,
+          title: data.title ?? '',
+          description: data.description ?? '',
+          duration: data.duration ?? 0,
+          durationUnit: data.durationUnit ?? 'minutes',
+          maxAttendees: data.maxAttendees ?? 1,
+          location: data.location ?? '',
+          zoomLink: data.zoomLink ?? '',
+          autoGenerateZoom: data.autoGenerateZoom ?? false,
+          weeklyHours: data.weeklyHours ?? {},
+          dateSpecificHours: data.dateSpecificHours ?? [],
+          frequency: data.frequency ?? 1,
+          frequencyUnit: data.frequencyUnit ?? 'hours',
+          registrationLimit: data.registrationLimit ?? 1,
+          minNotice: data.minNotice ?? 0,
+          minNoticeUnit: data.minNoticeUnit ?? 'hours',
+          maxNotice: data.maxNotice ?? 1,
+          maxNoticeUnit: data.maxNoticeUnit ?? 'days',
+          bufferTime: data.bufferTime ?? 0,
+          bufferUnit: data.bufferUnit ?? 'minutes',
+          cancellationPolicy: data.cancellationPolicy ?? '',
+          reschedulingPolicy: data.reschedulingPolicy ?? '',
+          intakeForm: data.intakeForm ?? {
+            firstName: true,
+            lastName: true,
+            email: true,
+            phone: false,
+            attendeeCount: true,
+            majorsInterested: false,
+            customQuestions: [],
+          },
+          reminderEmails: data.reminderEmails ?? [],
+          sessionInstructions: data.sessionInstructions ?? '',
+          published: data.published ?? false,
+          createdAt: data.createdAt ?? '',
+          upcomingBookings: data.upcomingBookings ?? 0,
+          totalBookings: data.totalBookings ?? 0,
+        };
+      });
 
-      return {
-        id: data.id, // number, as stored in Firestore doc field
-        available: data.available ?? false,
-        break: data.Break ?? '', // Firestore field is "Break" (uppercase B)
-        description: data.description ?? '',
-        duration: data.duration ?? '',
-        endDate: data.endDate ?? '',
-        frequency: data.frequency ?? '',
-        holidayHours: data.holidayHours ?? '',
-        location: data.location ?? '',
-        maxAttendees: data.maxAttendees ?? 0,
-        notice: data.notice ?? '',
-        startDate: data.startDate ?? '',
-        timeRange: data.timeRange ?? '',
-        title: data.title ?? '',
-        zoomLink: data.zoomlink ?? '',
-      };
-    });
+      setTours(tourData);
+    } catch (error) {
+      console.error('Error fetching tours:', error);
+    }
+  };
 
-    console.log('Fetched tours:', tourData);
-    setTours(tourData);
-  } catch (error) {
-    console.error('Error fetching tours:', error);
-  }
-};
-
-    fetchTours();
-  }, []);
-
-  
+  fetchTours();
+}, []);
 
   {/* MAIN HOMEPAGE*/ }
   const PublicBookingView = () => (
@@ -138,7 +196,7 @@ function App() {
 
       <div className="grid md:grid-cols-3 gap-8">
         {tours
-          .filter((tour) => tour.available)
+          .filter((tour) => tour.published)
           .map((tour) => (
             <div
               key={tour.id}
@@ -164,7 +222,7 @@ function App() {
                 <div className="flex-grow flex flex-col justify-between">
                   <p className="text-gray-600 mb-6 max-h-32 overflow-y-auto">{tour.description}</p>
                   <button
-                    onClick={() => window.location.href = '/booking?tour=${tour.id}'}
+                    onClick={() => window.location.href = '/booking'}
                     className="w-full bg-blue-700 text-white py-2 px-4 rounded-lg hover:bg-blue-900 transition-colors font-medium"
                   >
                     Select This Tour
