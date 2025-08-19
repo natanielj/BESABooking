@@ -3,7 +3,9 @@ import { useState, useEffect } from 'react';
 import { X, User, Save } from 'lucide-react';
 import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '/Users/arely/BESABooking/BESABooking/src/firebase.ts';
-// import { mockBesas } from '../../../../data/mockData.ts';
+
+{/* Update tour #s assigned based on assigned in dashboard  */}
+{/* Click on BESA name and see all tours scheduled */}
 
 type BesaType = {
   id: string;          
