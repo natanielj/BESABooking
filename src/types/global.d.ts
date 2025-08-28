@@ -140,4 +140,7 @@ declare global {
         sunday: OfficeHours;
       };
     };
+
+    type UserRole = 'public' | 'admin';
+
 }
