@@ -1,6 +1,10 @@
 import { useState } from 'react';
-// import { mockTours, mockBesas, mockBookings } from '../../data/mockData.ts';
 
+{/* Profile Information: BESA Management, besa@ucsc.edu, etc. */}
+{/* Link email notifications to google */}
+{/* Delete SMS Option */}
+{/* Sync google calendar */}
+{/* Security Settings authenticate with firebase */}
 
 type UserRole = 'public' | 'admin';
 

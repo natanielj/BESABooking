@@ -1,10 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Users, Clock, X, } from 'lucide-react';
 import { Routes, Route, useNavigate } from 'react-router-dom';
-// import { mockTours } from '../data/mockData.ts';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '/Users/arely/BESABooking/BESABooking/src/firebase.ts'; 
-
 
 //pages and views
 import AdminLogin from './pages/admin/adminLogin';
@@ -17,7 +15,6 @@ import OfficeHoursView from './pages/admin/views/officeHoursView.tsx';
 import SettingsView from './pages/Settings';
 import DynamicBookingForm from './pages/DynamicBookingFlow.tsx';
 
-type UserRole = 'public' | 'admin';
 
 type Tour = {
   id?: string;
@@ -92,6 +89,7 @@ function App() {
 
   const navigate = useNavigate();
 
+  {/* Fetch Tours */}
   useEffect(() => {
   const fetchTours = async () => {
     try {
