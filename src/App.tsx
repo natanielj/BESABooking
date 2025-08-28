@@ -3,7 +3,7 @@ import { Users, Clock, X, } from 'lucide-react';
 import { Routes, Route, useNavigate } from 'react-router-dom';
 // import { mockTours } from '../data/mockData.ts';
 import { collection, getDocs } from 'firebase/firestore';
-import { db } from '/Users/arely/BESABooking/BESABooking/src/firebase.ts'; 
+import { db } from '../src/firebase.ts'; 
 
 
 //pages and views
@@ -81,16 +81,16 @@ type Tour = {
 function App() {
   // const [currentRole, setCurrentRole] = useState<UserRole>('public');
   // const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [selectedTour, setSelectedTour] = useState<Tour | null>(null);
+  // const [selectedTour, setSelectedTour] = useState<Tour | null>(null);
 
   // const [selectedBesa, setSelectedBesa] = useState<number | null>(null);
   // const [editingOfficeHours, setEditingOfficeHours] = useState<number | null>(null);
   //schedule view // const [besas, setBesas] = useState(mockBesas);
   // const [tours, setTours] = useState(mockTours);
   const [tours, setTours] = useState<Tour[]>([]);
-  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
+  // const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
 
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
 
   useEffect(() => {
   const fetchTours = async () => {
@@ -199,7 +199,7 @@ function App() {
           .filter((tour) => tour.published)
           .map((tour) => (
             <div
-              key={tour.id}
+              key={tour.id  }
               className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border-b-4 border-orange-300"
             >
               <div className="p-6 flex flex-col flex-grow">
@@ -235,125 +235,6 @@ function App() {
     </div>
   );
 
-      {/* Tour Selection Modal */}
-      {/* {selectedTour && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-2xl font-bold text-gray-900">Book Your Tour</h3>
-                <button
-                  onClick={() => setSelectedTour(null)}
-                  className="text-gray-400 hover:text-gray-600">
-                  <X className="h-6 w-6" />
-                </button>
-              </div>
-
-              <form className="space-y-6">
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Contact Name *
-                    </label>
-                    <input
-                      type="text"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="Your full name"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Email Address *
-                    </label>
-                    <input
-                      type="email"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="your.email@example.com"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Phone Number *
-                    </label>
-                    <input
-                      type="tel"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="(555) 123-4567"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Number of Attendees *
-                    </label>
-                    <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                      {Array.from({ length: selectedTour?.maxAttendees || 15 }, (_, i) => (
-                        <option key={i + 1} value={i + 1}>
-                          {i + 1} attendee{i > 0 ? 's' : ''}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Preferred Date *
-                    </label>
-                    <input
-                      type="date"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Preferred Time *
-                    </label>
-                    <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                      <option>9:00 AM</option>
-                      <option>10:00 AM</option>
-                      <option>11:00 AM</option>
-                      <option>1:00 PM</option>
-                      <option>2:00 PM</option>
-                      <option>3:00 PM</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Special Requests or Notes
-                  </label>
-                  <textarea
-                    rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Any specific areas of interest or accessibility needs..."
-                  />
-                </div>
-
-                <div className="flex gap-4">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedTour(null)}
-                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium"
-                  >
-                    Submit Booking Request
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      )} */}
     </div>
   );
 
@@ -380,59 +261,3 @@ function App() {
 
 export default App;
 
-
-      // <Route
-      //   path="/admin"
-      //   element={
-      //     isAdminAuthenticated ? (
-      //       <Navigate to="/admin/dashboard" />) : (<AdminLogin />)} />
-      // <Route
-      //   path="/admin/dashboard"
-      //   element={
-      //     isAdminAuthenticated ? (
-      //       <DashboardLayout><DashboardView /></DashboardLayout>) : (<Navigate to="/admin" />)} />
-      // <Route
-      //   path="/admin/schedule"
-      //   element={
-      //     isAdminAuthenticated ? (
-      //       <DashboardLayout><ScheduleView /></DashboardLayout>) : (<Navigate to="/admin" />)} />
-      // <Route
-      //   path="/admin/tours"
-      //   element={
-      //     isAdminAuthenticated ? (
-      //       <DashboardLayout><ToursManagementView /></DashboardLayout>) : (<Navigate to="/admin" />)} />
-      // <Route
-      //   path="/admin/besas"
-      //   element={
-      //     isAdminAuthenticated ? (
-      //       <DashboardLayout><BESAManagementView /></DashboardLayout>) : (<Navigate to="/admin" />)} />
-      // <Route
-      //   path="/admin/office-hours"
-      //   element={
-      //     isAdminAuthenticated ? (
-      //       <DashboardLayout><OfficeHoursView /></DashboardLayout>) : (<Navigate to="/admin" />)} />
-      // <Route
-      //   path="/admin/settings"
-      //   element={
-      //     isAdminAuthenticated ? (
-      //       <DashboardLayout><SettingsView /></DashboardLayout>) : (<Navigate to="/admin" />)} />
-{/* ADMIN PAGE START*/ }
-
-
-
-{/* ADMIN PAGE HEADER */ }
-
-{/* DASHBOARD VIEW */ }
-
-{/* TOURS MANAGEMENT PAGE */ }
-{ /* Tour Info Rendering Problem: Doesn't Save + Needs Reclick After Each Input */ }
-
-
-{/* Add '+' next to office hours */ }
-
-
-
-{/* Update office Hours Helper Function */ }
-
-
-{/* Office Hours Page - Compiled Schedule*/ }

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Calendar, Clock, Users, User, Mail, Phone, MapPin, ArrowLeft, ArrowRight, Check, AlertCircle, Star, Heart, GraduationCap, BookOpen, Book } from 'lucide-react';
 import { collection, getDocs, addDoc, doc, setDoc } from 'firebase/firestore';
 import { db } from '/Users/arely/BESABooking/BESABooking/src/firebase.ts';
@@ -7,6 +7,8 @@ import { db } from '/Users/arely/BESABooking/BESABooking/src/firebase.ts';
 {/* Select tour date with the tour section not just a button */}
 {/* Create a "thank you for booking!" page */}
 {/* Show error message when booking a date prior to today or on an unavailable day (weekend, holdaisy, etc) */}
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '../../src/firebase.ts';
 
 interface BookingData {
   id?: string;
@@ -94,7 +96,7 @@ interface DynamicBookingFormProps {
 function BookingPage() {
   const [tours, setTours] = useState<Tour[]>([]);
   const navigate = useNavigate();
-
+  
   useEffect(() => {
     const fetchTours = async () => {
       try {
@@ -154,9 +156,11 @@ function BookingPage() {
   return <DynamicBookingForm tours={tours} onBack={() => navigate('/')} />;
 }
 
+const { id } = useParams<{ id: number }>();
+
 const DynamicBookingForm: React.FC<DynamicBookingFormProps> = ({
   onBack,
-  preselectedTour = '',
+  preselectedTour = id,
   tours, 
 }) => {
   const [selectedTour, setSelectedTour] = useState<string | null>(null);
