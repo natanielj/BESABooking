@@ -1,67 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../../../../src/firebase.ts'; 
+import { Calendar, Users, List, Eye } from 'lucide-react';
 
-import {
-  format,
-  startOfMonth,
-  endOfMonth,
-  startOfWeek,
-  endOfWeek,
-  addDays,
-  isSameDay,
-  isSameMonth,
-  subMonths,
-  addMonths,
-  getDate
-} from 'date-fns';
-
-
-type Tour = {
-  id: string;
-  title: string;
-  available: boolean;
-  break: string;
-  description: string;
-  duration: string;
-  endDate: string;
-  frequency: string;
-  holidayHours: string;
-  location: string;
-  maxAttendees: number;
-  notice: string;
-  startDate: string;
-  timeRange: string;
-  zoomLink: string;
-};
-
-type TimeSlot = {
-  id: string;
-  start: string;
-  end: string;
-};
-
-type OfficeHours = {
-  available: boolean;
-  timeSlots: TimeSlot[];
-};
-
-type Besa = {
-  id: string;
-  name: string;
-  email: string;
-  status: string;
-  role: string;
-  officeHours: {
-    monday: OfficeHours;
-    tuesday: OfficeHours;
-    wednesday: OfficeHours;
-    thursday: OfficeHours;
-    friday: OfficeHours;
-    saturday: OfficeHours;
-    sunday: OfficeHours;
-  };
-};
 
 export default function ScheduleView() {
   const [besas, setBesas] = useState<Besa[]>([]);
@@ -625,12 +566,12 @@ export default function ScheduleView() {
               </div>
               <div>
                 <span className="text-sm font-medium text-gray-700">Contact Email:</span>
-                <p className="text-sm text-gray-900">{selectedBooking.contactEmail}</p>
+                <p className="text-sm text-gray-900">{selectedBooking.email}</p>
               </div>
-              {selectedBooking.contactPhone && (
+              {selectedBooking.phone && (
                 <div>
                   <span className="text-sm font-medium text-gray-700">Phone:</span>
-                  <p className="text-sm text-gray-900">{selectedBooking.contactPhone}</p>
+                  <p className="text-sm text-gray-900">{selectedBooking.phone}</p>
                 </div>
               )}
               {selectedBooking.organization && (

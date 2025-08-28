@@ -28,3 +28,4 @@ password.txt
 /project/
 
 src/firebase.ts
+src/credentials.json
