@@ -1,67 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import type { UserRole } from "../../../appTypes.d.ts";
 import { Calendar, Users } from 'lucide-react';
-import { db } from '/Users/arely/BESABooking/BESABooking/src/firebase.ts';
+import { db } from '../../../../src/firebase.ts';
 import { collection, getDocs, updateDoc, doc } from "firebase/firestore";
-
-{/* Allow to delete booking */}
-
-interface TimeSlot {
-  start: string;
-  end: string;
-  id: string;
-}
-
-interface DayHours {
-  available: boolean;
-  timeSlots: TimeSlot[];
-}
-
-interface BesaData {
-  id: string;
-  name: string;
-  email: string;
-  status: string;
-  role: string;
-  officeHours: {
-    [day: string]: DayHours;
-  };
-}
-
-interface BookingData {
-  id?: string;
-  tourType: string;
-  date: string;
-  time: string;
-  attendees: number;
-  maxAttendees: number;
-  besa?: string;
-  contactEmail: string;
-  firstName: string;
-  lastName: string;
-  contactPhone: string;
-  organization: string;
-  role: string;
-  interests: string[];
-}
-
-interface Tour {
-  id: string;
-  title: string;
-  available: boolean;
-  break: string;
-  description: string;
-  duration: string;
-  endDate: string;
-  frequency: string;
-  holidayHours: string;
-  location: string;
-  maxAttendees: number;
-  notice: string;
-  startDate: string;
-  timeRange: string;
-  zoomLink: string;
-}
 
 export default function DashboardView() {
   const [currentRole, setCurrentRole] = useState<UserRole>("public");
@@ -360,7 +301,7 @@ export default function DashboardView() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {booking.firstName} {booking.lastName}
-                    <div className="text-sm text-gray-500">{booking.contactEmail}</div>
+                    <div className="text-sm text-gray-500">{booking.email}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     <button
@@ -405,8 +346,8 @@ export default function DashboardView() {
             <label className="block mb-2 font-medium">Email</label>
             <input
               type="email"
-              value={formData.contactEmail}
-              onChange={(e) => setFormData({ ...formData, contactEmail: e.target.value })}
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               className="w-full px-3 py-2 border rounded-lg mb-4"
             />
 
@@ -414,8 +355,8 @@ export default function DashboardView() {
             <label className="block mb-2 font-medium">Phone</label>
             <input
               type="text"
-              value={formData.contactPhone}
-              onChange={(e) => setFormData({ ...formData, contactPhone: e.target.value })}
+              value={formData.phone}
+              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
               className="w-full px-3 py-2 border rounded-lg mb-4"
             />
 

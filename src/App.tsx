@@ -1,13 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Users, Clock, X, } from 'lucide-react';
+import { Users, Clock } from 'lucide-react';
 import { Routes, Route, useNavigate } from 'react-router-dom';
-// import { mockTours } from '../data/mockData.ts';
+
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../src/firebase.ts'; 
 
-
-//pages and views
-import AdminLogin from './pages/admin/adminLogin';
 import DashboardLayout from './pages/admin/adminDash';
 import DashboardView from './pages/admin/views/dashboard';
 import ScheduleView from './pages/admin/views/schedule';
@@ -17,80 +14,10 @@ import OfficeHoursView from './pages/admin/views/officeHoursView.tsx';
 import SettingsView from './pages/Settings';
 import DynamicBookingForm from './pages/DynamicBookingFlow.tsx';
 
-type UserRole = 'public' | 'admin';
-
-type Tour = {
-  id?: string;
-  title: string;
-  description: string;
-  duration: number;
-  durationUnit: 'minutes' | 'hours';
-  maxAttendees: number;
-  location: string;
-  zoomLink: string;
-  autoGenerateZoom: boolean;
-  // Availability
-  weeklyHours: {
-    [key: string]: { start: string; end: string }[];
-  };
-  dateSpecificHours: Array<{
-    date: string;
-    slots: { start: string; end: string }[];
-    unavailable: boolean;
-  }>;
-  frequency: number;
-  frequencyUnit: 'minutes' | 'hours';
-  // Scheduling Rules
-  registrationLimit: number;
-  minNotice: number;
-  minNoticeUnit: 'hours' | 'days' | 'weeks';
-  maxNotice: number;
-  maxNoticeUnit: 'days' | 'weeks' | 'months';
-  bufferTime: number;
-  bufferUnit: 'minutes' | 'hours';
-  cancellationPolicy: string;
-  reschedulingPolicy: string;
-  // Intake Form
-  intakeForm: {
-    firstName: boolean;
-    lastName: boolean;
-    email: boolean;
-    phone: boolean;
-    attendeeCount: boolean;
-    majorsInterested: boolean;
-    customQuestions: Array<{
-      question: string;
-      type: 'text' | 'textarea' | 'select' | 'checkbox';
-      required: boolean;
-      options?: string[];
-    }>;
-  };
-  // Notifications
-  reminderEmails: Array<{
-    timing: number;
-    unit: 'hours' | 'days' | 'weeks';
-  }>;
-  sessionInstructions: string;
-  // Status
-  published: boolean;
-  createdAt?: string;
-  upcomingBookings?: number;
-  totalBookings?: number;
-};
 
 function App() {
-  // const [currentRole, setCurrentRole] = useState<UserRole>('public');
-  // const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  // const [selectedTour, setSelectedTour] = useState<Tour | null>(null);
-
-  // const [selectedBesa, setSelectedBesa] = useState<number | null>(null);
-  // const [editingOfficeHours, setEditingOfficeHours] = useState<number | null>(null);
-  //schedule view // const [besas, setBesas] = useState(mockBesas);
-  // const [tours, setTours] = useState(mockTours);
   const [tours, setTours] = useState<Tour[]>([]);
-  // const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
-
-  // const navigate = useNavigate();
+  const navigate = useNavigate();
 
   useEffect(() => {
   const fetchTours = async () => {
@@ -222,7 +149,7 @@ function App() {
                 <div className="flex-grow flex flex-col justify-between">
                   <p className="text-gray-600 mb-6 max-h-32 overflow-y-auto">{tour.description}</p>
                   <button
-                    onClick={() => window.location.href = '/booking'}
+                    onClick={() => navigate('/booking/${tourId}')}
                     className="w-full bg-blue-700 text-white py-2 px-4 rounded-lg hover:bg-blue-900 transition-colors font-medium"
                   >
                     Select This Tour
@@ -250,7 +177,7 @@ function App() {
       <Route path='/admin/settings' element={<DashboardLayout><SettingsView /></DashboardLayout>} />
       
       <Route
-        path="/booking"
+        path="/booking/:id"
         element={
           <DynamicBookingForm/>
         }

@@ -1,10 +1,21 @@
 import { useState, useEffect } from 'react';
-import { Calendar,Clock, X, CalendarX, User, MapPin, Edit3, Plus, Trash2, CheckCircle2, BellDot, Timer } from 'lucide-react';
-import { addDoc, collection, getDocs, deleteDoc, doc } from 'firebase/firestore';
-import { db } from '../../../../src/firebase.ts';
+import { ArrowLeft, ArrowRight, Calendar, Clock, MapPin, Users, Settings, FileText, Bell, CheckCircle,Plus,X,Globe,Video,AlertCircle,Edit3,Trash2,Eye,MoreHorizontal,Search} from 'lucide-react';
+import { db } from "../../../../src/firebase.ts";
+import { collection, getDocs, onSnapshot, deleteDoc, doc, updateDoc, addDoc } from "firebase/firestore";
 
-export default function ToursManagementView() {
-  const defaultNewTour = {
+{/* Create Tour Button adaptable for small screen */}
+{/* Instead of 'drafts' make it 'unpublished' */}
+{/* Allow to move order of tours (group first, etc) */}
+{/* Have it show the dates range instead of days in the front */}
+{/* View button, show all tour properties */}
+{/* Availabilty: allow for holiday dates */}
+
+
+const DAYS_OF_WEEK = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+function TourFormPage({ onBack, editingTour, onSaveTour }: { onBack: () => void; editingTour?: Tour; onSaveTour: (tour: Tour) => void;}) {
+  const [currentStep, setCurrentStep] = useState(1);
+  const [tour, setTour] = useState<Tour>(editingTour || {
     title: '',
     description: '',
     duration: 60,

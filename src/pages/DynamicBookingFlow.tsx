@@ -2,91 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Calendar, Clock, Users, User, Mail, Phone, MapPin, ArrowLeft, ArrowRight, Check, AlertCircle, Star, Heart, GraduationCap, BookOpen, Book } from 'lucide-react';
 import { collection, getDocs, addDoc, doc, setDoc } from 'firebase/firestore';
-import { db } from '/Users/arely/BESABooking/BESABooking/src/firebase.ts';
 
 {/* Select tour date with the tour section not just a button */}
 {/* Create a "thank you for booking!" page */}
 {/* Show error message when booking a date prior to today or on an unavailable day (weekend, holdaisy, etc) */}
-import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../../src/firebase.ts';
-
-interface BookingData {
-  id?: string;
-  tourType: string;
-  date: string;
-  time: string;
-  attendees: number;
-  maxAttendees: number;
-  besa?: string;
-  contactEmail: string;
-  firstName: string;
-  lastName: string;
-  contactPhone: string;
-  organization: string;
-  role: string;
-  interests: string[];
-}
-
-
-type Tour = {
-  id?: string;
-  title: string;
-  description: string;
-  duration: number;
-  durationUnit: 'minutes' | 'hours';
-  maxAttendees: number;
-  location: string;
-  zoomLink: string;
-  autoGenerateZoom: boolean;
-  // Availability
-  weeklyHours: {
-    [key: string]: { start: string; end: string }[];
-  };
-  dateSpecificHours: Array<{
-    date: string;
-    slots: { start: string; end: string }[];
-    unavailable: boolean;
-  }>;
-  frequency: number;
-  frequencyUnit: 'minutes' | 'hours';
-  // Scheduling Rules
-  registrationLimit: number;
-  minNotice: number;
-  minNoticeUnit: 'hours' | 'days' | 'weeks';
-  maxNotice: number;
-  maxNoticeUnit: 'days' | 'weeks' | 'months';
-  bufferTime: number;
-  bufferUnit: 'minutes' | 'hours';
-  cancellationPolicy: string;
-  reschedulingPolicy: string;
-  // Intake Form
-  intakeForm: {
-    firstName: boolean;
-    lastName: boolean;
-    email: boolean;
-    phone: boolean;
-    attendeeCount: boolean;
-    majorsInterested: boolean;
-    customQuestions: Array<{
-      question: string;
-      type: 'text' | 'textarea' | 'select' | 'checkbox';
-      required: boolean;
-      options?: string[];
-    }>;
-  };
-  // Notifications
-  reminderEmails: Array<{
-    timing: number;
-    unit: 'hours' | 'days' | 'weeks';
-  }>;
-  sessionInstructions: string;
-  // Status
-  published: boolean;
-  createdAt?: string;
-  upcomingBookings?: number;
-  totalBookings?: number;
-};
-
 interface DynamicBookingFormProps {
   onBack: () => void | Promise<void>;
   preselectedTour?: string;
@@ -156,11 +76,11 @@ function BookingPage() {
   return <DynamicBookingForm tours={tours} onBack={() => navigate('/')} />;
 }
 
-const { id } = useParams<{ id: number }>();
+// const { id } = useParams<{ id: string | undefined }>();
 
 const DynamicBookingForm: React.FC<DynamicBookingFormProps> = ({
   onBack,
-  preselectedTour = id,
+  preselectedTour = "",
   tours, 
 }) => {
   const [selectedTour, setSelectedTour] = useState<string | null>(null);
@@ -173,11 +93,19 @@ const DynamicBookingForm: React.FC<DynamicBookingFormProps> = ({
   maxAttendees: 1,
   firstName: '',
   lastName: '',
-  contactEmail: '',
-  contactPhone: '',
+  email: '',
+  phone: '',
   organization: '',
   role: '',
   interests: [],
+  timeSlot: "", 
+  groupSize: 1, 
+  status: "", 
+  accessibility: "",
+  specialRequests: "", 
+  marketingConsent: false, 
+  leadGuide: "", 
+  notes: ""
 });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -234,8 +162,8 @@ const DynamicBookingForm: React.FC<DynamicBookingFormProps> = ({
       case 3:
         if (!bookingData.firstName) newErrors.firstName = 'First name is required';
         if (!bookingData.lastName) newErrors.lastName = 'Last name is required';
-        if (!bookingData.contactEmail) newErrors.contactEmail = 'Email is required';
-        if (!bookingData.contactPhone) newErrors.phone = 'Phone number is required';
+        if (!bookingData.email) newErrors.contactEmail = 'Email is required';
+        if (!bookingData.phone) newErrors.phone = 'Phone number is required';
         if (!bookingData.organization) newErrors.organization = 'Organization is required';
         if (!bookingData.role) newErrors.role = 'Role is required';
         break;
@@ -582,8 +510,8 @@ const DynamicBookingForm: React.FC<DynamicBookingFormProps> = ({
             </label>
             <input
               type="email"
-              value={bookingData.contactEmail}
-              onChange={(e) => updateBookingData('contactEmail', e.target.value)}
+              value={bookingData.email}
+              onChange={(e) => updateBookingData('email', e.target.value)}
               className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
                 errors.email ? 'border-red-500' : 'border-gray-300'
               }`}
@@ -600,8 +528,8 @@ const DynamicBookingForm: React.FC<DynamicBookingFormProps> = ({
             </label>
             <input
               type="tel"
-              value={bookingData.contactPhone}
-              onChange={(e) => updateBookingData('contactPhone', e.target.value)}
+              value={bookingData.phone}
+              onChange={(e) => updateBookingData('phone', e.target.value)}
               className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
                 errors.phone ? 'border-red-500' : 'border-gray-300'
               }`}
