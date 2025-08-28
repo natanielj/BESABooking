@@ -1,27 +1,7 @@
 import React, { useState } from 'react';
 import { Calendar, Clock, Users, User, Mail, Phone, MapPin, ArrowLeft, ArrowRight, Check, AlertCircle, Star, Heart, GraduationCap, BookOpen } from 'lucide-react';
 
-interface BookingData {
-  // Date & Tour Type
-  tourType: string;
-  date: string;
-  
-  // Available Times
-  timeSlot: string;
-  groupSize: number;
-  
-  // Preferences & Booking Info
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  organization: string;
-  role: string;
-  interests: string[];
-  accessibility: string;
-  specialRequests: string;
-  marketingConsent: boolean;
-}
+
 
 interface DynamicBookingFormProps {
   onBack: () => void;

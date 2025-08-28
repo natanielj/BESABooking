@@ -1,30 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { collection, getDocs } from 'firebase/firestore';
-import { db } from '/Users/arely/BESABooking/BESABooking/src/firebase.ts'; 
-import { Eye, Calendar, List } from 'lucide-react';
+import { db } from '../../../../src/firebase.ts'; 
 
-{/* Allow to delete booking */}
-{/* Fix dates showing a day early for calendar + list */}
+import {
+  format,
+  startOfMonth,
+  endOfMonth,
+  startOfWeek,
+  endOfWeek,
+  addDays,
+  isSameDay,
+  isSameMonth,
+  subMonths,
+  addMonths,
+  getDate
+} from 'date-fns';
 
-type BookingData = {
-  id?: string;
-  tourType: string;
-  date: string;
-  time: string;
-  attendees: number;
-  maxAttendees: number;
-  besa?: string;
-  contactEmail: string;
-  firstName: string;
-  lastName: string;
-  contactPhone: string;
-  organization: string;
-  role: string;
-  interests: string[];
-  status?: string;
-  leadGuide?: string;
-  notes?: string;
-};
 
 type Tour = {
   id: string;
