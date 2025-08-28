@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Calendar, Users, Settings, Clock, Menu, X, LogOut, MapPin } from 'lucide-react';
-
 import { Routes, Route, useNavigate, Navigate } from 'react-router-dom';
 
+{/* Add mobile/window minimizing version */}
 
 type UserRole = 'public' | 'admin';
 
