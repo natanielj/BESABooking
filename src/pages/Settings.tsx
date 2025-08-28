@@ -2,7 +2,6 @@ import { useState } from 'react';
 // import { mockTours, mockBesas, mockBookings } from '../../data/mockData.ts';
 
 
-type UserRole = 'public' | 'admin';
 
 export default function SettingsView() {
 
