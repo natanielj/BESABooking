@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import type { UserRole } from "../../../appTypes.d.ts";
-import { Calendar, Users } from 'lucide-react';
+import { Calendar, Users, Trash2, Plus, X } from 'lucide-react';
 import { db } from '../../../../src/firebase.ts';
-import { collection, getDocs, updateDoc, doc } from "firebase/firestore";
+import { collection, getDocs, updateDoc, doc, deleteDoc } from "firebase/firestore";
 
 export default function DashboardView() {
   const [currentRole, setCurrentRole] = useState<UserRole>("public");

@@ -105,7 +105,8 @@ const DynamicBookingForm: React.FC<DynamicBookingFormProps> = ({
   specialRequests: "", 
   marketingConsent: false, 
   leadGuide: "", 
-  notes: ""
+  notes: "",
+  besas: []
 });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
