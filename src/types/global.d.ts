@@ -101,27 +101,27 @@ declare global {
 
     interface BookingData {
         id?: string;
-        timeSlot: string,
-        groupSize: number,
-        tourType: string;
-        status: string,
+        timeSlot?: string,
+        groupSize?: number,
+        tourType?: string;
+        status?: string,
         date: string;
         time: string;
         attendees: number;
         maxAttendees: number;
-        besa?: string;
-        email: string;
-        firstName: string;
-        lastName: string;
-        phone: string;
-        organization: string;
-        role: string;
+        besas: string;
+        email?: string;
+        firstName?: string;
+        lastName?: string;
+        phone?: string;
+        organization?: string;
+        role?: string;
         interests: string[];
-        accessibility: string,
-        specialRequests: string,
-        marketingConsent: boolean,
-        leadGuide: string,
-        notes: string
+        accessibility?: string,
+        specialRequests?: string,
+        marketingConsent?: boolean,
+        leadGuide?: string,
+        notes?: string,
     }
 
     type Besa = {
