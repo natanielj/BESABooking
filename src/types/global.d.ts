@@ -109,7 +109,7 @@ declare global {
         time: string;
         attendees: number;
         maxAttendees: number;
-        besas: string;
+        besas: string[];
         email?: string;
         firstName?: string;
         lastName?: string;
