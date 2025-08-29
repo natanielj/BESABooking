@@ -4,7 +4,6 @@ import { db } from "../../../../src/firebase.ts";
 import { collection, getDocs, onSnapshot, deleteDoc, doc, updateDoc, addDoc } from "firebase/firestore";
 
 {/* Create Tour Button adaptable for small screen */}
-{/* Instead of 'drafts' make it 'unpublished' */}
 {/* Allow to move order of tours (group first, etc) */}
 {/* Have it show the dates range instead of days in the front */}
 {/* View button, show all tour properties */}
@@ -919,7 +918,6 @@ function ToursDashboard({ onCreateTour, onEditTour, tours, setTours }: {
   useEffect(() => {
     const toursRef = collection(db, "Tours");
 
-    // Real-time updates:
     const unsubscribe = onSnapshot(toursRef, (snapshot) => {
       const tourData = snapshot.docs.map((doc) => ({
         id: doc.id,
@@ -928,7 +926,6 @@ function ToursDashboard({ onCreateTour, onEditTour, tours, setTours }: {
       setTours(tourData);
     });
 
-    // cleanup listener
     return () => unsubscribe();
   }, [setTours]);
 
@@ -1022,69 +1019,6 @@ function ToursDashboard({ onCreateTour, onEditTour, tours, setTours }: {
 
       {/* Stats Overview */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Total Tours</p>
-                <p className="text-2xl font-bold text-gray-900">{tours.length}</p>
-              </div>
-              <FileText className="h-8 w-8 text-blue-600" />
-            </div>
-          </div>
-          
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Published</p>
-                <p className="text-2xl font-bold text-green-600">{tours.filter(t => t.published).length}</p>
-              </div>
-              <CheckCircle className="h-8 w-8 text-green-600" />
-            </div>
-          </div>
-          
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Drafts</p>
-                <p className="text-2xl font-bold text-yellow-600">{tours.filter(t => !t.published).length}</p>
-              </div>
-              <Edit3 className="h-8 w-8 text-yellow-600" />
-            </div>
-          </div>
-        </div>
-
-        {/* Filters and Search */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
-            <div className="flex items-center space-x-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Search tours..."
-                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-              
-              <select
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value as 'all' | 'published' | 'draft')}
-              >
-                <option value="all">All Tours</option>
-                <option value="published">Published</option>
-                <option value="draft">Drafts</option>
-              </select>
-            </div>
-            
-            <div className="text-sm text-gray-600">
-              Showing {filteredTours.length} of {tours.length} tours
-            </div>
-          </div>
-        </div>
 
         {/* Tours List */}
         <div className="space-y-4">

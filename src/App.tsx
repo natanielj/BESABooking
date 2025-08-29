@@ -19,6 +19,7 @@ function App() {
   const [tours, setTours] = useState<Tour[]>([]);
   const navigate = useNavigate();
 
+  {/* Fetch Tours */}
   useEffect(() => {
   const fetchTours = async () => {
     try {

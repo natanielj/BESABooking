@@ -1,6 +1,5 @@
-
 import { useState, useEffect } from 'react';
-import { X, User, Save } from 'lucide-react';
+import { X, User, Save, Calendar, Clock, Users, MapPin } from 'lucide-react';
 import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../../../../src/firebase.ts';
 // import { mockBesas } from '../../../../data/mockData.ts';
@@ -15,9 +14,29 @@ type BesaType = {
   totalTours?: number;
 };
 
+type BookingData = {
+  id?: string;
+  tourType: string;
+  date: string;
+  time: string;
+  attendees: number;
+  maxAttendees: number;
+  besas?: string[];
+  besa?: string; // For backward compatibility
+  contactEmail: string;
+  firstName: string;
+  lastName: string;
+  contactPhone: string;
+  organization: string;
+  role: string;
+  interests: string[];
+};
+
 export default function BESAManagementView() {
   const [besas, setBesas] = useState<BesaType[]>([]);
+  const [bookings, setBookings] = useState<BookingData[]>([]);
   const [selectedBesa, setSelectedBesa] = useState<string | null>(null);
+  const [viewingBesaTours, setViewingBesaTours] = useState<string | null>(null);
   const [showNewBesaModal, setShowNewBesaModal] = useState(false);
   const [newBesa, setNewBesa] = useState({
     name: '',
@@ -26,11 +45,13 @@ export default function BESAManagementView() {
     status: 'active',
   });
 
+  {/* Fetch BESAS & Booking Info */}
   useEffect(() => {
-    const fetchBesas = async () => {
+    const fetchData = async () => {
       try {
-        const querySnapshot = await getDocs(collection(db, "Besas"));
-        const besasData = querySnapshot.docs.map(doc => {
+        // Fetch BESAs
+        const besaSnapshot = await getDocs(collection(db, "Besas"));
+        const besasData = besaSnapshot.docs.map(doc => {
           const data = doc.data();
           return {
             id: doc.id,
@@ -38,17 +59,57 @@ export default function BESAManagementView() {
             email: data.email,
             role: data.role,
             status: data.status,
-            toursThisWeek: data.toursThisWeek ?? 0,
-            totalTours: data.totalTours ?? 0,
+            toursThisWeek: 0, 
+            totalTours: 0, 
           } as BesaType;
         });
-        setBesas(besasData);
+
+        // Fetch Bookings
+        const bookingSnapshot = await getDocs(collection(db, "Bookings"));
+        const bookingsData = bookingSnapshot.docs.map(doc => {
+          const docData = doc.data();
+          return {
+            id: doc.id,
+            ...docData,
+            // Handle backward compatibility - convert single besa to array
+            besas: docData.besas ? docData.besas : (docData.besa ? [docData.besa] : [])
+          };
+        }) as BookingData[];
+
+        setBookings(bookingsData);
+
+        // Calculate tour counts for each BESA
+        const updatedBesas = besasData.map(besa => {
+          const besaTours = bookingsData.filter(booking => 
+            booking.besas?.includes(besa.name) || booking.besa === besa.name
+          );
+
+          // Calculate this week's tours
+          const today = new Date();
+          const startOfWeek = new Date(today);
+          startOfWeek.setDate(today.getDate() - today.getDay()); // Start of week (Sunday)
+          const endOfWeek = new Date(startOfWeek);
+          endOfWeek.setDate(startOfWeek.getDate() + 6); // End of week (Saturday)
+
+          const toursThisWeek = besaTours.filter(booking => {
+            const bookingDate = new Date(booking.date);
+            return bookingDate >= startOfWeek && bookingDate <= endOfWeek;
+          }).length;
+
+          return {
+            ...besa,
+            toursThisWeek,
+            totalTours: besaTours.length
+          };
+        });
+
+        setBesas(updatedBesas);
       } catch (error) {
-        console.error("Error fetching BESAs from Firestore:", error);
+        console.error("Error fetching data from Firestore:", error);
       }
     };
 
-    fetchBesas();
+    fetchData();
   }, []);
 
   const updateBesaField = (
@@ -64,58 +125,83 @@ export default function BESAManagementView() {
   };
 
   const handleAddNewBesa = async (e: React.FormEvent) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  try {
-    const docRef = await addDoc(collection(db, 'Besas'), {
-      ...newBesa,
-      toursThisWeek: 0,
-      totalTours: 0,
-      officeHours: defaultOfficeHours,
+    try {
+      const docRef = await addDoc(collection(db, 'Besas'), {
+        ...newBesa,
+        officeHours: defaultOfficeHours,
+      });
+      
+      setBesas(prev => [...prev, { 
+        id: docRef.id, 
+        ...newBesa, 
+        toursThisWeek: 0, 
+        totalTours: 0 
+      }]);
+      
+      setShowNewBesaModal(false);
+      setNewBesa({ name: '', email: '', role: 'BESA', status: 'active' });
+    } catch (error) {
+      console.error("Error adding new BESA:", error);
+      alert('Failed to add new BESA. Please try again.');
+    }
+  };
+
+  const defaultOfficeHours = {
+    monday:    { available: false, start: '', end: '' },
+    tuesday:   { available: false, start: '', end: '' },
+    wednesday: { available: false, start: '', end: '' },
+    thursday:  { available: false, start: '', end: '' },
+    friday:    { available: false, start: '', end: '' },
+    saturday:  { available: false, start: '', end: '' },
+    sunday:    { available: false, start: '', end: '' }
+  };
+
+  const saveBesaChanges = async () => {
+    if (selectedBesa === null) return;
+    try {
+      const besaToUpdate = besas.find(b => b.id === selectedBesa);
+      if (!besaToUpdate) return;
+
+      const besaDocRef = doc(db, 'Besas', besaToUpdate.id);
+
+      await updateDoc(besaDocRef, {
+        name: besaToUpdate.name,
+        email: besaToUpdate.email,
+        role: besaToUpdate.role,
+        status: besaToUpdate.status,
+      });
+
+      setSelectedBesa(null); 
+      alert('BESA updated successfully!');
+    } catch (error) {
+      console.error('Error updating BESA in Firestore:', error);
+      alert('Failed to save changes. Please try again.');
+    }
+  };
+
+  {/* Tours Assigned to Specific BESAS */}
+  const getBesaTours = (besaName: string) => {
+    return bookings.filter(booking => 
+      booking.besas?.includes(besaName) || booking.besa === besaName
+    ).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  };
+
+  {/* Click BESAs name to view tours */}
+  const handleBesaNameClick = (besaId: string, besaName: string) => {
+    setViewingBesaTours(besaName);
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+      weekday: 'short', 
+      month: 'short', 
+      day: 'numeric',
+      year: 'numeric'
     });
-    setBesas(prev => [...prev, { id: docRef.id, ...newBesa, toursThisWeek: 0, totalTours: 0 }]);
-    setShowNewBesaModal(false);
-    setNewBesa({ name: '', email: '', role: 'BESA', status: 'active' });
-  } catch (error) {
-    console.error("Error adding new BESA:", error);
-    alert('Failed to add new BESA. Please try again.');
-  }
-};
-
-const defaultOfficeHours = {
-  monday:    { available: false, start: '', end: '' },
-  tuesday:   { available: false, start: '', end: '' },
-  wednesday: { available: false, start: '', end: '' },
-  thursday:  { available: false, start: '', end: '' },
-  friday:    { available: false, start: '', end: '' },
-  saturday:  { available: false, start: '', end: '' },
-  sunday:    { available: false, start: '', end: '' }
-};
-
-const saveBesaChanges = async () => {
-  if (selectedBesa === null) return;
-  try {
-    const besaToUpdate = besas.find(b => b.id === selectedBesa);
-    if (!besaToUpdate) return;
-
-    const besaDocRef = doc(db, 'Besas', besaToUpdate.id);
-
-    await updateDoc(besaDocRef, {
-      name: besaToUpdate.name,
-      email: besaToUpdate.email,
-      role: besaToUpdate.role,
-      status: besaToUpdate.status,
-      officeHours: defaultOfficeHours,
-    });
-
-    setSelectedBesa(null); 
-  } catch (error) {
-    console.error('Error updating BESA in Firestore:', error);
-    alert('Failed to save changes. Please try again.');
-  }
-};
-
-
+  };
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -156,7 +242,12 @@ const saveBesaChanges = async () => {
                         <User className="h-5 w-5 text-blue-600" />
                       </div>
                       <div className="ml-4">
-                        <div className="text-sm font-medium text-gray-900">{besa.name}</div>
+                        <button
+                          onClick={() => handleBesaNameClick(besa.id, besa.name)}
+                          className="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
+                        >
+                          {besa.name}
+                        </button>
                         <div className="text-sm text-gray-500">{besa.email}</div>
                       </div>
                     </div>
@@ -168,10 +259,16 @@ const saveBesaChanges = async () => {
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {besa.toursThisWeek}
+                    <div className="flex items-center">
+                      <Calendar className="h-4 w-4 text-gray-400 mr-1" />
+                      {besa.toursThisWeek}
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {besa.totalTours}
+                    <div className="flex items-center">
+                      <Users className="h-4 w-4 text-gray-400 mr-1" />
+                      {besa.totalTours}
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${besa.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
@@ -208,6 +305,92 @@ const saveBesaChanges = async () => {
           </table>
         </div>
       </div>
+
+      {/* BESA Tours Modal */}
+      {viewingBesaTours && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-2xl font-bold text-gray-900">
+                  Tours Assigned to {viewingBesaTours}
+                </h3>
+                <button
+                  onClick={() => setViewingBesaTours(null)}
+                  className="text-gray-400 hover:text-gray-600">
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+
+              {/* Tours List */}
+              <div className="space-y-4">
+                {getBesaTours(viewingBesaTours).length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <Users className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                    <p>No tours assigned to this BESA yet.</p>
+                  </div>
+                ) : (
+                  getBesaTours(viewingBesaTours).map((tour, index) => (
+                    <div key={tour.id || index} className="bg-gray-50 rounded-lg p-4 border">
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <h4 className="text-lg font-semibold text-gray-900 mb-2">
+                            {tour.tourType}
+                          </h4>
+                          <div className="grid md:grid-cols-2 gap-4 text-sm text-gray-600">
+                            <div className="flex items-center">
+                              <Calendar className="h-4 w-4 mr-2 text-blue-500" />
+                              <span>{formatDate(tour.date)}</span>
+                            </div>
+                            <div className="flex items-center">
+                              <Clock className="h-4 w-4 mr-2 text-green-500" />
+                              <span>{tour.time}</span>
+                            </div>
+                            <div className="flex items-center">
+                              <Users className="h-4 w-4 mr-2 text-purple-500" />
+                              <span>{tour.attendees}/{tour.maxAttendees} attendees</span>
+                            </div>
+                            <div className="flex items-center">
+                              <User className="h-4 w-4 mr-2 text-orange-500" />
+                              <span>{tour.firstName} {tour.lastName}</span>
+                            </div>
+                          </div>
+                          <div className="mt-2">
+                            <p className="text-sm text-gray-600">
+                              <strong>Organization:</strong> {tour.organization}
+                            </p>
+                            <p className="text-sm text-gray-600">
+                              <strong>Contact:</strong> {tour.contactEmail}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="ml-4">
+                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                            new Date(tour.date) < new Date() 
+                              ? 'bg-gray-100 text-gray-800' 
+                              : 'bg-green-100 text-green-800'
+                          }`}>
+                            {new Date(tour.date) < new Date() ? 'Completed' : 'Upcoming'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              <div className="flex justify-end mt-6">
+                <button
+                  onClick={() => setViewingBesaTours(null)}
+                  className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Edit Button: The Display */}
       {selectedBesa && (
@@ -290,7 +473,6 @@ const saveBesaChanges = async () => {
         </div>
       )}
 
-
       {/* Add New BESA Button Window */}
       {showNewBesaModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
@@ -305,7 +487,7 @@ const saveBesaChanges = async () => {
             </div>
 
             {/* Change State to be on click*/}
-            <form onSubmit={handleAddNewBesa}>
+            <form onSubmit={handleAddNewBesa} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
                 <input
@@ -348,11 +530,11 @@ const saveBesaChanges = async () => {
                   <option value="inactive">Inactive</option>
                 </select>
               </div>
-              <div className="flex justify-end mt-4">
+              <div className="flex justify-end mt-6 space-x-3">
                 <button
                   type="button"
                   onClick={() => setShowNewBesaModal(false)}
-                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 mr-2"
+                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
                 >
                   Cancel
                 </button>
@@ -370,5 +552,3 @@ const saveBesaChanges = async () => {
     </div>
   );
 }
-
-
