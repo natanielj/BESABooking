@@ -127,7 +127,7 @@ function App() {
           .filter((tour) => tour.published)
           .map((tour) => (
             <div
-              key={tour.id  }
+              key={tour.id}
               className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border-b-4 border-orange-300"
             >
               <div className="p-6 flex flex-col flex-grow">
@@ -150,7 +150,10 @@ function App() {
                 <div className="flex-grow flex flex-col justify-between">
                   <p className="text-gray-600 mb-6 max-h-32 overflow-y-auto">{tour.description}</p>
                   <button
-                    onClick={() => navigate('/booking/${tourId}')}
+                    onClick={() => {
+                      const curr = tour.id;
+                      navigate(`/booking/${curr}`)
+                    }}
                     className="w-full bg-blue-700 text-white py-2 px-4 rounded-lg hover:bg-blue-900 transition-colors font-medium"
                   >
                     Select This Tour
@@ -178,7 +181,7 @@ function App() {
       <Route path='/admin/settings' element={<DashboardLayout><SettingsView /></DashboardLayout>} />
       
       <Route
-        path="/booking/:id"
+        path="/booking/:tourid"
         element={
           <DynamicBookingForm/>
         }
@@ -187,6 +190,5 @@ function App() {
     </Routes>
   );
 }
-
 export default App;
 

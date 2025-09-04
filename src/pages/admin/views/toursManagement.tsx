@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, ArrowRight, Calendar, Clock, MapPin, Users, Settings, FileText, Bell, CheckCircle,Plus,X,Globe,Video,AlertCircle,Edit3,Trash2,Eye,MoreHorizontal,Search} from 'lucide-react';
+import { ArrowLeft, ArrowRight, Calendar, Clock, MapPin, Users, Settings, FileText, Bell, CheckCircle,Plus,X,Globe,Video,AlertCircle,Edit3,Trash2,Eye} from 'lucide-react';
 import { db } from "../../../../src/firebase.ts";
-import { collection, getDocs, onSnapshot, deleteDoc, doc, updateDoc, addDoc } from "firebase/firestore";
+import { collection, onSnapshot, deleteDoc, doc, updateDoc, addDoc } from "firebase/firestore";
 
 {/* Create Tour Button adaptable for small screen */}
 {/* Allow to move order of tours (group first, etc) */}
@@ -15,6 +15,7 @@ const DAYS_OF_WEEK = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'S
 function TourFormPage({ onBack, editingTour, onSaveTour }: { onBack: () => void; editingTour?: Tour; onSaveTour: (tour: Tour) => void;}) {
   const [currentStep, setCurrentStep] = useState(1);
   const [tour, setTour] = useState<Tour>(editingTour || {
+    id: '',
     title: '',
     description: '',
     duration: 60,

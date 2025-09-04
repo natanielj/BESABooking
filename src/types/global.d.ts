@@ -14,7 +14,7 @@ declare global {
 
 
     type Tour = {
-        id?: string;
+        id: string;
         title: string;
         description: string;
         duration: number;
@@ -84,8 +84,8 @@ declare global {
     };
     
     type OfficeHours = {
-    available: boolean;
-    timeSlots: TimeSlot[];
+        available: boolean;
+        timeSlots: TimeSlot[];
     };
 
     interface BesaData {
