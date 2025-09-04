@@ -14,6 +14,7 @@ interface DynamicBookingFormProps {
 }
 
 function BookingPage() {
+
   const [tours, setTours] = useState<Tour[]>([]);
   const navigate = useNavigate();
   
@@ -77,10 +78,11 @@ function BookingPage() {
 }
 
 // const { id } = useParams<{ id: string | undefined }>();
+const { tourId } = useParams();
 
 const DynamicBookingForm: React.FC<DynamicBookingFormProps> = ({
   onBack,
-  preselectedTour = "",
+  preselectedTour = tourId,
   tours, 
 }) => {
   const [selectedTour, setSelectedTour] = useState<string | null>(null);
