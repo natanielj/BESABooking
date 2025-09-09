@@ -14,7 +14,7 @@ declare global {
 
 
     type Tour = {
-        id: string;
+        tourId: string;
         title: string;
         description: string;
         duration: number;
@@ -100,7 +100,7 @@ declare global {
     }
 
     interface BookingData {
-        id?: string;
+        tourId?: string;
         timeSlot?: string,
         groupSize?: number,
         tourType?: string;
@@ -123,6 +123,8 @@ declare global {
         leadGuide?: string,
         notes?: string,
     }
+    
+
 
     type Besa = {
       id: string;
@@ -142,5 +144,10 @@ declare global {
     };
 
     type UserRole = 'public' | 'admin';
+    type WeeklySlot = { start: string; end: string };
+    type WeeklyHours = Record<string, WeeklySlot[]>;
+    type DateSpecificSlot = { start: string; end: string };
+    type DateSpecificHours = { date: string; unavailable?: boolean; slots: DateSpecificSlot[] };
+    
 
 }
