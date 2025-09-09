@@ -15,7 +15,7 @@ const DAYS_OF_WEEK = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'S
 function TourFormPage({ onBack, editingTour, onSaveTour }: { onBack: () => void; editingTour?: Tour; onSaveTour: (tour: Tour) => void;}) {
   const [currentStep, setCurrentStep] = useState(1);
   const [tour, setTour] = useState<Tour>(editingTour || {
-    id: '',
+    tourId: '',
     title: '',
     description: '',
     duration: 60,
@@ -734,12 +734,12 @@ function TourFormPage({ onBack, editingTour, onSaveTour }: { onBack: () => void;
 
   const handleSaveTour = async (tourToSave: Tour) => {
     try {
-      if (isEditing && tourToSave.id) {
-        const { id, ...updateData } = tourToSave;
-        await updateDoc(doc(db, "Tours", id), updateData);
+      if (isEditing && tourToSave.tourId) {
+        const { tourId, ...updateData } = tourToSave;
+        await updateDoc(doc(db, "Tours", tourId), updateData);
         alert('Tour updated!');
       } else {
-        const { id, ...newTourData } = tourToSave;
+        const { tourId, ...newTourData } = tourToSave;
         await addDoc(collection(db, "Tours"), {
           ...newTourData,
           createdAt: new Date().toISOString().split('T')[0],
@@ -921,7 +921,7 @@ function ToursDashboard({ onCreateTour, onEditTour, tours, setTours }: {
 
     const unsubscribe = onSnapshot(toursRef, (snapshot) => {
       const tourData = snapshot.docs.map((doc) => ({
-        id: doc.id,
+        tourId: doc.id,
         ...doc.data(),
       })) as Tour[];
       setTours(tourData);
@@ -931,11 +931,11 @@ function ToursDashboard({ onCreateTour, onEditTour, tours, setTours }: {
   }, [setTours]);
 
   const updateTour = async (updatedTour: Tour) => {
-    if (!updatedTour.id) return;
+    if (!updatedTour.tourId) return;
     try {
-      const tourRef = doc(db, "Tours", updatedTour.id);
+      const tourRef = doc(db, "Tours", updatedTour.tourId);
       await updateDoc(tourRef, updatedTour);
-      setTours(tours.map((tour) => (tour.id === updatedTour.id ? updatedTour : tour)));
+      setTours(tours.map((tour) => (tour.tourId === updatedTour.tourId ? updatedTour : tour)));
     } catch (err) {
       console.error("Error updating tour:", err);
     }
@@ -945,7 +945,7 @@ function ToursDashboard({ onCreateTour, onEditTour, tours, setTours }: {
     if (confirm("Are you sure you want to delete this tour? This action cannot be undone.")) {
       try {
         await deleteDoc(doc(db, "Tours", tourId));
-        setTours(tours.filter((tour) => tour.id !== tourId));
+        setTours(tours.filter((tour) => tour.tourId !== tourId));
       } catch (err) {
         console.error("Error deleting tour:", err);
       }
@@ -953,14 +953,14 @@ function ToursDashboard({ onCreateTour, onEditTour, tours, setTours }: {
   };
 
   const handleTogglePublish = async (tourId: string) => {
-    const tour = tours.find((t) => t.id === tourId);
+    const tour = tours.find((t) => t.tourId === tourId);
     if (!tour) return;
     try {
       const tourRef = doc(db, "Tours", tourId);
       await updateDoc(tourRef, { published: !tour.published });
       setTours(
         tours.map((t) =>
-          t.id === tourId ? { ...t, published: !t.published } : t
+          t.tourId === tourId ? { ...t, published: !t.published } : t
         )
       );
     } catch (err) {
@@ -1044,7 +1044,7 @@ function ToursDashboard({ onCreateTour, onEditTour, tours, setTours }: {
             </div>
           ) : (
             filteredTours.map((tour) => (
-              <div key={tour.id} className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-md transition-shadow">
+              <div key={tour.tourId} className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-md transition-shadow">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center space-x-3 mb-2">
@@ -1120,7 +1120,7 @@ function ToursDashboard({ onCreateTour, onEditTour, tours, setTours }: {
                     </button>
                     
                     <button
-                      onClick={() => handleTogglePublish(tour.id!)}
+                      onClick={() => handleTogglePublish(tour.tourId!)}
                       className={`p-2 rounded-lg ${
                         tour.published
                           ? 'text-gray-400 hover:text-yellow-600 hover:bg-yellow-50'
@@ -1136,7 +1136,7 @@ function ToursDashboard({ onCreateTour, onEditTour, tours, setTours }: {
                     </button>
                     
                     <button
-                      onClick={() => handleDeleteTour(tour.id!)}
+                      onClick={() => handleDeleteTour(tour.tourId!)}
                       className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg"
                       title="Delete Tour"
                     >
@@ -1172,7 +1172,7 @@ export default function ToursManagement() {
     if (editingTour) {
       // Update existing tour
       setTours(prevTours => 
-        prevTours.map(t => t.id === tour.id ? tour : t)
+        prevTours.map(t => t.tourId === tour.tourId ? tour : t)
       );
     } else {
       // Add new tour
