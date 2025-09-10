@@ -8,6 +8,8 @@ import { collection, onSnapshot, deleteDoc, doc, updateDoc, addDoc } from "fireb
 {/* Have it show the dates range instead of days in the front */}
 {/* View button, show all tour properties */}
 {/* Availabilty: allow for holiday dates */}
+{/* Total Bookings: Keep Actual count */}
+{/* Upcoming: Keep Actual count */}
 
 
 const DAYS_OF_WEEK = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
