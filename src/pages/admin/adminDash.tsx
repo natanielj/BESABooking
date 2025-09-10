@@ -77,14 +77,6 @@ export default function dashboardLayout({children}: DashboardLayoutProps): JSX.E
                                 <span>Office Hours</span>
                             </button>
 
-                            {/* SETTINGS HEADER BUTTON */}
-                            <button onClick={() => navigate('/admin/settings')}
-                                className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${window.location.pathname === '/admin/settings' ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:text-gray-900'
-                                    }`}>
-                                <Settings className="h-4 w-4" />
-                                <span>Settings</span>
-                            </button>
-
                             <button onClick={handleLogout}
                                 className="flex items-center space-x-2 px-3 py-2 text-red-600 hover:text-red-800 transition-colors">
                                 <LogOut className="h-4 w-4" />
@@ -143,13 +135,7 @@ export default function dashboardLayout({children}: DashboardLayoutProps): JSX.E
                                     </button>
                                 </>
                             )}
-                            <button
-                                onClick={() => { navigate('/admin/settings'); setIsMobileMenuOpen(false); }}
-                                className="w-full flex items-center space-x-2 px-3 py-2 rounded-lg text-left text-gray-600 hover:text-gray-900"
-                            >
-                                <Settings className="h-4 w-4" />
-                                <span>Settings</span>
-                            </button>
+                            
                             <button
                                 onClick={handleLogout}
                                 className="w-full flex items-center space-x-2 px-3 py-2 rounded-lg text-left text-red-600 hover:text-red-800"
