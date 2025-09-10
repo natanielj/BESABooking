@@ -3,6 +3,7 @@ import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../../../../src/firebase.ts'; 
 import { Calendar, Users, List, Eye } from 'lucide-react';
 
+{/* Bookings show 1 day before */}
 
 export default function ScheduleView() {
   const [besas, setBesas] = useState<Besa[]>([]);
@@ -231,39 +232,38 @@ export default function ScheduleView() {
 
   // Get all bookings for list view
   const getAllBookings = () => {
-    const now = getPacificTime(new Date());
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    
-    return bookings.map(booking => ({
-      ...booking,
-      pacificDate: getPacificTime(booking.date)
-    })).filter(booking => {
-      const bookingDay = new Date(booking.pacificDate.getFullYear(), booking.pacificDate.getMonth(), booking.pacificDate.getDate());
-      
-      if (dateFilter === 'upcoming') {
-        return bookingDay >= today;
-      } else if (dateFilter === 'past') {
-        return bookingDay < today;
-      }
-      return true; // 'all'
-    }).sort((a, b) => a.pacificDate.getTime() - b.pacificDate.getTime());
-  };
+  const now = new Date();
+  const today = format(now, 'MM-dd-yyyy');
+  
+  return bookings.filter(booking => {
+    if (dateFilter === 'upcoming') {
+      // Compare date strings directly
+      return booking.date >= today;
+    } else if (dateFilter === 'past') {
+      return booking.date < today;
+    }
+    return true; // 'all'
+  }).sort((a, b) => {
+    // Sort by date string (MM-dd-yyyy format sorts correctly when comparing same year)
+    return a.date.localeCompare(b.date);
+  });
+};
 
   // Group bookings by date for list view
-  const getGroupedBookings = () => {
-    const filteredBookings = getAllBookings();
-    const grouped: { [key: string]: any[] } = {};
-    
-    filteredBookings.forEach(booking => {
-      const dateKey = format(booking.pacificDate, 'MM-dd-yyyy');
-      if (!grouped[dateKey]) {
-        grouped[dateKey] = [];
-      }
-      grouped[dateKey].push(booking);
-    });
-    
-    return grouped;
-  };
+  const getGroupedBookings = (): { [key: string]: BookingData[] } => {
+  const filteredBookings = getAllBookings();
+  const grouped: { [key: string]: BookingData[] } = {}; // ← Add this type annotation
+  
+  filteredBookings.forEach(booking => {
+    const dateKey = booking.date;
+    if (!grouped[dateKey]) {
+      grouped[dateKey] = [];
+    }
+    grouped[dateKey].push(booking);
+  });
+  
+  return grouped;
+};
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -484,7 +484,7 @@ export default function ScheduleView() {
                       </h4>
                       <div className="space-y-3 ml-4">
                         {dayBookings.map(booking => (
-                          <div key={booking.id} className="border border-gray-200 rounded-lg p-3">
+                          <div key={booking.tourId} className="border border-gray-200 rounded-lg p-3">
                             <div className="flex justify-between items-start">
                               <div>
                                 <p className="font-medium text-gray-900">{booking.tourType}</p>
@@ -557,10 +557,6 @@ export default function ScheduleView() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <span className="text-sm font-medium text-gray-700">Attendees:</span>
-                  <p className="text-sm text-gray-900">{selectedBooking.attendees}</p>
-                </div>
-                <div>
-                  <span className="text-sm font-medium text-gray-700">Max Attendees:</span>
                   <p className="text-sm text-gray-900">{selectedBooking.maxAttendees}</p>
                 </div>
               </div>
