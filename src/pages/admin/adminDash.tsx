@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Calendar, Users, Clock, Menu, X, LogOut, MapPin } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Calendar, Users, Settings, Clock, Menu, X, LogOut, MapPin } from 'lucide-react';
+import { Routes, Route, useNavigate, Navigate } from 'react-router-dom';
 
 {/* Add mobile/window minimizing version */}
 
@@ -14,20 +14,7 @@ export default function dashboardLayout({children}: DashboardLayoutProps): JSX.E
 
     const [currentRole, setCurrentRole] = useState<UserRole>('public');
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1000);
     const navigate = useNavigate();
-
-    useEffect(() => {
-        const handleResize = () => {
-            setIsDesktop(window.innerWidth >= 1000);
-            if (window.innerWidth >= 1000) {
-                setIsMobileMenuOpen(false);
-            }
-        };
-
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
-    }, []);
 
     const handleLogout = () => {
         setCurrentRole('public');
@@ -50,68 +37,64 @@ export default function dashboardLayout({children}: DashboardLayoutProps): JSX.E
                         </div>
 
                         {/* DASHBOARD HEADER BUTTON */}
-                        {isDesktop && (
-                            <div className="flex items-center space-x-6">
-                                <button onClick={() => navigate('/admin/dashboard')}
-                                    className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${window.location.pathname === '/admin/dashboard' ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:text-gray-900'
-                                        }`}>
-                                    <Calendar className="h-4 w-4" />
-                                    <span>Dashboard</span>
-                                </button>
-
-                                {/* SCHEDULE HEADER BUTTON */}
-                                <button onClick={() => navigate('/admin/schedule')}
-                                    className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${window.location.pathname === '/admin/schedule' ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:text-gray-900'
-                                        }`}>
-                                    <Clock className="h-4 w-4" />
-                                    <span>Schedule</span>
-                                </button>
-
-                                {/* TOURS HEADER BUTTON */}
-                                <button onClick={() => navigate('/admin/tours')}
-                                    className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${window.location.pathname === '/admin/tours' ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:text-gray-900'
-                                        }`}>
-                                    <MapPin className="h-4 w-4" />
-                                    <span>Tours</span>
-                                </button>
-
-                                {/* BESAs HEADER BUTTON */}
-                                <button onClick={() => navigate('/admin/besas')}
-                                    className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${window.location.pathname === '/admin/besas' ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:text-gray-900'
-                                        }`}>
-                                    <Users className="h-4 w-4" />
-                                    <span>BESAs</span>
-                                </button>
-
-                                {/* OFFICE HOURS HEADER BUTTON */}
-                                <button onClick={() => navigate('/admin/office-hours')}
-                                    className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${window.location.pathname === '/admin/office-hours' ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:text-gray-900'
-                                        }`}>
-                                    <Clock className="h-4 w-4" />
-                                    <span>Office Hours</span>
-                                </button>
-
-                                <button onClick={handleLogout}
-                                    className="flex items-center space-x-2 px-3 py-2 text-red-600 hover:text-red-800 transition-colors">
-                                    <LogOut className="h-4 w-4" />
-                                    <span>Logout</span>
-                                </button>
-                            </div>
-                        )}
-
-                        {!isDesktop && (
-                            <button
-                                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                                className="p-2 rounded-lg text-gray-600 hover:text-gray-900">
-                                {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+                        <div className="hidden md:flex items-center space-x-6">
+                            <button onClick={() => navigate('/admin/dashboard')}
+                                className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${window.location.pathname === '/admin/dashboard' ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:text-gray-900'
+                                    }`}>
+                                <Calendar className="h-4 w-4" />
+                                <span>Dashboard</span>
                             </button>
-                        )}
+
+                            {/* SCHEDULE HEADER BUTTON */}
+                            <button onClick={() => navigate('/admin/schedule')}
+                                className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${window.location.pathname === '/admin/schedule' ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:text-gray-900'
+                                    }`}>
+                                <Clock className="h-4 w-4" />
+                                <span>Schedule</span>
+                            </button>
+
+                            {/* TOURS HEADER BUTTON */}
+                            <button onClick={() => navigate('/admin/tours')}
+                                className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${window.location.pathname === '/admin/tours' ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:text-gray-900'
+                                    }`}>
+                                <MapPin className="h-4 w-4" />
+                                <span>Tours</span>
+                            </button>
+
+                            {/* BESAs HEADER BUTTON */}
+                            <button onClick={() => navigate('/admin/besas')}
+                                className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${window.location.pathname === '/admin/besas' ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:text-gray-900'
+                                    }`}>
+                                <Users className="h-4 w-4" />
+                                <span>BESAs</span>
+                            </button>
+
+                            {/* OFFICE HOURS HEADER BUTTON */}
+                            <button onClick={() => navigate('/admin/office-hours')}
+                                className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${window.location.pathname === '/admin/office-hours' ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:text-gray-900'
+                                    }`}>
+                                <Clock className="h-4 w-4" />
+                                <span>Office Hours</span>
+                            </button>
+
+                            <button onClick={handleLogout}
+                                className="flex items-center space-x-2 px-3 py-2 text-red-600 hover:text-red-800 transition-colors">
+                                <LogOut className="h-4 w-4" />
+                                <span>Logout</span>
+                            </button>
+                        </div>
+
+                        <button
+                            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                            className="md:hidden p-2 rounded-lg text-gray-600 hover:text-gray-900">
+                            {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+                        </button>
                     </div>
                 </div>
 
                 {/* Mobile Menu */}
-                {isMobileMenuOpen && !isDesktop && (
-                    <div className="bg-white border-t">
+                {isMobileMenuOpen && (
+                    <div className="md:hidden bg-white border-t">
                         <div className="px-4 py-2 space-y-1">
                             <button
                                 onClick={() => { navigate('/admin/dashboard'); setIsMobileMenuOpen(false); }}
@@ -127,39 +110,46 @@ export default function dashboardLayout({children}: DashboardLayoutProps): JSX.E
                                 <Clock className="h-4 w-4" />
                                 <span>Schedule</span>
                             </button>
-                            <button
-                                onClick={() => { navigate('/admin/tours'); setIsMobileMenuOpen(false); }}
-                                className="w-full flex items-center space-x-2 px-3 py-2 rounded-lg text-left text-gray-600 hover:text-gray-900"
-                            >
-                                <MapPin className="h-4 w-4" />
-                                <span>Tours</span>
-                            </button>
-                            <button
-                                onClick={() => { navigate('/admin/besas'); setIsMobileMenuOpen(false); }}
-                                className="w-full flex items-center space-x-2 px-3 py-2 rounded-lg text-left text-gray-600 hover:text-gray-900"
-                            >
-                                <Users className="h-4 w-4" />
-                                <span>BESAs</span>
-                            </button>
-                            <button
-                                onClick={() => { navigate('/admin/office-hours'); setIsMobileMenuOpen(false); }}
-                                className="w-full flex items-center space-x-2 px-3 py-2 rounded-lg text-left text-gray-600 hover:text-gray-900"
-                            >
-                                <Clock className="h-4 w-4" />
-                                <span>Office Hours</span>
-                            </button>
+                            {currentRole === 'admin' && (
+                                <>
+                                    <button
+                                        onClick={() => { navigate('/admin/tours'); setIsMobileMenuOpen(false); }}
+                                        className="w-full flex items-center space-x-2 px-3 py-2 rounded-lg text-left text-gray-600 hover:text-gray-900"
+                                    >
+                                        <MapPin className="h-4 w-4" />
+                                        <span>Tours</span>
+                                    </button>
+                                    <button
+                                        onClick={() => { navigate('/admin/besas'); setIsMobileMenuOpen(false); }}
+                                        className="w-full flex items-center space-x-2 px-3 py-2 rounded-lg text-left text-gray-600 hover:text-gray-900"
+                                    >
+                                        <Users className="h-4 w-4" />
+                                        <span>BESAs</span>
+                                    </button>
+                                    <button
+                                        onClick={() => { navigate('/admin/office-hours'); setIsMobileMenuOpen(false); }}
+                                        className="w-full flex items-center space-x-2 px-3 py-2 rounded-lg text-left text-gray-600 hover:text-gray-900"
+                                    >
+                                        <Clock className="h-4 w-4" />
+                                        <span>Office Hours</span>
+                                    </button>
+                                </>
+                            )}
+                            
                             <button
                                 onClick={handleLogout}
                                 className="w-full flex items-center space-x-2 px-3 py-2 rounded-lg text-left text-red-600 hover:text-red-800"
                             >
                                 <LogOut className="h-4 w-4" />
                                 <span>Logout</span>
-                            </button>    
+                            </button>
                         </div>
                     </div>
                 )}
             </nav>
+
             {children}
         </div>
     );
 }
+
