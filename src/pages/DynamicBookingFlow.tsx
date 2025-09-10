@@ -3,7 +3,9 @@ import { useNavigate, useParams } from "react-router-dom";
 import {Calendar, Clock, Users, User, ArrowLeft, ArrowRight, Check, AlertCircle, GraduationCap, ChevronRight, ChevronLeft} from "lucide-react";
 import { collection, getDocs, doc, setDoc } from "firebase/firestore";
 import { db } from "../../src/firebase.ts";
-import { getCalendarAccessToken, insertCalendarEvent } from "../calendarAPI.tsx";
+
+
+// import { getCalendarAccessToken, createEventAndInviteGuest } from "../calendarAPI.tsx";
 
 // Add Booking type definition (adjust fields as needed)
 type Booking = {
@@ -526,12 +528,7 @@ const handleSubmit = async () => {
     let calendarEventLink = "";
 
     try {
-      // 3) Get Google access token (browser OAuth) and insert the event
-      const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID as string;
-      if (!clientId) throw new Error("VITE_GOOGLE_CLIENT_ID is missing.");
-
-      const accessToken = await getCalendarAccessToken(clientId);
-
+      // 3) Call backend API to create calendar event
       const location = selected.zoomLink
         ? `Online (Zoom): ${selected.zoomLink}`
         : (selected.location || "");
@@ -552,23 +549,35 @@ const handleSubmit = async () => {
 
       const summary = `${selected.title} — ${bookingData.firstName} ${bookingData.lastName} (${bookingData.maxAttendees})`;
 
-      const event = await insertCalendarEvent({
-        accessToken,
-        summary,
-        description: descriptionLines.join("\n"),
-        location,
-        startISO,
-        endISO,
-        attendeeEmail: bookingData.email,
-        attendeeName: `${bookingData.firstName} ${bookingData.lastName}`,
-        timezone: userTimeZone,
-        calendarId: "primary", // change if you maintain a shared calendar
+      // Call your backend API endpoint
+      const response = await fetch('/backend/api/calendar/create-event', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          summary,
+          description: descriptionLines.join("\n"),
+          location,
+          startISO,
+          endISO,
+          attendeeEmail: bookingData.email,
+          attendeeName: `${bookingData.firstName} ${bookingData.lastName}`,
+          timezone: userTimeZone,
+        }),
       });
 
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `Calendar API error: ${response.status}`);
+      }
+
+      const event = await response.json();
       calendarEventLink = event?.htmlLink || "";
       console.log("Calendar event created:", calendarEventLink || event?.id);
     } catch (calendarError) {
       console.error("Calendar integration failed:", calendarError);
+      // Non-blocking: booking still saved, just no calendar invite
     }
 
     // 4) Prepare data for confirmation page

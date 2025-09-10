@@ -39,9 +39,9 @@ function App() {
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
   const navigate = useNavigate();
   const [logoClickCount, setLogoClickCount] = useState(0);
-
   {/* Fetch Tours */}
   useEffect(() => {
+  
   const fetchTours = async () => {
     try {
       const querySnapshot = await getDocs(collection(db, "Tours"));
