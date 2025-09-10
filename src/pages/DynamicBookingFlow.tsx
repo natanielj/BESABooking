@@ -78,6 +78,7 @@ interface DynamicBookingFormProps {
   onBack: () => void | Promise<void>;
   preselectedTour?: string;
   tours: Tour[];
+  navigate: (path: string, options?: any) => void;
 }
 
 // ---------- Page (parent) ----------
@@ -179,15 +180,19 @@ function BookingPage() {
       tours={tours}
       onBack={() => navigate("/")}
       preselectedTour={tourId ?? ""} 
+      navigate={navigate}
     />
   );
 }
+
+
 
 // ---------- Form (child) ----------
 const DynamicBookingForm: React.FC<DynamicBookingFormProps> = ({
   onBack,
   preselectedTour = "",
   tours,
+  navigate,
 }) => {
   const [currentSection, setCurrentSection] = useState(1);
   const [selectedTour, setSelectedTour] = useState<string | null>(null);
@@ -199,7 +204,7 @@ const DynamicBookingForm: React.FC<DynamicBookingFormProps> = ({
     date: "",
     time: "",
     attendees: 1,
-    maxAttendees: 1,
+    maxAttendees: 1, // Default group size to 1
     firstName: "",
     lastName: "",
     email: "",
@@ -220,20 +225,6 @@ const DynamicBookingForm: React.FC<DynamicBookingFormProps> = ({
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // const interestOptions = [
-  //   "Applied Mathematics B.S",
-  //   "Biomolecular Engineering and Bioinformatics B.S",
-  //   "Biotechnology B.A",
-  //   "Computer Science: Computer Game Design B.S",
-  //   "Computer Engineering B.S",
-  //   "Computer Science B.S",
-  //   "Computer Science B.A",
-  //   "Network and Digital Technology B.A",
-  //   "Electrical Engineering B.S",
-  //   "Robotic Engineering B.S",
-  //   "Technology and Informations Management B.S",
-  // ];
-
   const sections = [
     { id: 1, title: "Date & Type of Tour", description: "Choose your preferred tour and date" },
     { id: 2, title: "Available Times", description: "Select your time slot and group details" },
@@ -251,7 +242,7 @@ const DynamicBookingForm: React.FC<DynamicBookingFormProps> = ({
       ...prev,
       tourId: t.id,
       tourType: t.title,
-      maxAttendees: t.maxAttendees ?? prev.maxAttendees,
+      maxAttendees: 1, // Always default to 1 when selecting a tour
     }));
     console.log("Tour Selected", t.id);
   };
@@ -284,7 +275,7 @@ const DynamicBookingForm: React.FC<DynamicBookingFormProps> = ({
         break;
       case 2:
         if (!bookingData.time) newErrors.time = "Please select a time slot";
-        if (bookingData.attendees < 1) newErrors.maxAttendees = "Group size must be at least 1";
+        if (bookingData.maxAttendees < 1) newErrors.maxAttendees = "Group size must be at least 1";
         break;
       case 3:
         if (!bookingData.firstName) newErrors.firstName = "First name is required";
@@ -310,8 +301,8 @@ const DynamicBookingForm: React.FC<DynamicBookingFormProps> = ({
   const prevSection = () => setCurrentSection((s) => Math.max(s - 1, 1));
 
   // ---------- Submit ----------
-  const handleSubmit = async () => {
-    if (!validateSection(currentSection)) return;
+const handleSubmit = async () => {
+  if (!validateSection(currentSection)) return;
 
     // --- local helpers for this function ---
     const weekdayKey = (d: Date) =>
@@ -359,20 +350,23 @@ const DynamicBookingForm: React.FC<DynamicBookingFormProps> = ({
       const selected = tours.find((t) => t.id === bookingData.tourId);
       if (!selected) throw new Error("Selected tour not found.");
 
-      const durationMins =
-        selected.durationUnit === "hours" ? selected.duration * 60 : selected.duration;
+    const durationMins =
+      selected.durationUnit === "hours" ? selected.duration * 60 : selected.duration;
 
-      if (!bookingData.date || !bookingData.time) {
-        throw new Error("Missing date or time.");
-      }
+    if (!bookingData.date || !bookingData.time) {
+      throw new Error("Missing date or time.");
+    }
 
-      const startLocal = parseLocalDateTime(bookingData.date, bookingData.time);
-      const endLocal = addMinutes(startLocal, durationMins);
+    const startLocal = parseLocalDateTime(bookingData.date, bookingData.time);
+    const endLocal = addMinutes(startLocal, durationMins);
 
-      const startISO = toLocalISO(startLocal);
-      const endISO = toLocalISO(endLocal);
+    const startISO = toLocalISO(startLocal);
+    const endISO = toLocalISO(endLocal);
 
-      // 3) Google access token
+    let calendarEventLink = "";
+
+    try {
+      // 3) Get Google access token (browser OAuth) and insert the event
       const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID as string;
       if (!clientId) throw new Error("VITE_GOOGLE_CLIENT_ID is missing.");
       const accessToken = await getCalendarAccessToken(clientId);
@@ -509,17 +503,46 @@ const DynamicBookingForm: React.FC<DynamicBookingFormProps> = ({
         calendarId: "primary",
       });
 
-      console.log("[Calendar] created event:", event?.htmlLink || event?.id);
-      console.log("[Calendar] attendees on event:", event?.attendees);
-
-      alert("Booking submitted successfully!");
-      console.log("Booking Data:", bookingWithId);
-    } catch (error) {
-      console.error("Error during submission:", error);
-      alert("Failed to submit booking. Please try again.");
+      calendarEventLink = event?.htmlLink || "";
+      console.log("Calendar event created:", calendarEventLink || event?.id);
+    } catch (calendarError) {
+      console.error("Calendar integration failed:", calendarError);
     }
-  };
 
+    // 4) Prepare data for confirmation page
+    const confirmationData = {
+      id: bookingWithId.id,
+      tourTitle: selected.title,
+      date: bookingData.date,
+      time: bookingData.time,
+      duration: selected.duration,
+      durationUnit: selected.durationUnit,
+      groupSize: bookingData.maxAttendees,
+      firstName: bookingData.firstName,
+      lastName: bookingData.lastName,
+      email: bookingData.email,
+      phone: bookingData.phone,
+      organization: bookingData.organization,
+      role: bookingData.role,
+      location: selected.location,
+      zoomLink: selected.zoomLink,
+      specialRequests: bookingData.specialRequests,
+      accessibility: bookingData.accessibility,
+      calendarEventLink,
+      createdAt: bookingWithId.createdAt,
+    };
+
+    // 5) Navigate to confirmation page with booking data
+    navigate("/booking-confirmation", { 
+      state: { bookingData: confirmationData },
+      replace: true 
+    });
+
+  } catch (error) {
+    console.error("Error during submission:", error);
+    alert("Failed to submit booking. Please try again.");
+  }
+};
 
   // ---------- Helpers for Section 2 ----------
   const toMinutes = (timeStr: string) => {
@@ -670,7 +693,8 @@ const DynamicBookingForm: React.FC<DynamicBookingFormProps> = ({
 
     const updateGroupSize = (newSize: number) => {
       const maxSize = selected.maxAttendees || 15;
-      updateBookingData("maxAttendees", Math.min(Math.max(1, newSize), maxSize));
+      const finalSize = Math.min(Math.max(1, newSize), maxSize);
+      updateBookingData("maxAttendees", finalSize);
     };
 
     return (
@@ -715,30 +739,41 @@ const DynamicBookingForm: React.FC<DynamicBookingFormProps> = ({
           </div>
           {errors.time && <p className="text-red-500 text-sm mt-2">{errors.time}</p>}
         </div>
+        
+        {/* Group Size Selection */}
         <div>
-          <label className="block text-lg font-semibold text-gray-900 mb-4">Group Size</label>
-          <div className="flex items-center space-x-4">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Group Size</h3>
+          <div className="flex items-center space-x-6">  
             <button
               type="button"
               onClick={() => updateGroupSize(bookingData.maxAttendees - 1)}
-              className="w-10 h-10 rounded-full border-2 border-gray-300 flex items-center justify-center hover:bg-gray-50"
+              disabled={bookingData.maxAttendees <= 1}
+              className="w-12 h-12 rounded-full border-2 border-gray-300 flex items-center justify-center hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-xl font-bold"
             >
               -
             </button>
-            <span className="text-2xl font-semibold text-gray-900 min-w-12 text-center">
-              {bookingData.maxAttendees}
-            </span>
+            <div className="text-center">
+              <span className="text-3xl font-semibold text-gray-900 block">
+                {bookingData.maxAttendees}
+              </span>
+              <span className="text-sm text-gray-500">
+                {bookingData.maxAttendees === 1 ? 'person' : 'people'}
+              </span>
+            </div>
             <button
               type="button"
               onClick={() => updateGroupSize(bookingData.maxAttendees + 1)}
-              className="w-10 h-10 rounded-full border-2 border-gray-300 flex items-center justify-center hover:bg-gray-50"
+              disabled={bookingData.maxAttendees >= (selected.maxAttendees || 15)}
+              className="w-12 h-12 rounded-full border-2 border-gray-300 flex items-center justify-center hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-xl font-bold"
             >
               +
             </button>
           </div>
-          <p className="text-sm text-gray-500 mt-2">Maximum group size: {selected.maxAttendees}</p>
+          <p className="text-left text-sm text-gray-500 mt-2"> 
+            Maximum {selected.maxAttendees} people per tour
+          </p>
           {errors.maxAttendees && (
-            <p className="text-red-500 text-sm mt-2">{errors.maxAttendees}</p>
+            <p className="text-red-500 text-sm mt-2 text-left">{errors.maxAttendees}</p>
           )}
         </div>
       </div>
