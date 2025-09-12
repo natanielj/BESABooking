@@ -97,7 +97,7 @@ export default function DashboardView() {
       try {
         const toursSnap = await getDocs(collection(db, "Tours"));
         const toursData = toursSnap.docs.map(doc => ({
-          id: doc.id,
+          tourId: doc.id,
           ...doc.data(),
         })) as Tour[];
         setTours(toursData);
@@ -107,7 +107,7 @@ export default function DashboardView() {
         const data = snapshot.docs.map((doc) => {
           const docData = doc.data();
           return {
-            id: doc.id,
+            tourId: doc.id,
             ...docData,
             // Handle backward compatibility - convert single besa to array
             besas: docData.besas ? docData.besas : (docData.besa ? [docData.besa] : [])
@@ -203,10 +203,10 @@ export default function DashboardView() {
   };
 
   const confirmDelete = async () => {
-    if (!deleteBooking || !deleteBooking.id) return;
+    if (!deleteBooking || !deleteBooking.tourId) return;
     
     try {
-      await deleteDoc(doc(db, "Bookings", deleteBooking.id));
+      await deleteDoc(doc(db, "Bookings", deleteBooking.tourId));
       
       // Refresh bookings list
       const bookingsRef = collection(db, "Bookings");
@@ -214,7 +214,7 @@ export default function DashboardView() {
       const data = snapshot.docs.map((doc) => {
         const docData = doc.data();
         return {
-          id: doc.id,
+          tourId: doc.id,
           ...docData,
           besas: docData.besas ? docData.besas : (docData.besa ? [docData.besa] : [])
         };
@@ -238,7 +238,7 @@ export default function DashboardView() {
         besas: formData.besas?.filter(besa => besa.trim() !== '') || []
       };
       
-      await updateDoc(doc(db, "Bookings", formData.id!), saveData);
+      await updateDoc(doc(db, "Bookings", formData.tourId!), saveData);
       setEditBooking(null);
       
       const bookingsRef = collection(db, "Bookings");
@@ -246,7 +246,7 @@ export default function DashboardView() {
       const data = snapshot.docs.map((doc) => {
         const docData = doc.data();
         return {
-          id: doc.id,
+          tourId: doc.id,
           ...docData,
           besas: docData.besas ? docData.besas : (docData.besa ? [docData.besa] : [])
         };
@@ -351,7 +351,7 @@ export default function DashboardView() {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {bookings.map((booking) => (
-                <tr key={booking.id} className="hover:bg-gray-50">
+                <tr key={booking.tourId} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     {booking.tourType}
                   </td>
@@ -493,15 +493,15 @@ export default function DashboardView() {
             {/* Tour Type */}
             <label className="block mb-2 font-medium">Tour</label>
             <select
-              value={formData.id || ""}
+              value={formData.tourId || ""}
               onChange={(e) => {
-                const tour = tours.find(t => t.id === e.target.value);
-                if (tour) setFormData({ ...formData, id: tour.id, tourType: tour.title });
+                const tour = tours.find(t => t.tourId === e.target.value);
+                if (tour) setFormData({ ...formData, tourId: tour.tourId, tourType: tour.title });
               }}
               className="w-full px-3 py-2 border rounded-lg mb-4">
               <option value="">Select a tour</option>
               {tours.map((tour) => (
-                <option key={tour.id} value={tour.id}>{tour.title}</option>
+                <option key={tour.tourId} value={tour.tourId}>{tour.title}</option>
               ))}
             </select>
 

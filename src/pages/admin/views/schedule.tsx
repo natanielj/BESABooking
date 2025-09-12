@@ -161,7 +161,7 @@ export default function ScheduleView() {
       try {
         const querySnapshot = await getDocs(collection(db, "mockTours"));
         const tourData = querySnapshot.docs.map(doc => ({
-          id: doc.id,
+          tourId: doc.id,
           ...doc.data(),
         })) as Tour[];
         setTours(tourData);
@@ -179,7 +179,7 @@ export default function ScheduleView() {
       try {
         const querySnapshot = await getDocs(collection(db, "Bookings"));
         const bookingsData = querySnapshot.docs.map(doc => ({
-          id: doc.id,
+          tourId: doc.id,
           ...doc.data(),
         })) as BookingData[];
         setBookings(bookingsData);
@@ -371,7 +371,7 @@ export default function ScheduleView() {
               <div className="space-y-4">
                 {filteredBookings.length > 0 ? (
                   filteredBookings.map(booking => (
-                    <div key={booking.id} className="border-l-4 border-blue-500 pl-4">
+                    <div key={booking.tourId} className="border-l-4 border-blue-500 pl-4">
                       <div className="flex justify-between items-start">
                         <div>
                           <p className="font-medium text-gray-900">{booking.tourType}</p>

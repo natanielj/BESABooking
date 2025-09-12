@@ -14,8 +14,25 @@ import {
 import { collection, getDocs, doc, setDoc } from "firebase/firestore";
 import { db } from "../../src/firebase.ts";
 import { getCalendarAccessToken, insertCalendarEvent } from "../calendarAPI.tsx";
+import { fetchBesas } from "../../src/functions/besaRepo.ts";                                      // optional, if using Firestore
+import { getAvailableBesasForInterval } from "./admin/views/BESAManagements.tsx"; // path as needed
 
-
+const dedupeAttendees = (
+  attendees: { email: string; displayName?: string }[],
+  ...exclude: string[]
+) => {
+  const seen = new Set<string>(
+    exclude.filter(Boolean).map(e => e.trim().toLowerCase())
+  );
+  const out: { email: string; displayName?: string }[] = [];
+  for (const a of attendees) {
+    const em = (a.email || "").trim().toLowerCase();
+    if (!em || seen.has(em)) continue;
+    seen.add(em);
+    out.push({ email: a.email.trim(), displayName: a.displayName });
+  }
+  return out;
+};
 
 export interface Tour {
   id: string;
@@ -296,8 +313,39 @@ const DynamicBookingForm: React.FC<DynamicBookingFormProps> = ({
   const handleSubmit = async () => {
     if (!validateSection(currentSection)) return;
 
+    // --- local helpers for this function ---
+    const weekdayKey = (d: Date) =>
+      ["sunday","monday","tuesday","wednesday","thursday","friday","saturday"][d.getDay()];
+
+    const hmToMinutes = (hm: string) => {
+      const [h, m] = hm.split(":").map(Number);
+      return h * 60 + (m || 0);
+    };
+
+    // Consider a BESA "available" if ANY of their slots overlaps the booking window
+    const slotOverlaps = (startMin: number, endMin: number, slot: { start: string; end: string }) => {
+      const s = hmToMinutes(slot.start);
+      const e = hmToMinutes(slot.end);
+      return s < endMin && startMin < e;
+    };
+
+    const dedupeAttendees = (
+      attendees: { email: string; displayName?: string }[],
+      ...exclude: string[]
+    ) => {
+      const seen = new Set<string>(exclude.filter(Boolean).map(e => e.trim().toLowerCase()));
+      const out: { email: string; displayName?: string }[] = [];
+      for (const a of attendees) {
+        const em = (a.email || "").trim().toLowerCase();
+        if (!em || seen.has(em)) continue;
+        seen.add(em);
+        out.push({ email: a.email.trim(), displayName: a.displayName });
+      }
+      return out;
+    };
+
     try {
-      // 1) Save booking to Firestore (as you already do)
+      // 1) Save booking in Firestore
       const bookingsRef = collection(db, "Bookings");
       const newDocRef = doc(bookingsRef);
       const bookingWithId = {
@@ -307,7 +355,7 @@ const DynamicBookingForm: React.FC<DynamicBookingFormProps> = ({
       };
       await setDoc(newDocRef, bookingWithId);
 
-      // 2) Build start/end Date from form + selected tour duration
+      // 2) Compute start/end Date from form + selected tour duration
       const selected = tours.find((t) => t.id === bookingData.tourId);
       if (!selected) throw new Error("Selected tour not found.");
 
@@ -324,12 +372,12 @@ const DynamicBookingForm: React.FC<DynamicBookingFormProps> = ({
       const startISO = toLocalISO(startLocal);
       const endISO = toLocalISO(endLocal);
 
-      // 3) Get Google access token (browser OAuth) and insert the event
+      // 3) Google access token
       const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID as string;
       if (!clientId) throw new Error("VITE_GOOGLE_CLIENT_ID is missing.");
-
       const accessToken = await getCalendarAccessToken(clientId);
 
+      // 4) Event details
       const location = selected.zoomLink
         ? `Online (Zoom): ${selected.zoomLink}`
         : (selected.location || "");
@@ -352,6 +400,101 @@ const DynamicBookingForm: React.FC<DynamicBookingFormProps> = ({
 
       const summary = `${selected.title} — ${bookingData.firstName} ${bookingData.lastName} (${bookingData.maxAttendees})`;
 
+      // 5) Fetch BESA roster and filter by availability (with deep console logs)
+      type TimeSlot = { start: string; end: string };
+      type OfficeHours = { available: boolean; timeSlots: TimeSlot[] };
+      type Besa = {
+        id: string;
+        name: string;
+        email: string;
+        status: string;
+        role: string;
+        officeHours: {
+          monday: OfficeHours; tuesday: OfficeHours; wednesday: OfficeHours;
+          thursday: OfficeHours; friday: OfficeHours; saturday: OfficeHours; sunday: OfficeHours;
+        };
+      };
+
+      let extraAttendees: { email: string; displayName?: string }[] = [];
+      try {
+        console.log("[FIREBASE DEBUG] app:", (db as any)?._firebaseApp?.options);
+        try {
+          const snap = await getDocs(collection(db, "Besas")); // exact name?
+          console.log("[FIREBASE DEBUG] BESAS size:", snap.size);
+          for (const d of snap.docs) {
+            console.log("[FIREBASE DEBUG] BESA doc:", d.id, d.data());
+          }
+        } catch (e: any) {
+          console.error("[FIREBASE DEBUG] getDocs failed:", e?.code, e?.message, e);
+        }
+        const besaSnap = await getDocs(collection(db, "Besas")); // change collection name if needed
+        const rawBesas: Besa[] = besaSnap.docs.map(d => ({ id: d.id, ...(d.data() as any) }));
+
+        const key = weekdayKey(startLocal) as keyof Besa["officeHours"];
+        const startMin = startLocal.getHours() * 60 + startLocal.getMinutes();
+        const endMin = endLocal.getHours() * 60 + endLocal.getMinutes();
+
+        console.log(`[BESA DEBUG] Day: ${key} | Interval: ${startMin}-${endMin} mins`);
+        console.log(`[BESA DEBUG] Roster count: ${rawBesas.length}`);
+
+        const besas = rawBesas.map(b => ({
+          ...b,
+          email: (b.email || "").trim(),
+          status: (b.status || "").trim().toLowerCase(),
+          role: (b.role || "").trim().toLowerCase(),
+        }));
+
+        const availableBesas = besas.filter(b => {
+          // skip with reasons logged
+          if (!b.email) {
+            console.log(`[BESA SKIP] No email -> ${b.name} (id=${b.id})`);
+            return false;
+          }
+          if (b.status && b.status !== "active") {
+            console.log(`[BESA SKIP] Inactive -> ${b.name} (${b.email}) status=${b.status}`);
+            return false;
+          }
+          const hours = b.officeHours?.[key];
+          if (!hours || !hours.available) {
+            console.log(`[BESA SKIP] Closed on ${key} -> ${b.name} (${b.email})`);
+            return false;
+          }
+          if (!Array.isArray(hours.timeSlots) || hours.timeSlots.length === 0) {
+            console.log(`[BESA SKIP] No timeslots on ${key} -> ${b.name} (${b.email})`);
+            return false;
+          }
+
+          let matched = false;
+          for (const slot of hours.timeSlots) {
+            const s = hmToMinutes(slot.start);
+            const e = hmToMinutes(slot.end);
+            const ok = slotOverlaps(startMin, endMin, slot);
+            console.log(
+              `[BESA SLOT] ${b.name} (${b.email}) slot ${slot.start}-${slot.end} -> ${ok ? "MATCH" : "no"}`
+            );
+            if (ok) matched = true;
+          }
+          if (!matched) {
+            console.log(`[BESA NO MATCH] ${b.name} (${b.email}) has no overlapping slot`);
+          }
+          return matched;
+        });
+
+        extraAttendees = availableBesas.map(b => ({ email: b.email, displayName: b.name }));
+        console.log(`[BESA DEBUG] Available BESA ->`, extraAttendees);
+      } catch (e) {
+        console.warn("BESA lookup failed; proceeding without BESA attendees.", e);
+      }
+
+      // 6) Always include distro; de-dupe against the booker and any repeats
+      const distro = { email: "ucscbesa@ucsc.edu", displayName: "UCSC BESA" };
+      extraAttendees = dedupeAttendees(
+        [...extraAttendees, distro],
+        (bookingData.email || "").trim()
+      );
+      console.log(`[BESA DEBUG] Final attendees (excluding booker):`, extraAttendees);
+
+      // 7) Create Calendar event (send updates to all)
       const event = await insertCalendarEvent({
         accessToken,
         summary,
@@ -361,11 +504,13 @@ const DynamicBookingForm: React.FC<DynamicBookingFormProps> = ({
         endISO,
         attendeeEmail: bookingData.email,
         attendeeName: `${bookingData.firstName} ${bookingData.lastName}`,
+        extraAttendees, // includes available BESA and ucscbesa@ucsc.edu
         timezone: userTimeZone,
-        calendarId: "primary", // change if you maintain a shared calendar
+        calendarId: "primary",
       });
 
-      console.log("Calendar event created:", event?.htmlLink || event?.id);
+      console.log("[Calendar] created event:", event?.htmlLink || event?.id);
+      console.log("[Calendar] attendees on event:", event?.attendees);
 
       alert("Booking submitted successfully!");
       console.log("Booking Data:", bookingWithId);
@@ -374,6 +519,7 @@ const DynamicBookingForm: React.FC<DynamicBookingFormProps> = ({
       alert("Failed to submit booking. Please try again.");
     }
   };
+
 
   // ---------- Helpers for Section 2 ----------
   const toMinutes = (timeStr: string) => {
