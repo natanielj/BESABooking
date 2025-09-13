@@ -3,18 +3,16 @@ import { ArrowLeft, ArrowRight, Calendar, Clock, MapPin, Users, Settings, FileTe
 import { db } from "../../../../src/firebase.ts";
 import { collection, onSnapshot, deleteDoc, doc, updateDoc, addDoc } from "firebase/firestore";
 
-{/* Create Tour Button adaptable for small screen */}
+{/* Create/Edit Tour Button adaptable for small screen */}
 {/* Allow to move order of tours (group first, etc) */}
 {/* Have it show the dates range instead of days in the front */}
 {/* View button, show all tour properties */}
 {/* Availabilty: allow for holiday dates */}
-{/* Total Bookings: Keep Actual count */}
-{/* Upcoming: Keep Actual count */}
 
 
 const DAYS_OF_WEEK = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
-function TourFormPage({ onBack, editingTour, onSaveTour }: { onBack: () => void; editingTour?: Tour; onSaveTour: (tour: Tour) => void;}) {
+function TourFormPage({ onBack, editingTour }: { onBack: () => void; editingTour?: Tour; onSaveTour: (tour: Tour) => void;}) {
   const [currentStep, setCurrentStep] = useState(1);
   const [tour, setTour] = useState<Tour>(editingTour || {
     tourId: '',
@@ -915,8 +913,8 @@ function ToursDashboard({ onCreateTour, onEditTour, tours, setTours }: {
   tours: Tour[];
   setTours: (tours: Tour[]) => void;
 }) {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState<'all' | 'published' | 'draft'>('all');
+  const [searchTerm] = useState('');
+  const [filterStatus] = useState<'all' | 'published' | 'draft'>('all');
 
   useEffect(() => {
     const toursRef = collection(db, "Tours");
@@ -932,16 +930,16 @@ function ToursDashboard({ onCreateTour, onEditTour, tours, setTours }: {
     return () => unsubscribe();
   }, [setTours]);
 
-  const updateTour = async (updatedTour: Tour) => {
-    if (!updatedTour.tourId) return;
-    try {
-      const tourRef = doc(db, "Tours", updatedTour.tourId);
-      await updateDoc(tourRef, updatedTour);
-      setTours(tours.map((tour) => (tour.tourId === updatedTour.tourId ? updatedTour : tour)));
-    } catch (err) {
-      console.error("Error updating tour:", err);
-    }
-  };
+  // const updateTour = async (updatedTour: Tour) => {
+  //   if (!updatedTour.tourId) return;
+  //   try {
+  //     const tourRef = doc(db, "Tours", updatedTour.tourId);
+  //     await updateDoc(tourRef, updatedTour);
+  //     setTours(tours.map((tour) => (tour.tourId === updatedTour.tourId ? updatedTour : tour)));
+  //   } catch (err) {
+  //     console.error("Error updating tour:", err);
+  //   }
+  // };
 
   const handleDeleteTour = async (tourId: string) => {
     if (confirm("Are you sure you want to delete this tour? This action cannot be undone.")) {
