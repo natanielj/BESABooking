@@ -30,19 +30,6 @@ const ParkingInstructionsPage: React.FC = () => {
     );
   };
 
-  const handleBackClick = () => {
-    // Try to go back in history first
-    if (window.history.length > 1) {
-      window.history.back();
-    } else {
-      // Fallback: try to navigate to a common home page
-      // You can customize this URL based on your application structure
-      window.location.href = '/';
-      // Or if you're using React Router, you might want to use:
-      // navigate('/') or history.push('/')
-    }
-  };
-
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -50,8 +37,8 @@ const ParkingInstructionsPage: React.FC = () => {
         <div className="max-w-4xl mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <button
-              onClick={handleBackClick}
-              className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 rounded-lg px-2 py-1"
+              onClick={() => window.history.back()}
+              className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
             >
               <ArrowLeft className="w-5 h-5" />
               Back
@@ -176,7 +163,7 @@ const ParkingInstructionsPage: React.FC = () => {
                   <ExternalLink className="w-5 h-5 text-gray-600" />
                   <div>
                     <a
-                      href="https://transportation.ucsc.edu/"
+                      href="https://taps.ucsc.edu/parking/visitor-parking.html"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="font-medium text-blue-600 hover:underline"
