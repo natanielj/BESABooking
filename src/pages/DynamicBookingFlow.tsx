@@ -17,6 +17,7 @@ import { getCalendarAccessToken, insertCalendarEvent } from "../calendarAPI.tsx"
 
 {/* Have calendar date show actual available dates (doesn't allow weekends, etc ) */}
 {/* Hide tours not selected*/}
+{/* Scheduling Rules: Show Date Ranges */}
 
 export interface Tour {
   id: string;
