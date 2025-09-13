@@ -68,8 +68,6 @@ declare global {
         // Status
         published: boolean;
         createdAt?: string;
-        upcomingBookings?: number;
-        totalBookings?: number;
     };
 
 // Tour Booking
