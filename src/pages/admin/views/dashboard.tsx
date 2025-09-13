@@ -5,7 +5,7 @@ import { db } from '../../../../src/firebase.ts';
 import { collection, getDocs, updateDoc, doc, deleteDoc } from "firebase/firestore";
 
 {/* Have it auto-assign BESAS and save correctly */}
-{/* Filter bookings by most recent date to latest */}
+{/* Bookings don't delete, tourID problem */}
 
 export default function DashboardView() {
   const [currentRole, setCurrentRole] = useState<UserRole>("public");
