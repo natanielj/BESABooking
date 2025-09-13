@@ -199,9 +199,6 @@ const DynamicBookingForm: React.FC<DynamicBookingFormProps> = ({
     timeSlot: "",
     groupSize: 1,
     status: "",
-    accessibility: "",
-    specialRequests: "",
-    marketingConsent: false,
     leadGuide: "",
     notes: "",
     besas: [],
@@ -341,8 +338,6 @@ const handleSubmit = async () => {
         `- Phone: ${bookingData.phone}`,
         "",
         "Notes",
-        bookingData.specialRequests ? `- Special Requests: ${bookingData.specialRequests}` : "",
-        bookingData.accessibility ? `- Accessibility: ${bookingData.accessibility}` : "",
       ].filter(Boolean);
 
       const summary = `${selected.title} — ${bookingData.firstName} ${bookingData.lastName} (${bookingData.maxAttendees})`;
@@ -383,8 +378,6 @@ const handleSubmit = async () => {
       role: bookingData.role,
       location: selected.location,
       zoomLink: selected.zoomLink,
-      specialRequests: bookingData.specialRequests,
-      accessibility: bookingData.accessibility,
       calendarEventLink,
       createdAt: bookingWithId.createdAt,
     };
@@ -637,7 +630,35 @@ const handleSubmit = async () => {
     );
   };
 
-  const renderSection3 = () => (
+const renderSection3 = () => {
+  const majorInterests = [
+    { id: 'computer-science', label: 'B.S. Computer Science' },
+    { id: 'biomolecular-engineering', label: 'B.S. Biomolecular Engineering' },
+    { id: 'bioinformatics', label: 'B.S. Bioinformatics' },
+    { id: 'bioinformatics', label: 'B.A. Biotechnology' },
+    { id: 'applied-mathematics', label: 'B.S. Applied Mathematics' },
+    { id: 'network-and-digital-technology', label: 'B.A. Network and Digital Technology' },
+    { id: 'game-design', label: 'B.S. Computer Science: Game Design' },
+    { id: 'tim', label: 'B.S. Technology and Information Management (TIM)' },
+    { id: 'electrical-engineering', label: 'B.S. Electrical Engineering' },
+    { id: 'computer-engineering', label: 'B.S. Computer Engineering' },
+    { id: 'robotics', label: 'B.S. Robotics Engineering' }
+  ];
+
+  const handleInterestChange = (interestId: string, isChecked: boolean) => {
+    const currentInterests = bookingData.interests || [];
+    let updatedInterests;
+    
+    if (isChecked) {
+      updatedInterests = [...currentInterests, interestId];
+    } else {
+      updatedInterests = currentInterests.filter(id => id !== interestId);
+    }
+    
+    updateBookingData("interests", updatedInterests);
+  };
+
+  return (
     <div className="space-y-8">
       <div className="text-center mb-8">
         <h2 className="text-2xl font-bold text-gray-900 mb-2">Complete Your Booking</h2>
@@ -752,6 +773,32 @@ const handleSubmit = async () => {
             {errors.role && <p className="text-red-500 text-sm mt-1">{errors.role}</p>}
           </div>
         </div>
+
+        {/* Major Interests Section */}
+        <div className="border-t border-gray-200 pt-6">
+          <label className="block text-sm font-medium text-gray-700 mb-4">
+            Areas of Academic Interest
+            <span className="text-gray-500 text-xs ml-1">(Select all that apply)</span>
+          </label>
+          
+          <div className="grid md:grid-cols-3 sm:grid-cols-2 grid-cols-1 gap-3">
+            {majorInterests.map((interest) => (
+              <label key={interest.id} className="flex items-center space-x-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={bookingData.interests?.includes(interest.id) || false}
+                  onChange={(e) => handleInterestChange(interest.id, e.target.checked)}
+                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                />
+                <span className="text-sm text-gray-700">{interest.label}</span>
+              </label>
+            ))}
+          </div>
+          
+          {errors.interests && (
+            <p className="text-red-500 text-sm mt-2">{errors.interests}</p>
+          )}
+        </div>
       </div>
 
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
@@ -770,10 +817,20 @@ const handleSubmit = async () => {
           <p>
             <span className="font-medium">Contact:</span> {bookingData.firstName} {bookingData.lastName}
           </p>
+          {bookingData.interests && bookingData.interests.length > 0 && (
+            <p>
+              <span className="font-medium">Interests:</span>{" "}
+              {bookingData.interests
+                .map(id => majorInterests.find(interest => interest.id === id)?.label)
+                .filter(Boolean)
+                .join(", ")}
+            </p>
+          )}
         </div>
       </div>
     </div>
   );
+};
 
   return (
     <div className="min-h-screen bg-gray-50">
