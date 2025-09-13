@@ -117,9 +117,6 @@ declare global {
         organization?: string;
         role?: string;
         interests: string[];
-        accessibility?: string,
-        specialRequests?: string,
-        marketingConsent?: boolean,
         leadGuide?: string,
         notes?: string,
     }
