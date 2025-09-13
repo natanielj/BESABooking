@@ -1,4 +1,4 @@
-export {};
+ export {};
 
 declare global {
 //Tour Type     
@@ -14,57 +14,36 @@ declare global {
 
 
     type Tour = {
-        tourId: string; // Unique identifier
-
-        // Basic Info
-        title: string; // Name of the tour
-        description: string; // Detailed description
-        duration: number; // Duration in hours/minutes
-        startDate?: string; // Optional start date
-        endDate?: string; // Optional end date
-        durationUnit: 'minutes' | 'hours' | 'hour'; // Unit for duration
-        maxAttendees: number; // Maximum number of attendees per booking
-        maxBookings: number; // Maximum number of bookings allowed per session
-        location: string; // Physical location or 'Online'
-        zoomLink: string; // Zoom link if applicable
+        tourId: string;
+        title: string;
+        description: string;
+        duration: number;
+        durationUnit: 'minutes' | 'hours';
+        maxAttendees: number;
+        location: string;
+        zoomLink: string;
         autoGenerateZoom: boolean;
-
         // Availability
-        weeklyHours: {[key: string]: { start: string; end: string }[];}; // Weekly recurring hours
-        // Example: { monday: [{ start: '09:00', end: '17:00' }], tuesday: [...] }  
-
-        // Date-Specific Availability
-        // Example: [{ date: '2023-12-25', slots: [{ start: '10:00', end: '12:00' }], unavailable: false }]
-        // If 'unavailable' is true, the date is blocked regardless of slots
-        dateSpecificBlockDays: Array<{ 
+        weeklyHours: {
+            [key: string]: { start: string; end: string }[];
+        };
+        dateSpecificHours: Array<{
             date: string;
             slots: { start: string; end: string }[];
             unavailable: boolean;
         }>;
-
-        // Date Ranges when the tour is available   
-        // Example: [{ startDate: '2025-09-25', endDate: '2025-12-09', notes: 'Fall Quarter' }]
-        dateSpecificDays: Array<{
-            startDate: string;   
-            endDate: string;     
-            notes?: string;  
-        }>;
-
-        // Recurrence
-        frequency: number; // e.g., every 1 hour
-        frequencyUnit: 'minutes' | 'hours' | 'hour'; // Unit for frequency;
-
+        frequency: number;
+        frequencyUnit: 'minutes' | 'hours';
         // Scheduling Rules
-        registrationLimit: number; // Max Bookings allowed
-        minNotice: number; // Minimum time required
-        minNoticeUnit: 'hours' | 'days' | 'weeks'; // Unit for minNotice
-        maxNotice: number; // Maximum time in advance (3 months, 6 months, 1 year)
-        maxNoticeUnit: 'days' | 'weeks' | 'months'; // Unit for maxNotice
-        bufferTime: number; // Buffer time between bookings (slugworks 20min)
-        bufferUnit: 'minutes' | 'hours' | 'hour'; // Unit for bufferTime
-        cancellationPolicy: string; // Cancellation policy details
-        reschedulingPolicy: string; // Rescheduling policy details
-
+        registrationLimit: number;
+        minNotice: number;
+        minNoticeUnit: 'hours' | 'days' | 'weeks';
+        maxNotice: number;
+        maxNoticeUnit: 'days' | 'weeks' | 'months';
+        bufferTime: number;
+        bufferUnit: 'minutes' | 'hours';
+        cancellationPolicy: string;
+        reschedulingPolicy: string;
         // Intake Form
         intakeForm: {
             firstName: boolean;
@@ -73,7 +52,6 @@ declare global {
             phone: boolean;
             attendeeCount: boolean;
             majorsInterested: boolean;
-            // Add other standard fields as needed
             customQuestions: Array<{
             question: string;
             type: 'text' | 'textarea' | 'select' | 'checkbox';
@@ -81,17 +59,17 @@ declare global {
             options?: string[];
             }>;
         };
-
         // Notifications
         reminderEmails: Array<{
             timing: number;
             unit: 'hours' | 'days' | 'weeks';
         }>;
         sessionInstructions: string;
-
         // Status
         published: boolean;
         createdAt?: string;
+        upcomingBookings?: number;
+        totalBookings?: number;
     };
 
 // Tour Booking
@@ -122,8 +100,7 @@ declare global {
     }
 
     interface BookingData {
-        bookingId?: string; // specific ID for each booking
-        tourId?: string; // gets tour name for display purposes
+        tourId?: string;
         timeSlot?: string,
         groupSize?: number,
         tourType?: string;
@@ -142,9 +119,6 @@ declare global {
         interests: string[];
         leadGuide?: string,
         notes?: string,
-        accessibility: string,
-        specialRequests: string,
-        marketingConsent?: boolean;
     }
     
 
