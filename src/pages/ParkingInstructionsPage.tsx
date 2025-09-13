@@ -1,20 +1,34 @@
-import React from "react";
-import { useNavigate } from "react-router-dom";
-import {
-  ArrowLeft,
-  MapPin,
-  Clock,
-  Bus,
-  Car,
-  AlertTriangle,
-  ExternalLink,
-  Phone,
-  DollarSign,
-  Calendar,
-} from "lucide-react";
+import React, { useState } from "react";
+import {ArrowLeft, MapPin, Clock, Bus, Car, AlertTriangle, ExternalLink, Phone, DollarSign, Calendar, ChevronLeft, ChevronRight} from "lucide-react";
 
 const ParkingInstructionsPage: React.FC = () => {
-  const navigate = useNavigate();
+  const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
+
+  // Video data - replace VIDEO_ID_HERE with actual YouTube video IDs
+  const videos = [
+    {
+      id: "t8Xj48EFkN0",
+      title: "Driving from Base of Campus",
+      description: "How to find Baskin Engineering: driving from the base of campus"
+    },
+    {
+      id: "EOFBiGSrHzI", 
+      title: "Parking and Public Transit",
+      description: "How to find Baskin Engineering: parking and public transit"
+    }
+  ];
+
+  const nextVideo = () => {
+    setCurrentVideoIndex((prevIndex) => 
+      prevIndex === videos.length - 1 ? 0 : prevIndex + 1
+    );
+  };
+
+  const prevVideo = () => {
+    setCurrentVideoIndex((prevIndex) => 
+      prevIndex === 0 ? videos.length - 1 : prevIndex - 1
+    );
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -23,7 +37,7 @@ const ParkingInstructionsPage: React.FC = () => {
         <div className="max-w-4xl mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <button
-              onClick={() => navigate(-1)}
+              onClick={() => window.history.back()}
               className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
             >
               <ArrowLeft className="w-5 h-5" />
@@ -45,28 +59,80 @@ const ParkingInstructionsPage: React.FC = () => {
             </div>
             <h2 className="text-3xl font-bold text-white mb-2">BE Tour Parking Guide</h2>
             <p className="text-blue-100 text-lg">
-              Everything you need to know about parking for your campus tour
+              Everything you need to know about parking for your Baskin Engineering tour
             </p>
           </div>
 
           {/* Content */}
           <div className="p-8">
-            {/* Video Section */}
+            {/* Video Carousel Section */}
             <div className="mb-8">
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">Campus Parking Overview</h3>
-              <div className="relative bg-gray-100 rounded-lg overflow-hidden" style={{ paddingBottom: '56.25%', height: 0 }}>
-                <iframe
-                  className="absolute top-0 left-0 w-full h-full"
-                  src="https://www.youtube.com/embed/VIDEO_ID_HERE"
-                  title="UCSC Campus Parking Guide"
-                  frameBorder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                ></iframe>
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">Baskin Parking Videos</h3>
+              
+              <div className="relative">
+                {/* Video Container */}
+                <div className="relative bg-gray-100 rounded-lg overflow-hidden" style={{ paddingBottom: '56.25%', height: 0 }}>
+                  <iframe
+                    className="absolute top-0 left-0 w-full h-full"
+                    src={`https://www.youtube.com/embed/${videos[currentVideoIndex].id}`}
+                    title={videos[currentVideoIndex].title}
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  ></iframe>
+                  
+                  {/* Navigation Arrows */}
+                  {videos.length > 1 && (
+                    <>
+                      <button
+                        onClick={prevVideo}
+                        className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-70 text-white rounded-full p-2 transition-all duration-200"
+                        aria-label="Previous video"
+                      >
+                        <ChevronLeft className="w-6 h-6" />
+                      </button>
+                      <button
+                        onClick={nextVideo}
+                        className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-70 text-white rounded-full p-2 transition-all duration-200"
+                        aria-label="Next video"
+                      >
+                        <ChevronRight className="w-6 h-6" />
+                      </button>
+                    </>
+                  )}
+                </div>
+                
+                {/* Video Info */}
+                <div className="mt-4">
+                  <h4 className="text-lg font-semibold text-gray-900">{videos[currentVideoIndex].title}</h4>
+                  <p className="text-sm text-gray-600 mt-1">{videos[currentVideoIndex].description}</p>
+                  
+                  {/* Video Indicators */}
+                  {videos.length > 1 && (
+                    <div className="flex justify-center mt-4 gap-2">
+                      {videos.map((_, index) => (
+                        <button
+                          key={index}
+                          onClick={() => setCurrentVideoIndex(index)}
+                          className={`w-3 h-3 rounded-full transition-all duration-200 ${
+                            index === currentVideoIndex 
+                              ? 'bg-blue-600' 
+                              : 'bg-gray-300 hover:bg-gray-400'
+                          }`}
+                          aria-label={`Go to video ${index + 1}`}
+                        />
+                      ))}
+                    </div>
+                  )}
+                  
+                  {/* Video Counter */}
+                  {videos.length > 1 && (
+                    <p className="text-center text-sm text-gray-500 mt-2">
+                      Video {currentVideoIndex + 1} of {videos.length}
+                    </p>
+                  )}
+                </div>
               </div>
-              <p className="text-sm text-gray-600 mt-2">
-                Watch this video for a visual guide to campus parking and navigation
-              </p>
             </div>
 
             {/* Quick Reference */}
@@ -319,13 +385,7 @@ const ParkingInstructionsPage: React.FC = () => {
             {/* Action Buttons */}
             <div className="flex flex-wrap gap-4 mt-8 pt-8 border-t">
               <button
-                onClick={() => navigate(-1)}
-                className="flex-1 sm:flex-none px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                Back to Confirmation
-              </button>
-              <button
-                onClick={() => navigate("/")}
+                onClick={() => window.location.href = "/"}
                 className="flex-1 sm:flex-none px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
               >
                 Return to Home
