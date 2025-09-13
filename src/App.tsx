@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Users, Clock } from 'lucide-react';
+import { Users, Clock, Edit } from 'lucide-react';
 import { Routes, Route, useNavigate } from 'react-router-dom';
 
 import { collection, getDocs } from 'firebase/firestore';
@@ -14,6 +14,27 @@ import OfficeHoursView from './pages/admin/views/officeHoursView.tsx';
 import DynamicBookingForm from './pages/DynamicBookingFlow.tsx';
 import BookingConfirmationPage from './pages/BookingConfirmationPage.tsx';
 import ParkingInstructionsPage from './pages/ParkingInstructionsPage.tsx';
+
+// Feedback Button Component
+const FeedbackButton = () => {
+  const handleFeedbackClick = () => {
+    // Replace this URL with your actual Google Form URL
+    window.open('https://docs.google.com/forms/d/e/1FAIpQLSe9s1wtdLrSEOPOXNYieJKHECG8gSc76V8nEwpdhm5EGmETWg/viewform?usp=sharing&ouid=101709250725869391286', '_blank');
+  };
+
+  return (
+    <button
+      onClick={handleFeedbackClick}
+      className="fixed bottom-6 right-6 bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-full shadow-lg transition-all duration-300 transform hover:scale-110 z-50 group"
+      title="Share Feedback"
+    >
+      <Edit className="h-6 w-6" />
+      <span className="absolute right-16 top-1/2 transform -translate-y-1/2 bg-gray-800 text-white px-3 py-1 rounded-lg text-sm whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+        Feedback
+      </span>
+    </button>
+  );
+};
 
 function App() {
   const [tours, setTours] = useState<Tour[]>([]);
@@ -185,18 +206,23 @@ function App() {
   );
 
   return (
-    <Routes>
-      <Route path="/" element={<PublicBookingView />} />
-      <Route path='/admin/dashboard' element={<DashboardLayout><DashboardView /></DashboardLayout>} />
-      <Route path='/admin/schedule' element={<DashboardLayout><ScheduleView /></DashboardLayout>} />
-      <Route path='/admin/tours' element={<DashboardLayout><ToursManagementView /></DashboardLayout>} />
-      <Route path='/admin/besas' element={<DashboardLayout><BESAManagementView /></DashboardLayout>} />
-      <Route path='/admin/office-hours' element={<DashboardLayout><OfficeHoursView /></DashboardLayout>} />
+    <>
+      <Routes>
+        <Route path="/" element={<PublicBookingView />} />
+        <Route path='/admin/dashboard' element={<DashboardLayout><DashboardView /></DashboardLayout>} />
+        <Route path='/admin/schedule' element={<DashboardLayout><ScheduleView /></DashboardLayout>} />
+        <Route path='/admin/tours' element={<DashboardLayout><ToursManagementView /></DashboardLayout>} />
+        <Route path='/admin/besas' element={<DashboardLayout><BESAManagementView /></DashboardLayout>} />
+        <Route path='/admin/office-hours' element={<DashboardLayout><OfficeHoursView /></DashboardLayout>} />
+        
+        <Route path="/booking/:tourId" element={<DynamicBookingForm/>}/>
+        <Route path="/booking-confirmation" element={<BookingConfirmationPage />} />
+        <Route path="/parking-instructions" element={<ParkingInstructionsPage />} />
+      </Routes>
       
-      <Route path="/booking/:tourId" element={<DynamicBookingForm/>}/>
-      <Route path="/booking-confirmation" element={<BookingConfirmationPage />} />
-      <Route path="/parking-instructions" element={<ParkingInstructionsPage />} />
-    </Routes>
+      {/* Feedback Button - appears on all pages */}
+      <FeedbackButton />
+    </>
   );
 }
 
