@@ -635,7 +635,7 @@ const renderSection3 = () => {
     { id: 'computer-science', label: 'B.S. Computer Science' },
     { id: 'biomolecular-engineering', label: 'B.S. Biomolecular Engineering' },
     { id: 'bioinformatics', label: 'B.S. Bioinformatics' },
-    { id: 'bioinformatics', label: 'B.A. Biotechnology' },
+    { id: 'biotechnology', label: 'B.A. Biotechnology' },
     { id: 'applied-mathematics', label: 'B.S. Applied Mathematics' },
     { id: 'network-and-digital-technology', label: 'B.A. Network and Digital Technology' },
     { id: 'game-design', label: 'B.S. Computer Science: Game Design' },
@@ -777,20 +777,20 @@ const renderSection3 = () => {
         {/* Major Interests Section */}
         <div className="border-t border-gray-200 pt-6">
           <label className="block text-sm font-medium text-gray-700 mb-4">
-            Areas of Academic Interest
+            Majors Interested Offered Under Baskin
             <span className="text-gray-500 text-xs ml-1">(Select all that apply)</span>
           </label>
           
           <div className="grid md:grid-cols-3 sm:grid-cols-2 grid-cols-1 gap-3">
-            {majorInterests.map((interest) => (
-              <label key={interest.id} className="flex items-center space-x-2 cursor-pointer">
+            {majorInterests.map((interests) => (
+              <label key={interests.id} className="flex items-center space-x-2 cursor-pointer">
                 <input
                   type="checkbox"
-                  checked={bookingData.interests?.includes(interest.id) || false}
-                  onChange={(e) => handleInterestChange(interest.id, e.target.checked)}
+                  checked={bookingData.interests?.includes(interests.id) || false}
+                  onChange={(e) => handleInterestChange(interests.id, e.target.checked)}
                   className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                 />
-                <span className="text-sm text-gray-700">{interest.label}</span>
+                <span className="text-sm text-gray-700">{interests.label}</span>
               </label>
             ))}
           </div>
