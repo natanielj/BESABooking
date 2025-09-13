@@ -1092,14 +1092,14 @@ function ToursDashboard({ onCreateTour, onEditTour, tours, setTours }: {
                     
                     {tour.published && (
                       <div className="flex items-center space-x-6 mt-4 pt-4 border-t border-gray-100">
-                        <div className="text-sm">
+                        {/* <div className="text-sm">
                           <span className="text-gray-600">Upcoming: </span>
                           <span className="font-medium text-blue-600">{tour.upcomingBookings || 0}</span>
                         </div>
                         <div className="text-sm">
                           <span className="text-gray-600">Total Bookings: </span>
                           <span className="font-medium text-gray-900">{tour.totalBookings || 0}</span>
-                        </div>
+                        </div> */}
                       </div>
                     )}
                   </div>
