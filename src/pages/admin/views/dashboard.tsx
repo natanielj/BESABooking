@@ -117,7 +117,14 @@ export default function DashboardView() {
           };
         }) as BookingData[];
 
-        setBookings(data);
+        // Sort bookings by date (most recent first)
+        const sortedData = data.sort((a, b) => {
+          const dateA = new Date(a.date);
+          const dateB = new Date(b.date);
+          return dateA.getTime() - dateB.getTime();
+        });
+
+        setBookings(sortedData);
 
         const today = new Date();
         const todayStr = today.toISOString().split("T")[0];
