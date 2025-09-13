@@ -4,6 +4,10 @@ import { db } from '../../../../src/firebase.ts';
 import { Calendar, Users, List, Eye } from 'lucide-react';
 
 {/* Bookings show 1 day before */}
+{/* Bookings stack days in view */}
+{/* List management only shows month of september */}
+{/* past tours doesn't show past tours */}
+{/* all tours doesn't show all tours */}
 
 export default function ScheduleView() {
   const [besas, setBesas] = useState<Besa[]>([]);
