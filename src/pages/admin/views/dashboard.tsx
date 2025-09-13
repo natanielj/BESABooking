@@ -660,13 +660,23 @@ export default function DashboardView() {
             />
 
             {/* Interests */}
-            <label className="block mb-2 font-medium">Interests (comma separated)</label>
-            <input
-              type="text"
-              value={formData.interests.join(", ")}
-              onChange={(e) => setFormData({ ...formData, interests: e.target.value.split(",").map(i => i.trim()) })}
-              className="w-full px-3 py-2 border rounded-lg mb-4"
-            />
+            <div className="mb-4">
+              <label className="block mb-2 font-medium">Selected Interests</label>
+              {formData.interests && formData.interests.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {formData.interests.map((interest, index) => (
+                    <span
+                      key={index}
+                      className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800 border border-blue-200"
+                    >
+                      {interest}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-gray-500 italic text-sm">No interests specified</div>
+              )}
+            </div>
 
             <div className="flex justify-end gap-3 mt-4">
               <button
