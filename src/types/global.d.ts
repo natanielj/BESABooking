@@ -100,6 +100,7 @@ declare global {
     }
 
     interface BookingData {
+        id?: string;
         tourId?: string;
         timeSlot?: string,
         groupSize?: number,
