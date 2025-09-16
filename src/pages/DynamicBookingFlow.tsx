@@ -384,7 +384,6 @@ const handleSubmit = async () => {
         `- Email: ${bookingData.email}`,
         `- Phone: ${bookingData.phone}`,
         "",
-        "Notes",
       ].filter(Boolean);
 
       const summary = `${selected.title} — ${bookingData.firstName} ${bookingData.lastName} (${bookingData.maxAttendees})`;
