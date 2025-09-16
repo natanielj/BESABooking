@@ -9,9 +9,9 @@ export type InsertEventInput = {
   startISO: string;
   endISO: string;
   calendarId?: string;
-  attendeeEmail?: string;     // primary guest (the booker)
+  attendeeEmail?: string;     
   attendeeName?: string;
-  extraAttendees?: Attendee[]; // <--- NEW
+  extraAttendees?: Attendee[];
   timezone?: string;
 };
 
@@ -27,7 +27,7 @@ export async function insertCalendarEvent(input: InsertEventInput) {
     calendarId = "primary",
     attendeeEmail,
     attendeeName,
-    extraAttendees = [],            // <--- NEW
+    extraAttendees = [],        
     timezone,
   } = input;
   

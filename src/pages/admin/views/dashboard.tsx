@@ -107,7 +107,7 @@ export default function DashboardView() {
         const data = snapshot.docs.map((doc) => {
           const docData = doc.data();
           return {
-            tourId: doc.id,
+            id: doc.id,
             ...docData,
             // Handle backward compatibility - convert single besa to array
             besas: docData.besas ? docData.besas : (docData.besa ? [docData.besa] : [])
@@ -203,10 +203,10 @@ export default function DashboardView() {
   };
 
   const confirmDelete = async () => {
-    if (!deleteBooking || !deleteBooking.tourId) return;
+    if (!deleteBooking || !deleteBooking.id) return;
     
     try {
-      await deleteDoc(doc(db, "Bookings", deleteBooking.tourId));
+      await deleteDoc(doc(db, "Bookings", deleteBooking.id));
       
       // Refresh bookings list
       const bookingsRef = collection(db, "Bookings");
@@ -214,7 +214,7 @@ export default function DashboardView() {
       const data = snapshot.docs.map((doc) => {
         const docData = doc.data();
         return {
-          tourId: doc.id,
+          id: doc.id,
           ...docData,
           besas: docData.besas ? docData.besas : (docData.besa ? [docData.besa] : [])
         };
@@ -238,7 +238,7 @@ export default function DashboardView() {
         besas: formData.besas?.filter(besa => besa.trim() !== '') || []
       };
       
-      await updateDoc(doc(db, "Bookings", formData.tourId!), saveData);
+      await updateDoc(doc(db, "Bookings", formData.id!), saveData);
       setEditBooking(null);
       
       const bookingsRef = collection(db, "Bookings");
@@ -246,7 +246,7 @@ export default function DashboardView() {
       const data = snapshot.docs.map((doc) => {
         const docData = doc.data();
         return {
-          tourId: doc.id,
+          id: doc.id,
           ...docData,
           besas: docData.besas ? docData.besas : (docData.besa ? [docData.besa] : [])
         };
@@ -351,7 +351,7 @@ export default function DashboardView() {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {bookings.map((booking) => (
-                <tr key={booking.tourId} className="hover:bg-gray-50">
+                <tr key={booking.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     {booking.tourType}
                   </td>
