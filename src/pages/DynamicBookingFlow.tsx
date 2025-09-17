@@ -18,7 +18,7 @@ import { fetchBesas } from "../../src/functions/besaRepo.ts";                   
 import { getAvailableBesasForInterval } from "./admin/views/BESAManagements.tsx"; // path as needed
 
 const dedupeAttendees = (
-  attendees: { email: string; displayName?: string }[],
+  attendees: {  email: string; displayName?: string }[],
   ...exclude: string[]
 ) => {
   const seen = new Set<string>(

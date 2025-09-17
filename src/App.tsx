@@ -3,7 +3,7 @@ import { Users, Clock, Edit } from 'lucide-react';
 import { Routes, Route, useNavigate } from 'react-router-dom';
 
 import { collection, getDocs } from 'firebase/firestore';
-import { db } from '../src/firebase.ts'; 
+import { db } from '../src/firebase.ts';
 
 import DashboardLayout from './pages/admin/adminDash';
 import DashboardView from './pages/admin/views/dashboard';
@@ -14,6 +14,8 @@ import OfficeHoursView from './pages/admin/views/officeHoursView.tsx';
 import DynamicBookingForm from './pages/DynamicBookingFlow.tsx';
 import BookingConfirmationPage from './pages/BookingConfirmationPage.tsx';
 import ParkingInstructionsPage from './pages/ParkingInstructionsPage.tsx';
+import PrivacyPolicy from './pages/privacypolicy.tsx';
+import TermsOfServicePage from './pages/termsofservice.tsx';
 
 // Feedback Button Component
 const FeedbackButton = () => {
@@ -41,7 +43,7 @@ function App() {
   const navigate = useNavigate();
   const [logoClickCount, setLogoClickCount] = useState(0);
 
-  {/* Fetch Tours */}
+  {/* Fetch Tours */ }
   useEffect(() => {
     const fetchTours = async () => {
       try {
@@ -99,7 +101,7 @@ function App() {
     fetchTours();
   }, []);
 
-  {/* Handle logo triple-click */}
+  {/* Handle logo triple-click */ }
   const handleLogoClick = (e: React.MouseEvent) => {
     e.preventDefault();
     const newCount = logoClickCount + 1;
@@ -113,7 +115,7 @@ function App() {
     }
   };
 
-  {/* MAIN HOMEPAGE */}
+  {/* MAIN HOMEPAGE */ }
   const PublicBookingView = () => (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       {/* Top Header */}
@@ -202,6 +204,24 @@ function App() {
             ))}
         </div>
       </div>
+      {/* <TermsOfServicePage onBack={() => {}} /> */}
+      <div className="mt-12 border-t py-6 text-center">
+        <p className="text-sm text-gray-500">
+          <a
+            href="/terms-of-service"
+            className="text-blue-600 hover:underline mx-2"
+          >
+            Terms Of Service
+          </a>
+          •
+          <a
+            href="/privacy-policy"
+            className="text-blue-600 hover:underline mx-2"
+          >
+            Privacy Policy
+          </a>
+        </p>
+      </div>
     </div>
   );
 
@@ -214,12 +234,14 @@ function App() {
         <Route path='/admin/tours' element={<DashboardLayout><ToursManagementView /></DashboardLayout>} />
         <Route path='/admin/besas' element={<DashboardLayout><BESAManagementView /></DashboardLayout>} />
         <Route path='/admin/office-hours' element={<DashboardLayout><OfficeHoursView /></DashboardLayout>} />
-        
-        <Route path="/booking/:tourId" element={<DynamicBookingForm/>}/>
+
+        <Route path="/booking/:tourId" element={<DynamicBookingForm />} />
         <Route path="/booking-confirmation" element={<BookingConfirmationPage />} />
         <Route path="/parking-instructions" element={<ParkingInstructionsPage />} />
+        <Route path='/terms-of-service' element={<TermsOfServicePage />} />
+        <Route path='/privacy-policy' element={<PrivacyPolicy />} />
       </Routes>
-      
+
       {/* Feedback Button - appears on all pages */}
       <FeedbackButton />
     </>
