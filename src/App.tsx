@@ -19,7 +19,6 @@ import AdminPage from './pages/admin/adminLogin.tsx';
 // Feedback Button Component
 const FeedbackButton = () => {
   const handleFeedbackClick = () => {
-    // Replace this URL with your actual Google Form URL
     window.open('https://docs.google.com/forms/d/e/1FAIpQLSe9s1wtdLrSEOPOXNYieJKHECG8gSc76V8nEwpdhm5EGmETWg/viewform?usp=sharing&ouid=101709250725869391286', '_blank');
   };
 
