@@ -14,6 +14,7 @@ import OfficeHoursView from './pages/admin/views/officeHoursView.tsx';
 import DynamicBookingForm from './pages/DynamicBookingFlow.tsx';
 import BookingConfirmationPage from './pages/BookingConfirmationPage.tsx';
 import ParkingInstructionsPage from './pages/ParkingInstructionsPage.tsx';
+import AdminPage from './pages/admin/adminLogin.tsx'; 
 
 // Feedback Button Component
 const FeedbackButton = () => {
@@ -36,6 +37,7 @@ const FeedbackButton = () => {
 
 function App() {
   const [tours, setTours] = useState<Tour[]>([]);
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
   const navigate = useNavigate();
   const [logoClickCount, setLogoClickCount] = useState(0);
 
@@ -104,7 +106,7 @@ function App() {
 
     if (newCount === 3) {
       setLogoClickCount(0);
-      navigate('/admin/dashboard'); // redirect to admin dashboard
+      navigate('/admin'); // redirect to admin login page first
     } else {
       setLogoClickCount(newCount);
       setTimeout(() => setLogoClickCount(0), 1500); // reset if no triple click within 1.5s
@@ -210,12 +212,16 @@ function App() {
     <>
       <Routes>
         <Route path="/" element={<PublicBookingView />} />
+        
+        {/* Admin Routes */}
+        <Route path="/admin" element={<AdminPage />} />
         <Route path='/admin/dashboard' element={<DashboardLayout><DashboardView /></DashboardLayout>} />
         <Route path='/admin/schedule' element={<DashboardLayout><ScheduleView /></DashboardLayout>} />
         <Route path='/admin/tours' element={<DashboardLayout><ToursManagementView /></DashboardLayout>} />
         <Route path='/admin/besas' element={<DashboardLayout><BESAManagementView /></DashboardLayout>} />
         <Route path='/admin/office-hours' element={<DashboardLayout><OfficeHoursView /></DashboardLayout>} />
         
+        {/* Booking Routes */}
         <Route path="/booking/:tourId" element={<DynamicBookingForm/>}/>
         <Route path="/booking-confirmation" element={<BookingConfirmationPage />} />
         <Route path="/parking-instructions" element={<ParkingInstructionsPage />} />
