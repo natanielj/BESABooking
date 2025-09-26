@@ -774,7 +774,7 @@ function TourFormPage({ onBack, editingTour }: { onBack: () => void; editingTour
 
       {/* Progress Steps */}
       <div className="bg-white border-b border-gray-200">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 xl:px-8 py-4">
+        <div className="max-w-4xl mx-auto px-2 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4">
           <div className="flex items-center justify-between">
             {steps.map((step, index) => {
               const Icon = step.icon;
@@ -782,8 +782,9 @@ function TourFormPage({ onBack, editingTour }: { onBack: () => void; editingTour
               const isCompleted = currentStep > step.number;
               
               return (
-                <div key={step.number} className="flex items-center">
-                  <div className={`flex items-center justify-center w-10 h-10 rounded-full border-2 ${
+                <div key={step.number} className="flex items-center flex-1">
+                  {/* Step Circle */}
+                  <div className={`flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 flex-shrink-0 ${
                     isCompleted 
                       ? 'bg-green-600 border-green-600 text-white'
                       : isActive 
@@ -791,28 +792,37 @@ function TourFormPage({ onBack, editingTour }: { onBack: () => void; editingTour
                         : 'border-gray-300 text-gray-400'
                   }`}>
                     {isCompleted ? (
-                      <CheckCircle className="h-5 w-5" />
+                      <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5" />
                     ) : (
-                      <Icon className="h-5 w-5" />
+                      <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
                     )}
                   </div>
                   
-                  <div className="ml-3 hidden sm:block">
-                    <div className={`text-sm font-medium ${
-                      isActive ? 'text-blue-600' : isCompleted ? 'text-green-600' : 'text-gray-500'
-                    }`}>
-                      {step.title}
-                    </div>
-                  </div>
-                  
+                  {/* Progress Line */}
                   {index < steps.length - 1 && (
-                    <div className={`hidden sm:block w-12 h-0.5 ml-6 ${
+                    <div className={`flex-1 h-0.5 mx-2 sm:mx-4 ${
                       currentStep > step.number ? 'bg-green-600' : 'bg-gray-300'
                     }`} />
                   )}
                 </div>
               );
             })}
+          </div>
+          
+          {/* Step Indicator - Always Visible */}
+          <div className="mt-2">
+            <div className="text-center">
+              <span className="text-xs text-gray-600">
+                Step {currentStep} of {steps.length}: {steps.find(s => s.number === currentStep)?.title}
+              </span>
+            </div>
+            {/* Progress Bar */}
+            <div className="mt-1 bg-gray-200 rounded-full h-1">
+              <div 
+                className="bg-blue-600 h-1 rounded-full transition-all duration-300"
+                style={{ width: `${(currentStep / steps.length) * 100}%` }}
+              />
+            </div>
           </div>
         </div>
       </div>
