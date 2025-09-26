@@ -6,7 +6,6 @@ import { collection, onSnapshot, deleteDoc, doc, updateDoc, addDoc } from "fireb
 {/* Create/Edit Tour Button adaptable for small screen */}
 {/* Allow to move order of tours (group first, etc) */}
 {/* Have it show the dates range instead of days in the front */}
-{/* View button, show all tour properties */}
 {/* Availabilty: allow for holiday dates */}
 
 
@@ -137,477 +136,478 @@ function TourFormPage({ onBack, editingTour }: { onBack: () => void; editingTour
   };
 
   const renderStepContent = () => {
-    switch (currentStep) {
-      case 1:
-        return (
-          <div className="space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Tour Title *</label>
-              <input
-                type="text"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="e.g. Engineering Building Tour"
-                value={tour.title}
-                onChange={(e) => updateTour({ title: e.target.value })}
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Description *</label>
-              <textarea
-                rows={4}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Describe what visitors will see and experience during this tour..."
-                value={tour.description}
-                onChange={(e) => updateTour({ description: e.target.value })}
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Duration *</label>
-                <div className="flex space-x-2">
-                  <input
-                    type="number"
-                    min="1"
-                    className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    value={tour.duration}
-                    onChange={(e) => updateTour({ duration: parseInt(e.target.value) || 0 })}
-                  />
-                  <select
-                    className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    value={tour.durationUnit}
-                    onChange={(e) => updateTour({ durationUnit: e.target.value as 'minutes' | 'hours' })}
-                  >
-                    <option value="minutes">Minutes</option>
-                    <option value="hours">Hours</option>
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Max Attendees *</label>
-                <input
-                  type="number"
-                  min="1"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  value={tour.maxAttendees}
-                  onChange={(e) => updateTour({ maxAttendees: parseInt(e.target.value) || 1 })}
-                />
-              </div>
-            </div>
+  switch (currentStep) {
+    case 1:
+      return (
+        <div className="space-y-4 2xl:space-y-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Tour Title *</label>
+            <input
+              type="text"
+              className="w-full px-3 2xl:px-4 py-2 2xl:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm 2xl:text-base"
+              placeholder="e.g. Engineering Building Tour"
+              value={tour.title}
+              onChange={(e) => updateTour({ title: e.target.value })}
+            />
           </div>
-        );
 
-      case 2:
-        return (
-          <div className="space-y-6">
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <div className="flex items-start space-x-2">
-                <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5" />
-                <p className="text-sm text-blue-800">
-                  Tours can be in-person, virtual, or hybrid. At least one location option is required.
-                </p>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                <MapPin className="inline h-4 w-4 mr-1" />
-                Physical Location
-              </label>
-              <input
-                type="text"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="e.g. Baskin Engineering Building, Room 101"
-                value={tour.location}
-                onChange={(e) => updateTour({ location: e.target.value })}
-              />
-            </div>
-
-            <div className="border-t pt-6">
-              <div className="flex items-center justify-between mb-4">
-                <label className="block text-sm font-medium text-gray-700">
-                  <Video className="inline h-4 w-4 mr-1" />
-                  Virtual Option
-                </label>
-                <label className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    checked={tour.autoGenerateZoom}
-                    onChange={(e) => updateTour({ 
-                      autoGenerateZoom: e.target.checked,
-                      zoomLink: e.target.checked ? '' : tour.zoomLink
-                    })}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                  />
-                  <span className="text-sm text-gray-600">Auto-generate Zoom link</span>
-                </label>
-              </div>
-
-              {!tour.autoGenerateZoom && (
-                <input
-                  type="url"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="https://zoom.us/j/..."
-                  value={tour.zoomLink}
-                  onChange={(e) => updateTour({ zoomLink: e.target.value })}
-                />
-              )}
-
-              {tour.autoGenerateZoom && (
-                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                  <p className="text-sm text-gray-600">
-                    <Globe className="inline h-4 w-4 mr-1" />
-                    A Zoom link will be automatically generated when the tour is published
-                  </p>
-                </div>
-              )}
-            </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Description *</label>
+            <textarea
+              rows={3}
+              className="w-full px-3 2xl:px-4 py-2 2xl:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm 2xl:text-base resize-y"
+              placeholder="Describe what visitors will see and experience during this tour..."
+              value={tour.description}
+              onChange={(e) => updateTour({ description: e.target.value })}
+            />
           </div>
-        );
 
-      case 3:
-        return (
-          <div className="space-y-8">
-            {/* Weekly Recurring Hours */}
+          <div className="grid grid-cols-1 2xl:grid-cols-2 gap-4 2xl:gap-6">
             <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Weekly Recurring Hours</h3>
-              <div className="space-y-4">
-                {DAYS_OF_WEEK.map((day) => (
-                  <div key={day} className="border border-gray-200 rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <h4 className="font-medium text-gray-900">{day}</h4>
-                      <button
-                        type="button"
-                        onClick={() => addWeeklyTimeSlot(day)}
-                        className="text-blue-600 hover:bg-blue-50 p-1 rounded-lg"
-                      >
-                        <Plus className="h-4 w-4" />
-                      </button>
-                    </div>
-                    
-                    {(tour.weeklyHours[day] || []).length === 0 && (
-                      <p className="text-gray-500 text-sm">No time slots set for this day</p>
-                    )}
-                    
-                    {(tour.weeklyHours[day] || []).map((slot, index) => (
-                      <div key={index} className="flex items-center space-x-2 mb-2">
-                        <input
-                          type="time"
-                          className="px-3 py-2 border border-gray-300 rounded-lg"
-                          value={slot.start}
-                          onChange={(e) => {
-                            const newSlots = [...(tour.weeklyHours[day] || [])];
-                            newSlots[index] = { ...slot, start: e.target.value };
-                            updateTour({
-                              weeklyHours: { ...tour.weeklyHours, [day]: newSlots }
-                            });
-                          }}
-                        />
-                        <span className="text-gray-500">to</span>
-                        <input
-                          type="time"
-                          className="px-3 py-2 border border-gray-300 rounded-lg"
-                          value={slot.end}
-                          onChange={(e) => {
-                            const newSlots = [...(tour.weeklyHours[day] || [])];
-                            newSlots[index] = { ...slot, end: e.target.value };
-                            updateTour({
-                              weeklyHours: { ...tour.weeklyHours, [day]: newSlots }
-                            });
-                          }}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => removeWeeklyTimeSlot(day, index)}
-                          className="text-red-600 hover:bg-red-50 p-1 rounded-lg"
-                        >
-                          <X className="h-4 w-4" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Frequency */}
-            <div className="border-t pt-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Tour Frequency</h3>
-              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Start new tour every:
-                </label>
-                <div className="flex space-x-2">
-                  <input
-                    type="number"
-                    min="1"
-                    className="w-24 px-3 py-2 border border-gray-300 rounded-lg"
-                    value={tour.frequency}
-                    onChange={(e) => updateTour({ frequency: parseInt(e.target.value) || 1 })}
-                  />
-                  <select
-                    className="px-3 py-2 border border-gray-300 rounded-lg"
-                    value={tour.frequencyUnit}
-                    onChange={(e) => updateTour({ frequencyUnit: e.target.value as 'minutes' | 'hours' })}
-                  >
-                    <option value="minutes">Minutes</option>
-                    <option value="hours">Hours</option>
-                  </select>
-                </div>
-                <p className="text-xs text-gray-500 mt-2">
-                  Based on tour duration of {tour.duration} {tour.durationUnit}
-                </p>
-              </div>
-            </div>
-          </div>
-        );
-
-      case 4:
-        return (
-          <div className="space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Registration Limit</label>
-              <input
-                type="number"
-                min="1"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Maximum people per session"
-                value={tour.registrationLimit}
-                onChange={(e) => updateTour({ registrationLimit: parseInt(e.target.value) || 1 })}
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Minimum Notice</label>
-                <div className="flex space-x-2">
-                  <input
-                    type="number"
-                    min="1"
-                    className="flex-1 px-3 py-3 border border-gray-300 rounded-lg"
-                    value={tour.minNotice}
-                    onChange={(e) => updateTour({ minNotice: parseInt(e.target.value) || 1 })}
-                  />
-                  <select
-                    className="px-3 py-3 border border-gray-300 rounded-lg"
-                    value={tour.minNoticeUnit}
-                    onChange={(e) => updateTour({ minNoticeUnit: e.target.value as any })}
-                  >
-                    <option value="hours">Hours</option>
-                    <option value="days">Days</option>
-                    <option value="weeks">Weeks</option>
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Maximum Notice</label>
-                <div className="flex space-x-2">
-                  <input
-                    type="number"
-                    min="1"
-                    className="flex-1 px-3 py-3 border border-gray-300 rounded-lg"
-                    value={tour.maxNotice}
-                    onChange={(e) => updateTour({ maxNotice: parseInt(e.target.value) || 1 })}
-                  />
-                  <select
-                    className="px-3 py-3 border border-gray-300 rounded-lg"
-                    value={tour.maxNoticeUnit}
-                    onChange={(e) => updateTour({ maxNoticeUnit: e.target.value as any })}
-                  >
-                    <option value="days">Days</option>
-                    <option value="weeks">Weeks</option>
-                    <option value="months">Months</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Buffer Time Between Tours</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Duration *</label>
               <div className="flex space-x-2">
                 <input
                   type="number"
-                  min="0"
-                  className="w-24 px-3 py-3 border border-gray-300 rounded-lg"
-                  value={tour.bufferTime}
-                  onChange={(e) => updateTour({ bufferTime: parseInt(e.target.value) || 0 })}
+                  min="1"
+                  className="flex-1 px-3 2xl:px-4 py-2 2xl:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm 2xl:text-base"
+                  value={tour.duration}
+                  onChange={(e) => updateTour({ duration: parseInt(e.target.value) || 0 })}
                 />
                 <select
-                  className="px-3 py-3 border border-gray-300 rounded-lg"
-                  value={tour.bufferUnit}
-                  onChange={(e) => updateTour({ bufferUnit: e.target.value as 'minutes' | 'hours' })}
+                  className="px-2 2xl:px-4 py-2 2xl:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-xs 2xl:text-base min-w-0"
+                  value={tour.durationUnit}
+                  onChange={(e) => updateTour({ durationUnit: e.target.value as 'minutes' | 'hours' })}
                 >
-                  <option value="minutes">Minutes</option>
+                  <option value="minutes">Min</option>
+                  <option value="hour">Hour</option>
                   <option value="hours">Hours</option>
                 </select>
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Cancellation Policy</label>
-              <textarea
-                rows={3}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="e.g. To cancel or reschedule, please email us at least 24 hours in advance..."
-                value={tour.cancellationPolicy}
-                onChange={(e) => updateTour({ cancellationPolicy: e.target.value })}
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Rescheduling Policy</label>
-              <textarea
-                rows={3}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="e.g. Rescheduling must be requested at least 48 hours in advance..."
-                value={tour.reschedulingPolicy}
-                onChange={(e) => updateTour({ reschedulingPolicy: e.target.value })}
+              <label className="block text-sm font-medium text-gray-700 mb-2">Max Attendees *</label>
+              <input
+                type="number"
+                min="1"
+                className="w-full px-3 2xl:px-4 py-2 2xl:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm 2xl:text-base"
+                value={tour.maxAttendees}
+                onChange={(e) => updateTour({ maxAttendees: parseInt(e.target.value) || 1 })}
               />
             </div>
           </div>
-        );
+        </div>
+      );
 
-      case 5:
-        return (
-          <div className="space-y-6">
-            <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Required Information</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {Object.entries({
-                  firstName: 'First Name',
-                  lastName: 'Last Name',
-                  email: 'Email Address',
-                  phone: 'Phone Number',
-                  attendeeCount: 'Number of Attendees',
-                  majorsInterested: 'Majors of Interest'
-                }).map(([key, label]) => (
-                  <label key={key} className="flex items-center space-x-3">
-                    <input
-                      type="checkbox"
-                      checked={tour.intakeForm[key as keyof typeof tour.intakeForm] as boolean}
-                      onChange={(e) => updateTour({
-                        intakeForm: {
-                          ...tour.intakeForm,
-                          [key]: e.target.checked
-                        }
-                      })}
-                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                    />
-                    <span className="text-sm text-gray-700">{label}</span>
-                  </label>
-                ))}
-              </div>
+    case 2:
+      return (
+        <div className="space-y-4 2xl:space-y-6">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 2xl:p-4">
+            <div className="flex items-start space-x-2">
+              <AlertCircle className="h-4 w-4 2xl:h-5 2xl:w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+              <p className="text-xs 2xl:text-sm text-blue-800">
+                Tours can be in-person, virtual, or hybrid. At least one location option is required.
+              </p>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              <MapPin className="inline h-4 w-4 mr-1" />
+              Physical Location
+            </label>
+            <input
+              type="text"
+              className="w-full px-3 2xl:px-4 py-2 2xl:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm 2xl:text-base"
+              placeholder="e.g. Baskin Engineering Building, Room 101"
+              value={tour.location}
+              onChange={(e) => updateTour({ location: e.target.value })}
+            />
+          </div>
+
+          <div className="border-t pt-4 2xl:pt-6">
+            <div className="flex flex-col 2xl:flex-row 2xl:items-center 2xl:justify-between gap-3 2xl:gap-0 mb-4">
+              <label className="block text-sm font-medium text-gray-700">
+                <Video className="inline h-4 w-4 mr-1" />
+                Virtual Option
+              </label>
+              <label className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  checked={tour.autoGenerateZoom}
+                  onChange={(e) => updateTour({ 
+                    autoGenerateZoom: e.target.checked,
+                    zoomLink: e.target.checked ? '' : tour.zoomLink
+                  })}
+                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+                <span className="text-xs 2xl:text-sm text-gray-600">Auto-generate Zoom link</span>
+              </label>
             </div>
 
-            <div className="border-t pt-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-medium text-gray-900">Custom Questions</h3>
-                <button
-                  type="button"
-                  onClick={addCustomQuestion}
-                  className="text-blue-600 hover:bg-blue-50 px-3 py-2 rounded-lg flex items-center space-x-1"
-                >
-                  <Plus className="h-4 w-4" />
-                  <span>Add Question</span>
-                </button>
-              </div>
+            {!tour.autoGenerateZoom && (
+              <input
+                type="url"
+                className="w-full px-3 2xl:px-4 py-2 2xl:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm 2xl:text-base"
+                placeholder="https://zoom.us/j/..."
+                value={tour.zoomLink}
+                onChange={(e) => updateTour({ zoomLink: e.target.value })}
+              />
+            )}
 
-              <div className="space-y-4">
-                {tour.intakeForm.customQuestions.map((question, index) => (
-                  <div key={index} className="border border-gray-200 rounded-lg p-4">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex-1 mr-4">
-                        <input
-                          type="text"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                          placeholder="Enter your question..."
-                          value={question.question}
-                          onChange={(e) => {
-                            const newQuestions = [...tour.intakeForm.customQuestions];
-                            newQuestions[index] = { ...question, question: e.target.value };
-                            updateTour({
-                              intakeForm: { ...tour.intakeForm, customQuestions: newQuestions }
-                            });
-                          }}
-                        />
-                      </div>
+            {tour.autoGenerateZoom && (
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 2xl:p-4">
+                <p className="text-xs 2xl:text-sm text-gray-600">
+                  <Globe className="inline h-4 w-4 mr-1" />
+                  A Zoom link will be automatically generated when the tour is published
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+
+    case 3:
+      return (
+        <div className="space-y-6 2xl:space-y-8">
+          <div>
+            <h3 className="text-base 2xl:text-lg font-medium text-gray-900 mb-3 2xl:mb-4">Weekly Recurring Hours</h3>
+            <div className="space-y-3 2xl:space-y-4">
+              {DAYS_OF_WEEK.map((day) => (
+                <div key={day} className="border border-gray-200 rounded-lg p-3 2xl:p-4">
+                  <div className="flex items-center justify-between mb-2 2xl:mb-3">
+                    <h4 className="text-sm 2xl:text-base font-medium text-gray-900">{day}</h4>
+                    <button
+                      type="button"
+                      onClick={() => addWeeklyTimeSlot(day)}
+                      className="text-blue-600 hover:bg-blue-50 p-1 rounded-lg"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </button>
+                  </div>
+                  
+                  {(tour.weeklyHours[day] || []).length === 0 && (
+                    <p className="text-gray-500 text-xs 2xl:text-sm">No time slots set for this day</p>
+                  )}
+                  
+                  {(tour.weeklyHours[day] || []).map((slot, index) => (
+                    <div key={index} className="flex items-center space-x-2 mb-2 last:mb-0">
+                      <input
+                        type="time"
+                        className="flex-1 px-2 2xl:px-3 py-1 2xl:py-2 border border-gray-300 rounded-lg text-xs 2xl:text-sm"
+                        value={slot.start}
+                        onChange={(e) => {
+                          const newSlots = [...(tour.weeklyHours[day] || [])];
+                          newSlots[index] = { ...slot, start: e.target.value };
+                          updateTour({
+                            weeklyHours: { ...tour.weeklyHours, [day]: newSlots }
+                          });
+                        }}
+                      />
+                      <span className="text-gray-500 text-xs 2xl:text-sm">to</span>
+                      <input
+                        type="time"
+                        className="flex-1 px-2 2xl:px-3 py-1 2xl:py-2 border border-gray-300 rounded-lg text-xs 2xl:text-sm"
+                        value={slot.end}
+                        onChange={(e) => {
+                          const newSlots = [...(tour.weeklyHours[day] || [])];
+                          newSlots[index] = { ...slot, end: e.target.value };
+                          updateTour({
+                            weeklyHours: { ...tour.weeklyHours, [day]: newSlots }
+                          });
+                        }}
+                      />
                       <button
                         type="button"
-                        onClick={() => removeCustomQuestion(index)}
-                        className="text-red-600 hover:bg-red-50 p-1 rounded-lg"
+                        onClick={() => removeWeeklyTimeSlot(day, index)}
+                        className="text-red-600 hover:bg-red-50 p-1 rounded-lg flex-shrink-0"
                       >
                         <X className="h-4 w-4" />
                       </button>
                     </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <select
-                        className="px-3 py-2 border border-gray-300 rounded-lg"
-                        value={question.type}
+          <div className="border-t pt-4 2xl:pt-6">
+            <h3 className="text-base 2xl:text-lg font-medium text-gray-900 mb-3 2xl:mb-4">Tour Frequency</h3>
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 2xl:p-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Start new tour every:
+              </label>
+              <div className="flex space-x-2">
+                <input
+                  type="number"
+                  min="1"
+                  className="w-16 2xl:w-24 px-2 2xl:px-3 py-1 2xl:py-2 border border-gray-300 rounded-lg text-sm"
+                  value={tour.frequency}
+                  onChange={(e) => updateTour({ frequency: parseInt(e.target.value) || 1 })}
+                />
+                <select
+                  className="flex-1 px-2 2xl:px-3 py-1 2xl:py-2 border border-gray-300 rounded-lg text-xs 2xl:text-sm"
+                  value={tour.frequencyUnit}
+                  onChange={(e) => updateTour({ frequencyUnit: e.target.value as 'minutes' | 'hours' })}
+                >
+                  <option value="minutes">Minutes</option>
+                  <option value="hour">Hour</option>
+                  <option value="hours">Hours</option>
+                </select>
+              </div>
+              <p className="text-xs text-gray-500 mt-2">
+                Based on tour duration of {tour.duration} {tour.durationUnit}
+              </p>
+            </div>
+          </div>
+        </div>
+      );
+
+    case 4:
+      return (
+        <div className="space-y-4 2xl:space-y-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Registration Limit</label>
+            <input
+              type="number"
+              min="1"
+              className="w-full px-3 2xl:px-4 py-2 2xl:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm 2xl:text-base"
+              placeholder="Maximum people per session"
+              value={tour.registrationLimit}
+              onChange={(e) => updateTour({ registrationLimit: parseInt(e.target.value) || 1 })}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 2xl:grid-cols-2 gap-4 2xl:gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Minimum Notice</label>
+              <div className="flex space-x-2">
+                <input
+                  type="number"
+                  min="1"
+                  className="flex-1 px-2 2xl:px-3 py-2 2xl:py-3 border border-gray-300 rounded-lg text-sm 2xl:text-base"
+                  value={tour.minNotice}
+                  onChange={(e) => updateTour({ minNotice: parseInt(e.target.value) || 1 })}
+                />
+                <select
+                  className="px-2 2xl:px-3 py-2 2xl:py-3 border border-gray-300 rounded-lg text-xs 2xl:text-sm min-w-0"
+                  value={tour.minNoticeUnit}
+                  onChange={(e) => updateTour({ minNoticeUnit: e.target.value as any })}
+                >
+                  <option value="hours">Hours</option>
+                  <option value="days">Days</option>
+                  <option value="weeks">Weeks</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Maximum Notice</label>
+              <div className="flex space-x-2">
+                <input
+                  type="number"
+                  min="1"
+                  className="flex-1 px-2 2xl:px-3 py-2 2xl:py-3 border border-gray-300 rounded-lg text-sm 2xl:text-base"
+                  value={tour.maxNotice}
+                  onChange={(e) => updateTour({ maxNotice: parseInt(e.target.value) || 1 })}
+                />
+                <select
+                  className="px-2 2xl:px-3 py-2 2xl:py-3 border border-gray-300 rounded-lg text-xs 2xl:text-sm min-w-0"
+                  value={tour.maxNoticeUnit}
+                  onChange={(e) => updateTour({ maxNoticeUnit: e.target.value as any })}
+                >
+                  <option value="days">Days</option>
+                  <option value="weeks">Weeks</option>
+                  <option value="months">Months</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Buffer Time Between Tours</label>
+            <div className="flex space-x-2">
+              <input
+                type="number"
+                min="0"
+                className="w-16 2xl:w-24 px-2 2xl:px-3 py-2 2xl:py-3 border border-gray-300 rounded-lg text-sm 2xl:text-base"
+                value={tour.bufferTime}
+                onChange={(e) => updateTour({ bufferTime: parseInt(e.target.value) || 0 })}
+              />
+              <select
+                className="flex-1 px-2 2xl:px-3 py-2 2xl:py-3 border border-gray-300 rounded-lg text-xs 2xl:text-sm"
+                value={tour.bufferUnit}
+                onChange={(e) => updateTour({ bufferUnit: e.target.value as 'minutes' | 'hours' })}
+              >
+                <option value="minutes">Minutes</option>
+                <option value="hours">Hours</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Cancellation Policy</label>
+            <textarea
+              rows={3}
+              className="w-full px-3 2xl:px-4 py-2 2xl:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm 2xl:text-base resize-y"
+              placeholder="e.g. To cancel or reschedule, please email us at least 24 hours in advance..."
+              value={tour.cancellationPolicy}
+              onChange={(e) => updateTour({ cancellationPolicy: e.target.value })}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Rescheduling Policy</label>
+            <textarea
+              rows={3}
+              className="w-full px-3 2xl:px-4 py-2 2xl:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm 2xl:text-base resize-y"
+              placeholder="e.g. Rescheduling must be requested at least 48 hours in advance..."
+              value={tour.reschedulingPolicy}
+              onChange={(e) => updateTour({ reschedulingPolicy: e.target.value })}
+            />
+          </div>
+        </div>
+      );
+
+    case 5:
+      return (
+        <div className="space-y-4 2xl:space-y-6">
+          <div>
+            <h3 className="text-base 2xl:text-lg font-medium text-gray-900 mb-3 2xl:mb-4">Required Information</h3>
+            <div className="grid grid-cols-1 2xl:grid-cols-2 gap-3 2xl:gap-4">
+              {Object.entries({
+                firstName: 'First Name',
+                lastName: 'Last Name',
+                email: 'Email Address',
+                phone: 'Phone Number',
+                attendeeCount: 'Number of Attendees',
+                majorsInterested: 'Majors of Interest'
+              }).map(([key, label]) => (
+                <label key={key} className="flex items-center space-x-2 2xl:space-x-3 p-2 2xl:p-0">
+                  <input
+                    type="checkbox"
+                    checked={tour.intakeForm[key as keyof typeof tour.intakeForm] as boolean}
+                    onChange={(e) => updateTour({
+                      intakeForm: {
+                        ...tour.intakeForm,
+                        [key]: e.target.checked
+                      }
+                    })}
+                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 flex-shrink-0"
+                  />
+                  <span className="text-xs 2xl:text-sm text-gray-700">{label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div className="border-t pt-4 2xl:pt-6">
+            <div className="flex flex-col 2xl:flex-row 2xl:items-center 2xl:justify-between gap-3 2xl:gap-0 mb-3 2xl:mb-4">
+              <h3 className="text-base 2xl:text-lg font-medium text-gray-900">Custom Questions</h3>
+              <button
+                type="button"
+                onClick={addCustomQuestion}
+                className="text-blue-600 hover:bg-blue-50 px-3 py-2 rounded-lg flex items-center space-x-1 self-start"
+              >
+                <Plus className="h-4 w-4" />
+                <span className="text-sm">Add Question</span>
+              </button>
+            </div>
+
+            <div className="space-y-3 2xl:space-y-4">
+              {tour.intakeForm.customQuestions.map((question, index) => (
+                <div key={index} className="border border-gray-200 rounded-lg p-3 2xl:p-4">
+                  <div className="flex items-start justify-between mb-3 gap-2">
+                    <div className="flex-1 min-w-0">
+                      <input
+                        type="text"
+                        className="w-full px-2 2xl:px-3 py-1 2xl:py-2 border border-gray-300 rounded-lg text-sm 2xl:text-base"
+                        placeholder="Enter your question..."
+                        value={question.question}
                         onChange={(e) => {
                           const newQuestions = [...tour.intakeForm.customQuestions];
-                          newQuestions[index] = { ...question, type: e.target.value as any };
+                          newQuestions[index] = { ...question, question: e.target.value };
                           updateTour({
                             intakeForm: { ...tour.intakeForm, customQuestions: newQuestions }
                           });
                         }}
-                      >
-                        <option value="text">Short Text</option>
-                        <option value="textarea">Long Text</option>
-                        <option value="select">Dropdown</option>
-                        <option value="checkbox">Checkbox</option>
-                      </select>
-
-                      <label className="flex items-center space-x-2">
-                        <input
-                          type="checkbox"
-                          checked={question.required}
-                          onChange={(e) => {
-                            const newQuestions = [...tour.intakeForm.customQuestions];
-                            newQuestions[index] = { ...question, required: e.target.checked };
-                            updateTour({
-                              intakeForm: { ...tour.intakeForm, customQuestions: newQuestions }
-                            });
-                          }}
-                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                        />
-                        <span className="text-sm text-gray-600">Required</span>
-                      </label>
+                      />
                     </div>
+                    <button
+                      type="button"
+                      onClick={() => removeCustomQuestion(index)}
+                      className="text-red-600 hover:bg-red-50 p-1 rounded-lg flex-shrink-0"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
                   </div>
-                ))}
-              </div>
+
+                  <div className="grid grid-cols-1 2xl:grid-cols-2 gap-3 2xl:gap-4">
+                    <select
+                      className="px-2 2xl:px-3 py-1 2xl:py-2 border border-gray-300 rounded-lg text-xs 2xl:text-sm"
+                      value={question.type}
+                      onChange={(e) => {
+                        const newQuestions = [...tour.intakeForm.customQuestions];
+                        newQuestions[index] = { ...question, type: e.target.value as any };
+                        updateTour({
+                          intakeForm: { ...tour.intakeForm, customQuestions: newQuestions }
+                        });
+                      }}
+                    >
+                      <option value="text">Short Text</option>
+                      <option value="textarea">Long Text</option>
+                      <option value="select">Dropdown</option>
+                      <option value="checkbox">Checkbox</option>
+                    </select>
+
+                    <label className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        checked={question.required}
+                        onChange={(e) => {
+                          const newQuestions = [...tour.intakeForm.customQuestions];
+                          newQuestions[index] = { ...question, required: e.target.checked };
+                          updateTour({
+                            intakeForm: { ...tour.intakeForm, customQuestions: newQuestions }
+                          });
+                        }}
+                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      />
+                      <span className="text-xs 2xl:text-sm text-gray-600">Required</span>
+                    </label>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
-        );
+        </div>
+      );
 
-      case 6:
-        return (
-          <div className="space-y-6">
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-medium text-gray-900">Reminder Emails</h3>
-                <button
-                  type="button"
-                  onClick={addReminderEmail}
-                  className="text-blue-600 hover:bg-blue-50 px-3 py-2 rounded-lg flex items-center space-x-1"
-                >
-                  <Plus className="h-4 w-4" />
-                  <span>Add Reminder</span>
-                </button>
-              </div>
+    case 6:
+      return (
+        <div className="space-y-4 2xl:space-y-6">
+          <div>
+            <div className="flex flex-col 2xl:flex-row 2xl:items-center 2xl:justify-between gap-3 2xl:gap-0 mb-3 2xl:mb-4">
+              <h3 className="text-base 2xl:text-lg font-medium text-gray-900">Reminder Emails</h3>
+              <button
+                type="button"
+                onClick={addReminderEmail}
+                className="text-blue-600 hover:bg-blue-50 px-3 py-2 rounded-lg flex items-center space-x-1 self-start"
+              >
+                <Plus className="h-4 w-4" />
+                <span className="text-sm">Add Reminder</span>
+              </button>
+            </div>
 
-              <div className="space-y-3">
-                {tour.reminderEmails.map((reminder, index) => (
-                  <div key={index} className="flex items-center space-x-3 bg-gray-50 p-3 rounded-lg">
-                    <span className="text-sm text-gray-600">Send reminder</span>
+            <div className="space-y-2 2xl:space-y-3">
+              {tour.reminderEmails.map((reminder, index) => (
+                <div key={index} className="flex flex-col 2xl:flex-row 2xl:items-center gap-2 2xl:gap-3 bg-gray-50 p-3 rounded-lg">
+                  <span className="text-xs 2xl:text-sm text-gray-600">Send reminder</span>
+                  <div className="flex items-center space-x-2 flex-1">
                     <input
                       type="number"
                       min="1"
-                      className="w-20 px-2 py-1 border border-gray-300 rounded"
+                      className="w-16 px-2 py-1 border border-gray-300 rounded text-sm"
                       value={reminder.timing}
                       onChange={(e) => {
                         const newReminders = [...tour.reminderEmails];
@@ -616,7 +616,7 @@ function TourFormPage({ onBack, editingTour }: { onBack: () => void; editingTour
                       }}
                     />
                     <select
-                      className="px-2 py-1 border border-gray-300 rounded"
+                      className="flex-1 px-2 py-1 border border-gray-300 rounded text-xs 2xl:text-sm"
                       value={reminder.unit}
                       onChange={(e) => {
                         const newReminders = [...tour.reminderEmails];
@@ -628,109 +628,109 @@ function TourFormPage({ onBack, editingTour }: { onBack: () => void; editingTour
                       <option value="days">Days</option>
                       <option value="weeks">Weeks</option>
                     </select>
-                    <span className="text-sm text-gray-600">before tour</span>
-                    <button
-                      type="button"
-                      onClick={() => removeReminderEmail(index)}
-                      className="text-red-600 hover:bg-red-50 p-1 rounded"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
+                    <span className="text-xs 2xl:text-sm text-gray-600 whitespace-nowrap">before tour</span>
                   </div>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Session Instructions</label>
-              <textarea
-                rows={6}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Instructions that will be sent to attendees before the tour (parking info, what to bring, meeting location, etc.)"
-                value={tour.sessionInstructions}
-                onChange={(e) => updateTour({ sessionInstructions: e.target.value })}
-              />
+                  <button
+                    type="button"
+                    onClick={() => removeReminderEmail(index)}
+                    className="text-red-600 hover:bg-red-50 p-1 rounded self-start 2xl:self-center"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              ))}
             </div>
           </div>
-        );
 
-      case 7:
-        return (
-          <div className="space-y-6">
-            <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
-              <CheckCircle className="h-12 w-12 text-green-600 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Tour Setup Complete!</h3>
-              <p className="text-gray-600">Review your tour details below and choose how to proceed.</p>
-            </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Session Instructions</label>
+            <textarea
+              rows={4}
+              className="w-full px-3 2xl:px-4 py-2 2xl:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm 2xl:text-base resize-y"
+              placeholder="Instructions that will be sent to attendees before the tour (parking info, what to bring, meeting location, etc.)"
+              value={tour.sessionInstructions}
+              onChange={(e) => updateTour({ sessionInstructions: e.target.value })}
+            />
+          </div>
+        </div>
+      );
 
-            {/* Tour Summary */}
-            <div className="bg-white border border-gray-200 rounded-lg p-6">
-              <h4 className="font-medium text-gray-900 mb-4">Tour Summary</h4>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                <div>
-                  <span className="font-medium text-gray-700">Title:</span>
-                  <span className="ml-2 text-gray-900">{tour.title}</span>
-                </div>
-                
-                <div>
-                  <span className="font-medium text-gray-700">Duration:</span>
-                  <span className="ml-2 text-gray-900">{tour.duration} {tour.durationUnit}</span>
-                </div>
-                
-                <div>
-                  <span className="font-medium text-gray-700">Max Attendees:</span>
-                  <span className="ml-2 text-gray-900">{tour.maxAttendees}</span>
-                </div>
-                
-                <div>
-                  <span className="font-medium text-gray-700">Location:</span>
-                  <span className="ml-2 text-gray-900">
-                    {tour.location || (tour.autoGenerateZoom ? 'Virtual (Zoom)' : tour.zoomLink ? 'Virtual' : 'Not set')}
-                  </span>
-                </div>
-                
-                <div>
-                  <span className="font-medium text-gray-700">Frequency:</span>
-                  <span className="ml-2 text-gray-900">Every {tour.frequency} {tour.frequencyUnit}</span>
-                </div>
-                
-                <div>
-                  <span className="font-medium text-gray-700">Notice Required:</span>
-                  <span className="ml-2 text-gray-900">{tour.minNotice} {tour.minNoticeUnit} - {tour.maxNotice} {tour.maxNoticeUnit}</span>
-                </div>
+    case 7:
+      return (
+        <div className="space-y-4 2xl:space-y-6">
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4 2xl:p-6 text-center">
+            <CheckCircle className="h-10 w-10 2xl:h-12 2xl:w-12 text-green-600 mx-auto mb-3 2xl:mb-4" />
+            <h3 className="text-base 2xl:text-lg font-medium text-gray-900 mb-2">Tour Setup Complete!</h3>
+            <p className="text-sm 2xl:text-base text-gray-600">Review your tour details below and choose how to proceed.</p>
+          </div>
+
+          <div className="bg-white border border-gray-200 rounded-lg p-4 2xl:p-6">
+            <h4 className="text-sm 2xl:text-base font-medium text-gray-900 mb-3 2xl:mb-4">Tour Summary</h4>
+            
+            <div className="grid grid-cols-1 gap-3 2xl:grid-cols-2 2xl:gap-4 text-xs 2xl:text-sm">
+              <div>
+                <span className="font-medium text-gray-700">Title:</span>
+                <span className="ml-2 text-gray-900 break-words">{tour.title}</span>
               </div>
               
-              <div className="mt-4 pt-4 border-t">
-                <span className="font-medium text-gray-700">Weekly Schedule:</span>
-                <div className="mt-2 space-y-1">
-                  {DAYS_OF_WEEK.map(day => {
-                    const slots = tour.weeklyHours[day] || [];
-                    return (
-                      <div key={day} className="text-sm">
-                        <span className="inline-block w-20 font-medium">{day}:</span>
-                        {slots.length === 0 ? (
-                          <span className="text-gray-500">Unavailable</span>
-                        ) : (
-                          slots.map((slot, i) => (
-                            <span key={i} className="text-gray-900 mr-3">
-                              {slot.start} - {slot.end}
-                            </span>
-                          ))
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
+              <div>
+                <span className="font-medium text-gray-700">Duration:</span>
+                <span className="ml-2 text-gray-900">{tour.duration} {tour.durationUnit}</span>
+              </div>
+              
+              <div>
+                <span className="font-medium text-gray-700">Max Attendees:</span>
+                <span className="ml-2 text-gray-900">{tour.maxAttendees}</span>
+              </div>
+              
+              <div>
+                <span className="font-medium text-gray-700">Location:</span>
+                <span className="ml-2 text-gray-900 break-words">
+                  {tour.location || (tour.autoGenerateZoom ? 'Virtual (Zoom)' : tour.zoomLink ? 'Virtual' : 'Not set')}
+                </span>
+              </div>
+              
+              <div>
+                <span className="font-medium text-gray-700">Frequency:</span>
+                <span className="ml-2 text-gray-900">Every {tour.frequency} {tour.frequencyUnit}</span>
+              </div>
+              
+              <div>
+                <span className="font-medium text-gray-700">Notice Required:</span>
+                <span className="ml-2 text-gray-900">{tour.minNotice} {tour.minNoticeUnit} - {tour.maxNotice} {tour.maxNoticeUnit}</span>
+              </div>
+            </div>
+            
+            <div className="mt-3 2xl:mt-4 pt-3 2xl:pt-4 border-t">
+              <span className="font-medium text-gray-700 text-xs 2xl:text-sm">Weekly Schedule:</span>
+              <div className="mt-2 space-y-1">
+                {DAYS_OF_WEEK.map(day => {
+                  const slots = tour.weeklyHours[day] || [];
+                  return (
+                    <div key={day} className="text-xs 2xl:text-sm">
+                      <span className="inline-block w-16 2xl:w-20 font-medium">{day}:</span>
+                      {slots.length === 0 ? (
+                        <span className="text-gray-500">Unavailable</span>
+                      ) : (
+                        slots.map((slot, i) => (
+                          <span key={i} className="text-gray-900 mr-2 2xl:mr-3 inline-block">
+                            {slot.start} - {slot.end}
+                          </span>
+                        ))
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>
-        );
+        </div>
+      );
 
-      default:
-        return <div>Step not found</div>;
-    }
-  };
+    default:
+      return <div>Step not found</div>;
+  }
+};
 
   const handleSaveTour = async (tourToSave: Tour) => {
     try {
@@ -759,7 +759,7 @@ function TourFormPage({ onBack, editingTour }: { onBack: () => void; editingTour
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white border-b border-gray-200">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 xl:px-8 py-6">
           <div className="flex items-center space-x-4">
             <button onClick={onBack} className="text-gray-600 hover:text-gray-900">
               <ArrowLeft className="h-5 w-5" />
@@ -774,7 +774,7 @@ function TourFormPage({ onBack, editingTour }: { onBack: () => void; editingTour
 
       {/* Progress Steps */}
       <div className="bg-white border-b border-gray-200">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 xl:px-8 py-4">
           <div className="flex items-center justify-between">
             {steps.map((step, index) => {
               const Icon = step.icon;
@@ -1103,13 +1103,13 @@ function ToursDashboard({ onCreateTour, onEditTour, tours, setTours }: {
                   </div>
                   
                   <div className="flex items-center space-x-2 ml-4">
-                    <button
+                    {/* <button
                       onClick={() => alert(`Viewing tour: ${tour.title}`)}
                       className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg"
                       title="View Tour"
                     >
                       <Eye className="h-4 w-4" />
-                    </button>
+                    </button> */}
                     
                     <button
                       onClick={() => onEditTour(tour)}
