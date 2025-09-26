@@ -141,16 +141,19 @@ function App() {
           <p className="text-xl md:text-2xl mb-8 opacity-90">
             Book a personalized tour of the Baskin Engineering Building led by our BESA guides
           </p>
-          <a href="#tour-options">
-            <button className="bg-orange-400 text-white px-8 py-3 rounded-lg font-semibold text-lg hover:bg-orange-500 transition-colors transform hover:scale-105">
-              Book Your Tour Now
-            </button>
-          </a>
-          <a href="/parking-instructions" className="ml-4">
-            <button className="bg-orange-400 text-white px-8 py-3 rounded-lg font-semibold text-lg hover:bg-orange-500 transition-colors transform hover:scale-105">
-              Parking Instructions
-            </button>
-          </a>
+          <div className="flex flex-col sm:flex-row gap-3 sm:px-6 sm:items-center justify-center max-w-lg mx-auto px-4">
+            <a href="#tour-options" className="flex-1 sm:flex-none">
+              <button className="w-full bg-orange-400 text-white px-4 sm:px-6 md:px-8 py-3 rounded-lg font-semibold text-sm sm:text-base md:text-lg hover:bg-orange-500 transition-colors transform hover:scale-105">
+                Book Your Tour Now
+              </button>
+            </a>
+            
+            <a href="/parking-instructions" className="flex-1 sm:flex-none">
+              <button className="w-full bg-orange-400 text-white px-4 sm:px-6 md:px-8 py-3 rounded-lg font-semibold text-sm sm:text-base md:text-lg hover:bg-orange-500 transition-colors transform hover:scale-105">
+                Parking Instructions
+              </button>
+            </a>
+          </div>
         </div>
       </div>
 
