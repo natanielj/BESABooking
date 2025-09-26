@@ -25,13 +25,11 @@ const FeedbackButton = () => {
   return (
     <button
       onClick={handleFeedbackClick}
-      className="fixed bottom-6 right-6 bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-full shadow-lg transition-all duration-300 transform hover:scale-110 z-50 group"
+      className="fixed bottom-6 right-6 bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-full shadow-lg transition-all duration-300 transform hover:scale-110 z-50 flex items-center space-x-2"
       title="Share Feedback"
     >
-      <Edit className="h-6 w-6" />
-      <span className="absolute right-16 top-1/2 transform -translate-y-1/2 bg-gray-800 text-white px-3 py-1 rounded-lg text-sm whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-        Feedback
-      </span>
+      <Edit className="h-5 w-5" />
+      <span className="text-sm font-medium">Feedback</span>
     </button>
   );
 };
@@ -184,7 +182,7 @@ function App() {
                   <div className="flex items-center space-x-4 mb-4 text-gray-600">
                     <div className="flex items-center space-x-1">
                       <Clock className="h-4 w-4" />
-                      <span className="text-sm">{tour.duration}</span>
+                      <span className="text-sm">{tour.duration} {tour.durationUnit}</span>
                     </div>
                     <div className="flex items-center space-x-1">
                       <Users className="h-4 w-4" />
