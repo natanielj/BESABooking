@@ -18,7 +18,9 @@ declare global {
         title: string;
         description: string;
         duration: number;
-        durationUnit: 'minutes' | 'hours';
+        startDate?: string;
+        endDate?: string;
+        durationUnit: 'minutes' | 'hours' | 'hour';
         maxAttendees: number;
         location: string;
         zoomLink: string;
@@ -31,6 +33,11 @@ declare global {
             date: string;
             slots: { start: string; end: string }[];
             unavailable: boolean;
+        }>;
+        dateSpecificDays: Array<{
+            startDate: string;   
+            endDate: string;     
+            notes?: string;  
         }>;
         frequency: number;
         frequencyUnit: 'minutes' | 'hours';
