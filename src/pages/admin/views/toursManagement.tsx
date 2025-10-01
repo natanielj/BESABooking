@@ -25,6 +25,7 @@ function TourFormPage({ onBack, editingTour }: { onBack: () => void; editingTour
     autoGenerateZoom: false,
     weeklyHours: {},
     dateSpecificHours: [],
+    dateSpecificDays: [],
     frequency: 60,
     frequencyUnit: 'minutes',
     registrationLimit: 10,
@@ -269,99 +270,125 @@ function TourFormPage({ onBack, editingTour }: { onBack: () => void; editingTour
 
     case 3:
       return (
-        <div className="space-y-6 2xl:space-y-8">
-          <div>
-            <h3 className="text-base 2xl:text-lg font-medium text-gray-900 mb-3 2xl:mb-4">Weekly Recurring Hours</h3>
-            <div className="space-y-3 2xl:space-y-4">
-              {DAYS_OF_WEEK.map((day) => (
-                <div key={day} className="border border-gray-200 rounded-lg p-3 2xl:p-4">
-                  <div className="flex items-center justify-between mb-2 2xl:mb-3">
-                    <h4 className="text-sm 2xl:text-base font-medium text-gray-900">{day}</h4>
+      <div className="space-y-6 2xl:space-y-8">
+
+        {/* Weekly Recurring Hours */}
+        <div>
+          <h3 className="text-base 2xl:text-lg font-medium text-gray-900 mb-3 2xl:mb-4">Weekly Recurring Hours</h3>
+          <div className="space-y-3 2xl:space-y-4">
+            {DAYS_OF_WEEK.map((day) => (
+              <div key={day} className="border border-gray-200 rounded-lg p-3 2xl:p-4">
+                <div className="flex items-center justify-between mb-2 2xl:mb-3">
+                  <h4 className="text-sm 2xl:text-base font-medium text-gray-900">{day}</h4>
+                  <button
+                    type="button"
+                    onClick={() => addWeeklyTimeSlot(day)}
+                    className="text-blue-600 hover:bg-blue-50 p-1 rounded-lg"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </button>
+                </div>
+
+                {(tour.weeklyHours[day] || []).length === 0 && (
+                  <p className="text-gray-500 text-xs 2xl:text-sm">No time slots set for this day</p>
+                )}
+
+                {(tour.weeklyHours[day] || []).map((slot, index) => (
+                  <div key={index} className="flex items-center space-x-2 mb-2 last:mb-0">
+                    <input
+                      type="time"
+                      className="flex-1 px-2 2xl:px-3 py-1 2xl:py-2 border border-gray-300 rounded-lg text-xs 2xl:text-sm"
+                      value={slot.start}
+                      onChange={(e) => {
+                        const newSlots = [...(tour.weeklyHours[day] || [])];
+                        newSlots[index] = { ...slot, start: e.target.value };
+                        updateTour({ weeklyHours: { ...tour.weeklyHours, [day]: newSlots } });
+                      }}
+                    />
+                    <span className="text-gray-500 text-xs 2xl:text-sm">to</span>
+                    <input
+                      type="time"
+                      className="flex-1 px-2 2xl:px-3 py-1 2xl:py-2 border border-gray-300 rounded-lg text-xs 2xl:text-sm"
+                      value={slot.end}
+                      onChange={(e) => {
+                        const newSlots = [...(tour.weeklyHours[day] || [])];
+                        newSlots[index] = { ...slot, end: e.target.value };
+                        updateTour({ weeklyHours: { ...tour.weeklyHours, [day]: newSlots } });
+                      }}
+                    />
                     <button
                       type="button"
-                      onClick={() => addWeeklyTimeSlot(day)}
-                      className="text-blue-600 hover:bg-blue-50 p-1 rounded-lg"
+                      onClick={() => removeWeeklyTimeSlot(day, index)}
+                      className="text-red-600 hover:bg-red-50 p-1 rounded-lg flex-shrink-0"
                     >
-                      <Plus className="h-4 w-4" />
+                      <X className="h-4 w-4" />
                     </button>
                   </div>
-                  
-                  {(tour.weeklyHours[day] || []).length === 0 && (
-                    <p className="text-gray-500 text-xs 2xl:text-sm">No time slots set for this day</p>
-                  )}
-                  
-                  {(tour.weeklyHours[day] || []).map((slot, index) => (
-                    <div key={index} className="flex items-center space-x-2 mb-2 last:mb-0">
-                      <input
-                        type="time"
-                        className="flex-1 px-2 2xl:px-3 py-1 2xl:py-2 border border-gray-300 rounded-lg text-xs 2xl:text-sm"
-                        value={slot.start}
-                        onChange={(e) => {
-                          const newSlots = [...(tour.weeklyHours[day] || [])];
-                          newSlots[index] = { ...slot, start: e.target.value };
-                          updateTour({
-                            weeklyHours: { ...tour.weeklyHours, [day]: newSlots }
-                          });
-                        }}
-                      />
-                      <span className="text-gray-500 text-xs 2xl:text-sm">to</span>
-                      <input
-                        type="time"
-                        className="flex-1 px-2 2xl:px-3 py-1 2xl:py-2 border border-gray-300 rounded-lg text-xs 2xl:text-sm"
-                        value={slot.end}
-                        onChange={(e) => {
-                          const newSlots = [...(tour.weeklyHours[day] || [])];
-                          newSlots[index] = { ...slot, end: e.target.value };
-                          updateTour({
-                            weeklyHours: { ...tour.weeklyHours, [day]: newSlots }
-                          });
-                        }}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => removeWeeklyTimeSlot(day, index)}
-                        className="text-red-600 hover:bg-red-50 p-1 rounded-lg flex-shrink-0"
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="border-t pt-4 2xl:pt-6">
-            <h3 className="text-base 2xl:text-lg font-medium text-gray-900 mb-3 2xl:mb-4">Tour Frequency</h3>
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 2xl:p-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Start new tour every:
-              </label>
-              <div className="flex space-x-2">
-                <input
-                  type="number"
-                  min="1"
-                  className="w-16 2xl:w-24 px-2 2xl:px-3 py-1 2xl:py-2 border border-gray-300 rounded-lg text-sm"
-                  value={tour.frequency}
-                  onChange={(e) => updateTour({ frequency: parseInt(e.target.value) || 1 })}
-                />
-                <select
-                  className="flex-1 px-2 2xl:px-3 py-1 2xl:py-2 border border-gray-300 rounded-lg text-xs 2xl:text-sm"
-                  value={tour.frequencyUnit}
-                  onChange={(e) => updateTour({ frequencyUnit: e.target.value as 'minutes' | 'hours' })}
-                >
-                  <option value="minutes">Minutes</option>
-                  <option value="hour">Hour</option>
-                  <option value="hours">Hours</option>
-                </select>
+                ))}
               </div>
-              <p className="text-xs text-gray-500 mt-2">
-                Based on tour duration of {tour.duration} {tour.durationUnit}
-              </p>
-            </div>
+            ))}
           </div>
         </div>
-      );
+
+        {/* Tour Frequency */}
+        <div className="border-t pt-4 2xl:pt-6">
+          <h3 className="text-base 2xl:text-lg font-medium text-gray-900 mb-3 2xl:mb-4">Tour Frequency</h3>
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 2xl:p-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Start new tour every:
+            </label>
+            <div className="flex space-x-2">
+              <input
+                type="number"
+                min="1"
+                className="w-16 2xl:w-24 px-2 2xl:px-3 py-1 2xl:py-2 border border-gray-300 rounded-lg text-sm"
+                value={tour.frequency}
+                onChange={(e) => updateTour({ frequency: parseInt(e.target.value) || 1 })}
+              />
+              <select
+                className="flex-1 px-2 2xl:px-3 py-1 2xl:py-2 border border-gray-300 rounded-lg text-xs 2xl:text-sm"
+                value={tour.frequencyUnit}
+                onChange={(e) => updateTour({ frequencyUnit: e.target.value as 'minutes' | 'hours' })}
+              >
+                <option value="minutes">Minutes</option>
+                <option value="hour">Hour</option>
+                <option value="hours">Hours</option>
+              </select>
+            </div>
+            <p className="text-xs text-gray-500 mt-2">
+              Based on tour duration of {tour.duration} {tour.durationUnit}
+            </p>
+          </div>
+        </div>
+
+        {/* Date-Specific Days */}
+        <div className="border-t pt-4 2xl:pt-6">
+          <h3 className="text-base 2xl:text-lg font-medium text-gray-900 mb-3 2xl:mb-4">Date-Specific Availability</h3>
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 2xl:p-4 space-y-3">
+            <label className="block text-sm font-medium text-gray-700">Start Date</label>
+            <input
+              type="date"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+              value={tour.startDate || ''}
+              onChange={(e) => updateTour({ startDate: e.target.value })}
+            />
+
+            <label className="block text-sm font-medium text-gray-700">End Date</label>
+            <input
+              type="date"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+              value={tour.endDate || ''}
+              onChange={(e) => updateTour({ endDate: e.target.value })}
+            />
+            {tour.startDate && tour.endDate && new Date(tour.startDate) > new Date(tour.endDate) && (
+              <p className="text-red-600 text-xs">End date must be after start date</p>
+            )}
+          </div>
+        </div>
+
+      </div>
+    );
+
 
     case 4:
       return (
@@ -951,6 +978,18 @@ function ToursDashboard({ onCreateTour, onEditTour, tours, setTours }: {
   //   }
   // };
 
+  const getDateRange = (tour: Tour) => {
+    if (tour.startDate && tour.endDate) {
+      const start = new Date(tour.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      const end = new Date(tour.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      return `${start} - ${end}`;
+    } else if (tour.startDate) {
+      const start = new Date(tour.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      return `From ${start}`;
+    }
+    return "No dates set";
+  };
+
   const handleDeleteTour = async (tourId: string) => {
     if (confirm("Are you sure you want to delete this tour? This action cannot be undone.")) {
       try {
@@ -1015,7 +1054,7 @@ function ToursDashboard({ onCreateTour, onEditTour, tours, setTours }: {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Tours Management</h1>
-              <p className="text-gray-600 mt-1">Manage your campus tours and availability</p>
+              <p className="text-gray-600 mt-1">Manage your tours and availability</p>
             </div>
             <button
               onClick={onCreateTour}
@@ -1094,7 +1133,7 @@ function ToursDashboard({ onCreateTour, onEditTour, tours, setTours }: {
                       
                       <div className="flex items-center space-x-2">
                         <Calendar className="h-4 w-4 text-gray-400" />
-                        <span className="text-gray-600 truncate">{getAvailableDays(tour)}</span>
+                        <span className="text-gray-600 truncate">{getDateRange(tour)}</span>
                       </div>
                     </div>
                     
