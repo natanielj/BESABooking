@@ -42,61 +42,61 @@ function App() {
 
   {/* Fetch Tours */}
   useEffect(() => {
-    const fetchTours = async () => {
-      try {
-        const querySnapshot = await getDocs(collection(db, 'Tours'));
-        const tourData: Tour[] = querySnapshot.docs.map(doc => {
-          const data = doc.data();
-
-          return {
-            tourId: doc.id,
-            title: data.title ?? '',
-            description: data.description ?? '',
-            duration: data.duration ?? 0,
-            durationUnit: data.durationUnit ?? 'minutes',
-            maxAttendees: data.maxAttendees ?? 1,
-            location: data.location ?? '',
-            zoomLink: data.zoomLink ?? '',
-            autoGenerateZoom: data.autoGenerateZoom ?? false,
-            weeklyHours: data.weeklyHours ?? {},
-            dateSpecificHours: data.dateSpecificHours ?? [],
-            frequency: data.frequency ?? 1,
-            frequencyUnit: data.frequencyUnit ?? 'hours',
-            registrationLimit: data.registrationLimit ?? 1,
-            minNotice: data.minNotice ?? 0,
-            minNoticeUnit: data.minNoticeUnit ?? 'hours',
-            maxNotice: data.maxNotice ?? 1,
-            maxNoticeUnit: data.maxNoticeUnit ?? 'days',
-            bufferTime: data.bufferTime ?? 0,
-            bufferUnit: data.bufferUnit ?? 'minutes',
-            cancellationPolicy: data.cancellationPolicy ?? '',
-            reschedulingPolicy: data.reschedulingPolicy ?? '',
-            intakeForm: data.intakeForm ?? {
-              firstName: true,
-              lastName: true,
-              email: true,
-              phone: false,
-              attendeeCount: true,
-              majorsInterested: false,
-              customQuestions: [],
-            },
-            reminderEmails: data.reminderEmails ?? [],
-            sessionInstructions: data.sessionInstructions ?? '',
-            published: data.published ?? false,
-            createdAt: data.createdAt ?? '',
-            upcomingBookings: data.upcomingBookings ?? 0,
-            totalBookings: data.totalBookings ?? 0,
-          };
-        });
-
-        setTours(tourData);
-      } catch (error) {
-        console.error('Error fetching tours:', error);
-      }
-    };
-
-    fetchTours();
-  }, []);
+  const fetchTours = async () => {
+    try {
+      const querySnapshot = await getDocs(collection(db, "Tours"));
+      const toursData: Tour[] = querySnapshot.docs.map((d) => {
+        const data: any = d.data();
+        return {
+          tourId: d.id,
+          title: data.title ?? "",
+          description: data.description ?? "",
+          duration: data.duration ?? 0,
+          durationUnit: data.durationUnit ?? "minutes",
+          maxAttendees: data.maxAttendees ?? 1,
+          startDate: data.startDate, 
+          endDate: data.endDate, 
+          location: data.location ?? "",
+          zoomLink: data.zoomLink ?? "",
+          autoGenerateZoom: data.autoGenerateZoom ?? false,
+          weeklyHours: data.weeklyHours ?? {},
+          dateSpecificBlockDays: data.dateSpecificBlockDays ?? [],
+          dateSpecificDays: data.dateSpecificDays ?? [], 
+          frequency: data.frequency ?? 1,
+          frequencyUnit: data.frequencyUnit ?? "hours",
+          registrationLimit: data.registrationLimit ?? 1,
+          minNotice: data.minNotice ?? 0,
+          minNoticeUnit: data.minNoticeUnit ?? "hours",
+          maxNotice: data.maxNotice ?? 1,
+          maxNoticeUnit: data.maxNoticeUnit ?? "days",
+          bufferTime: data.bufferTime ?? 0,
+          bufferUnit: data.bufferUnit ?? "minutes",
+          cancellationPolicy: data.cancellationPolicy ?? "",
+          reschedulingPolicy: data.reschedulingPolicy ?? "",
+          intakeForm: data.intakeForm ?? {
+            firstName: true,
+            lastName: true,
+            email: true,
+            phone: false,
+            attendeeCount: true,
+            majorsInterested: false,
+            customQuestions: [],
+          },
+          reminderEmails: data.reminderEmails ?? [],
+          sessionInstructions: data.sessionInstructions ?? "",
+          published: data.published ?? false,
+          createdAt: data.createdAt ?? "",
+          upcomingBookings: data.upcomingBookings ?? 0,
+          totalBookings: data.totalBookings ?? 0,
+        } as Tour;
+      });
+      setTours(toursData);
+    } catch (error) {
+      console.error("Error fetching tours:", error);
+    }
+  };
+  fetchTours();
+}, []);
 
   {/* Handle logo triple-click */}
   const handleLogoClick = (e: React.MouseEvent) => {
