@@ -24,7 +24,7 @@ function TourFormPage({ onBack, editingTour }: { onBack: () => void; editingTour
     zoomLink: '',
     autoGenerateZoom: false,
     weeklyHours: {},
-    dateSpecificHours: [],
+    dateSpecificBlockDays: [],
     dateSpecificDays: [],
     frequency: 60,
     frequencyUnit: 'minutes',
@@ -269,125 +269,281 @@ function TourFormPage({ onBack, editingTour }: { onBack: () => void; editingTour
       );
 
     case 3:
-      return (
-      <div className="space-y-6 2xl:space-y-8">
+  return (
+  <div className="space-y-6 2xl:space-y-8">
 
-        {/* Weekly Recurring Hours */}
-        <div>
-          <h3 className="text-base 2xl:text-lg font-medium text-gray-900 mb-3 2xl:mb-4">Weekly Recurring Hours</h3>
-          <div className="space-y-3 2xl:space-y-4">
-            {DAYS_OF_WEEK.map((day) => (
-              <div key={day} className="border border-gray-200 rounded-lg p-3 2xl:p-4">
-                <div className="flex items-center justify-between mb-2 2xl:mb-3">
-                  <h4 className="text-sm 2xl:text-base font-medium text-gray-900">{day}</h4>
-                  <button
-                    type="button"
-                    onClick={() => addWeeklyTimeSlot(day)}
-                    className="text-blue-600 hover:bg-blue-50 p-1 rounded-lg"
-                  >
-                    <Plus className="h-4 w-4" />
-                  </button>
-                </div>
+    {/* Weekly Recurring Hours */}
+    <div>
+      <h3 className="text-base 2xl:text-lg font-medium text-gray-900 mb-3 2xl:mb-4">Weekly Recurring Hours</h3>
+      <div className="space-y-3 2xl:space-y-4">
+        {DAYS_OF_WEEK.map((day) => (
+          <div key={day} className="border border-gray-200 rounded-lg p-3 2xl:p-4">
+            <div className="flex items-center justify-between mb-2 2xl:mb-3">
+              <h4 className="text-sm 2xl:text-base font-medium text-gray-900">{day}</h4>
+              <button
+                type="button"
+                onClick={() => addWeeklyTimeSlot(day)}
+                className="text-blue-600 hover:bg-blue-50 p-1 rounded-lg"
+              >
+                <Plus className="h-4 w-4" />
+              </button>
+            </div>
 
-                {(tour.weeklyHours[day] || []).length === 0 && (
-                  <p className="text-gray-500 text-xs 2xl:text-sm">No time slots set for this day</p>
-                )}
+            {(tour.weeklyHours[day] || []).length === 0 && (
+              <p className="text-gray-500 text-xs 2xl:text-sm">No time slots set for this day</p>
+            )}
 
-                {(tour.weeklyHours[day] || []).map((slot, index) => (
-                  <div key={index} className="flex items-center space-x-2 mb-2 last:mb-0">
-                    <input
-                      type="time"
-                      className="flex-1 px-2 2xl:px-3 py-1 2xl:py-2 border border-gray-300 rounded-lg text-xs 2xl:text-sm"
-                      value={slot.start}
-                      onChange={(e) => {
-                        const newSlots = [...(tour.weeklyHours[day] || [])];
-                        newSlots[index] = { ...slot, start: e.target.value };
-                        updateTour({ weeklyHours: { ...tour.weeklyHours, [day]: newSlots } });
-                      }}
-                    />
-                    <span className="text-gray-500 text-xs 2xl:text-sm">to</span>
-                    <input
-                      type="time"
-                      className="flex-1 px-2 2xl:px-3 py-1 2xl:py-2 border border-gray-300 rounded-lg text-xs 2xl:text-sm"
-                      value={slot.end}
-                      onChange={(e) => {
-                        const newSlots = [...(tour.weeklyHours[day] || [])];
-                        newSlots[index] = { ...slot, end: e.target.value };
-                        updateTour({ weeklyHours: { ...tour.weeklyHours, [day]: newSlots } });
-                      }}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removeWeeklyTimeSlot(day, index)}
-                      className="text-red-600 hover:bg-red-50 p-1 rounded-lg flex-shrink-0"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                  </div>
-                ))}
+            {(tour.weeklyHours[day] || []).map((slot, index) => (
+              <div key={index} className="flex items-center space-x-2 mb-2 last:mb-0">
+                <input
+                  type="time"
+                  className="flex-1 px-2 2xl:px-3 py-1 2xl:py-2 border border-gray-300 rounded-lg text-xs 2xl:text-sm"
+                  value={slot.start}
+                  onChange={(e) => {
+                    const newSlots = [...(tour.weeklyHours[day] || [])];
+                    newSlots[index] = { ...slot, start: e.target.value };
+                    updateTour({ weeklyHours: { ...tour.weeklyHours, [day]: newSlots } });
+                  }}
+                />
+                <span className="text-gray-500 text-xs 2xl:text-sm">to</span>
+                <input
+                  type="time"
+                  className="flex-1 px-2 2xl:px-3 py-1 2xl:py-2 border border-gray-300 rounded-lg text-xs 2xl:text-sm"
+                  value={slot.end}
+                  onChange={(e) => {
+                    const newSlots = [...(tour.weeklyHours[day] || [])];
+                    newSlots[index] = { ...slot, end: e.target.value };
+                    updateTour({ weeklyHours: { ...tour.weeklyHours, [day]: newSlots } });
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => removeWeeklyTimeSlot(day, index)}
+                  className="text-red-600 hover:bg-red-50 p-1 rounded-lg flex-shrink-0"
+                >
+                  <X className="h-4 w-4" />
+                </button>
               </div>
             ))}
           </div>
-        </div>
-
-        {/* Tour Frequency */}
-        <div className="border-t pt-4 2xl:pt-6">
-          <h3 className="text-base 2xl:text-lg font-medium text-gray-900 mb-3 2xl:mb-4">Tour Frequency</h3>
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 2xl:p-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Start new tour every:
-            </label>
-            <div className="flex space-x-2">
-              <input
-                type="number"
-                min="1"
-                className="w-16 2xl:w-24 px-2 2xl:px-3 py-1 2xl:py-2 border border-gray-300 rounded-lg text-sm"
-                value={tour.frequency}
-                onChange={(e) => updateTour({ frequency: parseInt(e.target.value) || 1 })}
-              />
-              <select
-                className="flex-1 px-2 2xl:px-3 py-1 2xl:py-2 border border-gray-300 rounded-lg text-xs 2xl:text-sm"
-                value={tour.frequencyUnit}
-                onChange={(e) => updateTour({ frequencyUnit: e.target.value as 'minutes' | 'hours' })}
-              >
-                <option value="minutes">Minutes</option>
-                <option value="hour">Hour</option>
-                <option value="hours">Hours</option>
-              </select>
-            </div>
-            <p className="text-xs text-gray-500 mt-2">
-              Based on tour duration of {tour.duration} {tour.durationUnit}
-            </p>
-          </div>
-        </div>
-
-        {/* Date-Specific Days */}
-        <div className="border-t pt-4 2xl:pt-6">
-          <h3 className="text-base 2xl:text-lg font-medium text-gray-900 mb-3 2xl:mb-4">Date-Specific Availability</h3>
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 2xl:p-4 space-y-3">
-            <label className="block text-sm font-medium text-gray-700">Start Date</label>
-            <input
-              type="date"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-              value={tour.startDate || ''}
-              onChange={(e) => updateTour({ startDate: e.target.value })}
-            />
-
-            <label className="block text-sm font-medium text-gray-700">End Date</label>
-            <input
-              type="date"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-              value={tour.endDate || ''}
-              onChange={(e) => updateTour({ endDate: e.target.value })}
-            />
-            {tour.startDate && tour.endDate && new Date(tour.startDate) > new Date(tour.endDate) && (
-              <p className="text-red-600 text-xs">End date must be after start date</p>
-            )}
-          </div>
-        </div>
-
+        ))}
       </div>
-    );
+    </div>
+
+    {/* Tour Frequency */}
+    <div className="border-t pt-4 2xl:pt-6">
+      <h3 className="text-base 2xl:text-lg font-medium text-gray-900 mb-3 2xl:mb-4">Tour Frequency</h3>
+      <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 2xl:p-4">
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Start new tour every:
+        </label>
+        <div className="flex space-x-2">
+          <input
+            type="number"
+            min="1"
+            className="w-16 2xl:w-24 px-2 2xl:px-3 py-1 2xl:py-2 border border-gray-300 rounded-lg text-sm"
+            value={tour.frequency}
+            onChange={(e) => updateTour({ frequency: parseInt(e.target.value) || 1 })}
+          />
+          <select
+            className="flex-1 px-2 2xl:px-3 py-1 2xl:py-2 border border-gray-300 rounded-lg text-xs 2xl:text-sm"
+            value={tour.frequencyUnit}
+            onChange={(e) => updateTour({ frequencyUnit: e.target.value as 'minutes' | 'hours' })}
+          >
+            <option value="minutes">Minutes</option>
+            <option value="hour">Hour</option>
+            <option value="hours">Hours</option>
+          </select>
+        </div>
+        <p className="text-xs text-gray-500 mt-2">
+          Based on tour duration of {tour.duration} {tour.durationUnit}
+        </p>
+      </div>
+    </div>
+
+    {/* Date-Specific Days */}
+    <div className="border-t pt-4 2xl:pt-6">
+      <h3 className="text-base 2xl:text-lg font-medium text-gray-900 mb-3 2xl:mb-4">Date-Specific Availability</h3>
+      <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 2xl:p-4 space-y-3">
+        <label className="block text-sm font-medium text-gray-700">Start Date</label>
+        <input
+          type="date"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+          value={tour.startDate || ''}
+          onChange={(e) => updateTour({ startDate: e.target.value })}
+        />
+
+        <label className="block text-sm font-medium text-gray-700">End Date</label>
+        <input
+          type="date"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+          value={tour.endDate || ''}
+          onChange={(e) => updateTour({ endDate: e.target.value })}
+        />
+        {tour.startDate && tour.endDate && new Date(tour.startDate) > new Date(tour.endDate) && (
+          <p className="text-red-600 text-xs">End date must be after start date</p>
+        )}
+      </div>
+    </div>
+
+    {/* Holidays & Special Events Block Off */}
+    <div className="border-t pt-4 2xl:pt-6">
+  <div className="flex flex-col 2xl:flex-row 2xl:items-center 2xl:justify-between gap-3 2xl:gap-0 mb-3 2xl:mb-4">
+    <div>
+      <h3 className="text-base 2xl:text-lg font-medium text-gray-900">Holidays & Special Events</h3>
+      <p className="text-xs 2xl:text-sm text-gray-500 mt-1">Block off specific dates</p>
+    </div>
+    <button
+      type="button"
+      onClick={() => {
+        updateTour({
+          dateSpecificBlockDays: [
+            ...(tour.dateSpecificBlockDays || []),
+            { date: '', slots: [], unavailable: true }
+          ]
+        });
+      }}
+      className="text-blue-600 hover:bg-blue-50 px-3 py-2 rounded-lg flex items-center space-x-1 self-start"
+    >
+      <Plus className="h-4 w-4" />
+      <span className="text-sm">Add Date Override</span>
+    </button>
+  </div>
+
+  <div className="space-y-3 2xl:space-y-4">
+    {(!tour.dateSpecificBlockDays || tour.dateSpecificBlockDays.length === 0) && (
+      <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
+        <p className="text-sm text-gray-500">No date overrides set</p>
+      </div>
+    )}
+
+    {(tour.dateSpecificBlockDays || []).map((dateOverride, index) => (
+      <div key={index} className="border border-gray-200 rounded-lg p-3 2xl:p-4 space-y-3">
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex-1">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Date</label>
+            <input
+              type="date"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+              value={dateOverride.date}
+              onChange={(e) => {
+                const newDateSpecific = [...(tour.dateSpecificBlockDays || [])];
+                newDateSpecific[index] = { ...dateOverride, date: e.target.value };
+                updateTour({ dateSpecificBlockDays: newDateSpecific });
+              }}
+            />
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              updateTour({
+                dateSpecificBlockDays: (tour.dateSpecificBlockDays || []).filter((_, i) => i !== index)
+              });
+            }}
+            className="text-red-600 hover:bg-red-50 p-2 rounded-lg mt-6"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        <div>
+          <label className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              checked={dateOverride.unavailable}
+              onChange={(e) => {
+                const newDateSpecific = [...(tour.dateSpecificBlockDays || [])];
+                newDateSpecific[index] = { 
+                  ...dateOverride, 
+                  unavailable: e.target.checked,
+                  slots: e.target.checked ? [] : dateOverride.slots
+                };
+                updateTour({ dateSpecificBlockDays: newDateSpecific });
+              }}
+              className="rounded border-gray-300 text-red-600 focus:ring-red-500"
+            />
+            <span className="text-sm text-gray-700">Mark as unavailable (holiday/closed)</span>
+          </label>
+        </div>
+
+        {!dateOverride.unavailable && (
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-sm font-medium text-gray-700">Custom Time Slots</label>
+              <button
+                type="button"
+                onClick={() => {
+                  const newDateSpecific = [...(tour.dateSpecificBlockDays || [])];
+                  newDateSpecific[index] = {
+                    ...dateOverride,
+                    slots: [...dateOverride.slots, { start: '09:00', end: '17:00' }]
+                  };
+                  updateTour({ dateSpecificBlockDays: newDateSpecific });
+                }}
+                className="text-blue-600 hover:bg-blue-50 p-1 rounded-lg"
+              >
+                <Plus className="h-4 w-4" />
+              </button>
+            </div>
+
+            {dateOverride.slots.length === 0 && (
+              <p className="text-gray-500 text-xs mb-2">No custom slots (will use weekly hours)</p>
+            )}
+
+            <div className="space-y-2">
+              {dateOverride.slots.map((slot, slotIndex) => (
+                <div key={slotIndex} className="flex items-center space-x-2">
+                  <input
+                    type="time"
+                    className="flex-1 px-2 py-1 border border-gray-300 rounded-lg text-sm"
+                    value={slot.start}
+                    onChange={(e) => {
+                      const newDateSpecific = [...(tour.dateSpecificBlockDays || [])];
+                      const newSlots = [...dateOverride.slots];
+                      newSlots[slotIndex] = { ...slot, start: e.target.value };
+                      newDateSpecific[index] = { ...dateOverride, slots: newSlots };
+                      updateTour({ dateSpecificBlockDays: newDateSpecific });
+                    }}
+                  />
+                  <span className="text-gray-500 text-xs">to</span>
+                  <input
+                    type="time"
+                    className="flex-1 px-2 py-1 border border-gray-300 rounded-lg text-sm"
+                    value={slot.end}
+                    onChange={(e) => {
+                      const newDateSpecific = [...(tour.dateSpecificBlockDays || [])];
+                      const newSlots = [...dateOverride.slots];
+                      newSlots[slotIndex] = { ...slot, end: e.target.value };
+                      newDateSpecific[index] = { ...dateOverride, slots: newSlots };
+                      updateTour({ dateSpecificBlockDays: newDateSpecific });
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newDateSpecific = [...(tour.dateSpecificBlockDays || [])];
+                      newDateSpecific[index] = {
+                        ...dateOverride,
+                        slots: dateOverride.slots.filter((_, i) => i !== slotIndex)
+                      };
+                      updateTour({ dateSpecificBlockDays: newDateSpecific });
+                    }}
+                    className="text-red-600 hover:bg-red-50 p-1 rounded-lg"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    ))}
+  </div>
+</div>
+
+  </div>
+);
 
 
     case 4:
@@ -1026,13 +1182,6 @@ function ToursDashboard({ onCreateTour, onEditTour, tours, setTours }: {
       return 'Virtual';
     }
     return 'Not Set';
-  };
-
-  const getAvailableDays = (tour: Tour) => {
-    const days = Object.keys(tour.weeklyHours).filter(
-      (day) => tour.weeklyHours[day] && tour.weeklyHours[day].length > 0
-    );
-    return days.length > 0 ? days.join(", ") : "No schedule set";
   };
 
   const filteredTours = tours.filter((tour) => {
