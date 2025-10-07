@@ -5,6 +5,14 @@ import { collection, getDocs, doc, setDoc } from "firebase/firestore";
 import { db } from "../../src/firebase.ts";
 import { getCalendarAccessToken, insertCalendarEvent } from "../calendarAPI.tsx";
 
+// Add Booking type definition (adjust fields as needed)
+type Booking = {
+  tourId: string;
+  date: string;
+  time: string;
+  // Add other fields as needed
+};
+
 {/* Have calendar date show actual available dates (doesn't allow weekends, etc ) */}
 {/* Hide tours not selected*/}
 {/* Scheduling Rules: Show Date Ranges */}
@@ -21,6 +29,8 @@ interface CustomCalendarProps {
   onDateSelect: (date: string) => void;
   tourData: Tour | undefined;
   isDateAvailable: (dateString: string, tour: Tour) => { available: boolean; reason?: string };
+  minDate?: Date | null;
+  maxDate?: Date | null;
 }
 
 // ---------- Page (parent) ----------
@@ -629,6 +639,146 @@ const handleSubmit = async () => {
   const renderSection1 = () => {
   const selectedTourData = tours.find((t) => t.tourId === bookingData.tourId);
 
+  // Calculate min/max date based on dateSpecificDays range and 24-hour notice
+  const getDateRange = () => {
+    if (!selectedTourData) return { minDate: null, maxDate: null };
+
+    const now = new Date();
+    
+    // Calculate 24-hour minimum from now
+    let minNoticeDate = new Date(now);
+    minNoticeDate.setDate(minNoticeDate.getDate() + 1);
+    minNoticeDate.setHours(0, 0, 0, 0);
+
+    // Get dateSpecificDays range if it exists
+    let rangeMinDate = null;
+    let rangeMaxDate = null;
+
+    if (selectedTourData.dateSpecificDays && selectedTourData.dateSpecificDays.length > 0) {
+      // Find the earliest startDate and latest endDate in the array
+      const dates = selectedTourData.dateSpecificDays.map(d => ({
+        start: new Date(d.startDate + 'T00:00:00'),
+        end: new Date(d.endDate + 'T00:00:00')
+      }));
+
+      rangeMinDate = new Date(Math.min(...dates.map(d => d.start.getTime())));
+      rangeMaxDate = new Date(Math.max(...dates.map(d => d.end.getTime())));
+
+      console.log('dateSpecificDays range:', rangeMinDate.toDateString(), 'to', rangeMaxDate.toDateString());
+    }
+    
+
+    // Use the later of: 24-hour notice or range start date
+    let minDate = minNoticeDate;
+    if (rangeMinDate && rangeMinDate > minNoticeDate) {
+      minDate = rangeMinDate;
+    }
+
+    // Use range end date if it exists, otherwise calculate from maxNotice
+    let maxDate = rangeMaxDate;
+    if (!maxDate) {
+      maxDate = new Date(now);
+      switch (selectedTourData.maxNoticeUnit) {
+        case 'days':
+          maxDate.setDate(maxDate.getDate() + selectedTourData.maxNotice);
+          break;
+        case 'weeks':
+          maxDate.setDate(maxDate.getDate() + (selectedTourData.maxNotice * 7));
+          break;
+        case 'months':
+          maxDate.setMonth(maxDate.getMonth() + selectedTourData.maxNotice);
+          break;
+      }
+    }
+
+    console.log('Final date range - min:', minDate?.toDateString(), 'max:', maxDate?.toDateString());
+
+
+    return { minDate, maxDate };
+  };
+
+  const { minDate, maxDate } = getDateRange();
+
+  // Helper to check if a date has any available time slots
+  const hasAvailableTimeSlots = (dateStr: string): boolean => {
+    if (!selectedTourData) return false;
+    
+    const now = new Date();
+    const minDateTime = new Date(now);
+    minDateTime.setHours(minDateTime.getHours() + 24);
+    
+    // Get duration and frequency
+    const durationMins =
+      selectedTourData.durationUnit === "hours" || selectedTourData.durationUnit === "hour" 
+        ? selectedTourData.duration * 60 
+        : selectedTourData.duration;
+    
+    const frequencyMins =
+      selectedTourData.frequencyUnit === "hours" || selectedTourData.frequencyUnit === "hour"
+        ? selectedTourData.frequency * 60 
+        : selectedTourData.frequency;
+    
+    // Check for date-specific hours first
+    const dateSpecific = selectedTourData.dateSpecificBlockDays?.find(
+      (d) => d.date === dateStr && !d.unavailable
+    );
+    
+    let allTimeSlots: string[] = [];
+    
+    if (dateSpecific && dateSpecific.slots) {
+      allTimeSlots = dateSpecific.slots.flatMap((slot) =>
+        generateTimeSlots(slot.start, slot.end, durationMins, frequencyMins)
+      );
+    } else {
+      // Fall back to weekly hours
+      const dateObj = new Date(dateStr + 'T00:00:00');
+      const dayOfWeek = dateObj.toLocaleDateString("en-US", { weekday: "long" });
+      
+      const weekly = selectedTourData.weeklyHours?.[dayOfWeek];
+      
+      if (weekly && weekly.length > 0) {
+        allTimeSlots = weekly.flatMap((slot) =>
+          generateTimeSlots(slot.start, slot.end, durationMins, frequencyMins)
+        );
+      }
+    }
+    
+    // Check if any slots meet the 24-hour requirement and aren't full
+    return allTimeSlots.some(time => {
+      const [timePart, period] = time.split(' ');
+      const [hours, minutes] = timePart.split(':').map(Number);
+      
+      let hour24 = hours;
+      if (period === 'PM' && hours !== 12) hour24 += 12;
+      if (period === 'AM' && hours === 12) hour24 = 0;
+      
+      const slotDateTime = new Date(dateStr + 'T00:00:00');
+      slotDateTime.setHours(hour24, minutes, 0, 0);
+      
+      // Check if slot is at least 24 hours away
+      if (slotDateTime < minDateTime) return false;
+      
+      // Check if slot is not full
+      const bookingCount = bookings.filter(
+        (booking: Booking) => 
+          booking.tourId === selectedTourData.tourId && 
+          booking.date === dateStr && 
+          booking.time === time
+      ).length;
+      const maxBookings = selectedTourData.maxBookings || 1;
+      
+      return bookingCount < maxBookings;
+    });
+  };
+
+  // Enhanced date validation
+  const isDateInRange = (dateStr: string): boolean => {
+    if (!minDate || !maxDate) return true;
+    
+    const date = new Date(dateStr + 'T00:00:00');
+    return date >= minDate && date <= maxDate;
+  };
+
   return (
     <div className="space-y-8">
       <div className="text-center mb-8">
@@ -714,6 +864,15 @@ const handleSubmit = async () => {
             
             // Validate immediately if a tour is selected
             if (selectedTourData) {
+              // Check date range first
+              if (!isDateInRange(date)) {
+                setErrors(prev => ({ 
+                  ...prev, 
+                  date: `Please select a date between ${minDate?.toLocaleDateString()} and ${maxDate?.toLocaleDateString()}`
+                }));
+                return;
+              }
+
               const validation = isDateAvailable(date, selectedTourData);
               if (!validation.available) {
                 setErrors(prev => ({ ...prev, date: validation.reason || "Unable to book on this day. Please select an available date." }));
@@ -723,7 +882,20 @@ const handleSubmit = async () => {
             }
           }}
           tourData={selectedTourData}
-          isDateAvailable={isDateAvailable}
+          isDateAvailable={(date, tour) => {
+            // First check if date is in valid range
+            if (!isDateInRange(date)) {
+              return { available: false, reason: "Date is outside the booking window" };
+            }
+            // Check if date has any available time slots (considering 24-hour notice)
+            if (!hasAvailableTimeSlots(date)) {
+              return { available: false, reason: "No available time slots for this date" };
+            }
+            // Then check original availability
+            return isDateAvailable(date, tour);
+          }}
+          minDate={minDate}
+          maxDate={maxDate}
         />
         {errors.date && (
           <div className="flex items-center space-x-2 mt-2">
@@ -754,12 +926,34 @@ const renderSection2 = () => {
         ? selected.frequency * 60 
         : selected.frequency;
 
+    // Calculate minimum allowed datetime (24 hours from now)
+    const getMinDateTime = () => {
+      const now = new Date();
+      const minDateTime = new Date(now);
+      minDateTime.setHours(minDateTime.getHours() + 24); // Always 24 hours ahead
+      return minDateTime;
+    };
+
+    // Check if a specific time slot meets 24-hour minimum notice requirement
+    const isTimeSlotValid = (time: string) => {
+      const minDateTime = getMinDateTime();
+      const [timePart, period] = time.split(' ');
+      const [hours, minutes] = timePart.split(':').map(Number);
+      
+      let hour24 = hours;
+      if (period === 'PM' && hours !== 12) hour24 += 12;
+      if (period === 'AM' && hours === 12) hour24 = 0;
+      
+      const slotDateTime = new Date(bookingData.date + 'T00:00:00');
+      slotDateTime.setHours(hour24, minutes, 0, 0);
+      
+      return slotDateTime >= minDateTime;
+    };
+
     // Count bookings for a specific date and time
-    const getBookingCount = (date: string, time: string) => {
-      // Assuming you have a 'bookings' array available
-      // Filter bookings that match the tourId, date, and time
+    const getBookingCount = (date: string, time: string): number => {
       return bookings.filter(
-        (booking) => 
+        (booking: Booking) => 
           booking.tourId === selected.tourId && 
           booking.date === date && 
           booking.time === time
@@ -767,7 +961,7 @@ const renderSection2 = () => {
     };
 
     // Check if a time slot is full
-    const isTimeSlotFull = (time: string) => {
+    const isTimeSlotFull = (time: string): boolean => {
       const date = bookingData.date;
       if (!date) return false;
       
@@ -813,9 +1007,13 @@ const renderSection2 = () => {
         }
       }
       
-      // Filter out full time slots
-      const availableSlots = allTimeSlots.filter(time => !isTimeSlotFull(time));
-      console.log("Available (non-full) slots:", availableSlots);
+      // Filter out:
+      // 1. Time slots that are full
+      // 2. Time slots that don't meet minimum notice requirement
+      const availableSlots = allTimeSlots.filter(time => 
+        !isTimeSlotFull(time) && isTimeSlotValid(time)
+      );
+      console.log("Available (non-full, valid notice) slots:", availableSlots);
       
       return availableSlots;
     };
