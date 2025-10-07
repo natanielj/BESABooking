@@ -75,7 +75,8 @@ function BookingPage() {
           description: data.description ?? "",
           duration: data.duration ?? 0,
           durationUnit: data.durationUnit ?? "minutes",
-          maxAttendees: data.maxAttendees ?? 1,
+          maxAttendeesPerBooking: data.maxAttendees ?? 5,
+          maxBookings: data.maxBookings ?? 3,
           startDate: data.startDate, // ← Add this
           endDate: data.endDate, // ← Add this
           location: data.location ?? "",
@@ -165,6 +166,22 @@ const DynamicBookingForm: React.FC<DynamicBookingFormProps> = ({
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // --- Add bookings state and fetch logic ---
+  const [bookings, setBookings] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchBookings = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, "Bookings"));
+        const bookingsData = querySnapshot.docs.map((doc) => doc.data());
+        setBookings(bookingsData);
+      } catch (error) {
+        console.error("Error fetching bookings:", error);
+      }
+    };
+    fetchBookings();
+  }, []);
 
   const sections = [
     { id: 1, title: "Date & Type of Tour", description: "Choose your preferred tour and date" },
@@ -637,7 +654,7 @@ const handleSubmit = async () => {
                       </span>
                       <span className="flex items-center gap-1">
                         <Users className="w-4 h-4" />
-                        Max {selectedTourData.maxAttendees} people
+                        Max {selectedTourData.maxAttendeesPerBooking} people
                       </span>
                     </div>
                   </div>
@@ -666,7 +683,7 @@ const handleSubmit = async () => {
                   </span>
                   <span className="flex items-center gap-1">
                     <Users className="w-4 h-4" />
-                    Max {tour.maxAttendees} people
+                    Max {tour.maxAttendeesPerBooking} people
                   </span>
                 </div>
                 <button
@@ -737,6 +754,29 @@ const renderSection2 = () => {
         ? selected.frequency * 60 
         : selected.frequency;
 
+    // Count bookings for a specific date and time
+    const getBookingCount = (date: string, time: string) => {
+      // Assuming you have a 'bookings' array available
+      // Filter bookings that match the tourId, date, and time
+      return bookings.filter(
+        (booking) => 
+          booking.tourId === selected.tourId && 
+          booking.date === date && 
+          booking.time === time
+      ).length;
+    };
+
+    // Check if a time slot is full
+    const isTimeSlotFull = (time: string) => {
+      const date = bookingData.date;
+      if (!date) return false;
+      
+      const bookingCount = getBookingCount(date, time);
+      const maxBookings = selected.maxBookings || 1;
+      
+      return bookingCount >= maxBookings;
+    };
+
     const getAvailableTimes = () => {
       const date = bookingData.date;
       if (!date) return [];
@@ -749,39 +789,54 @@ const renderSection2 = () => {
         (d) => d.date === date && !d.unavailable
       );
       
+      let allTimeSlots: string[] = [];
+      
       if (dateSpecific && dateSpecific.slots) {
         console.log("Using date-specific slots:", dateSpecific.slots);
-        return dateSpecific.slots.flatMap((slot) =>
+        allTimeSlots = dateSpecific.slots.flatMap((slot) =>
           generateTimeSlots(slot.start, slot.end, durationMins, frequencyMins)
         );
+      } else {
+        // Fall back to weekly hours
+        const dateObj = new Date(date + 'T00:00:00');
+        const dayOfWeek = dateObj.toLocaleDateString("en-US", { weekday: "long" });
+        console.log("Day of week:", dayOfWeek);
+        
+        const weekly = selected.weeklyHours?.[dayOfWeek];
+        console.log("Weekly hours for", dayOfWeek, ":", weekly);
+        
+        if (weekly && weekly.length > 0) {
+          allTimeSlots = weekly.flatMap((slot) =>
+            generateTimeSlots(slot.start, slot.end, durationMins, frequencyMins)
+          );
+          console.log("Generated time slots:", allTimeSlots);
+        }
       }
       
-      // Fall back to weekly hours
-      const dateObj = new Date(date + 'T00:00:00');
-      const dayOfWeek = dateObj.toLocaleDateString("en-US", { weekday: "long" });
-      console.log("Day of week:", dayOfWeek);
+      // Filter out full time slots
+      const availableSlots = allTimeSlots.filter(time => !isTimeSlotFull(time));
+      console.log("Available (non-full) slots:", availableSlots);
       
-      const weekly = selected.weeklyHours?.[dayOfWeek];
-      console.log("Weekly hours for", dayOfWeek, ":", weekly);
-      
-      if (weekly && weekly.length > 0) {
-        const slots = weekly.flatMap((slot) =>
-          generateTimeSlots(slot.start, slot.end, durationMins, frequencyMins)
-        );
-        console.log("Generated time slots:", slots);
-        return slots;
-      }
-      
-      console.log("No slots found");
-      return [];
+      return availableSlots;
     };
 
     const availableTimes = getAvailableTimes();
 
     const updateGroupSize = (newSize: number) => {
-      const maxSize = selected.maxAttendees || 15;
+      const maxSize = selected.maxAttendeesPerBooking || 15;
       const finalSize = Math.min(Math.max(1, newSize), maxSize);
       updateBookingData("maxAttendees", finalSize);
+    };
+
+    // Get remaining spots for display (optional)
+    const getRemainingSpots = (time: string) => {
+      const date = bookingData.date;
+      if (!date) return selected.maxBookings || 1;
+      
+      const bookingCount = getBookingCount(date, time);
+      const maxBookings = selected.maxBookings || 1;
+      
+      return Math.max(0, maxBookings - bookingCount);
     };
 
     return (
@@ -807,21 +862,32 @@ const renderSection2 = () => {
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Available Time Slots</h3>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {availableTimes.length > 0 ? (
-              availableTimes.map((time) => (
-                <button
-                  key={time}
-                  onClick={() => updateBookingData("time", time)}
-                  className={`p-4 border-2 rounded-lg text-center transition-all hover:shadow-md ${bookingData.time === time
-                      ? "border-blue-500 bg-blue-50 text-blue-700"
-                      : "border-gray-200 hover:border-gray-300"
+              availableTimes.map((time) => {
+                const remainingSpots = getRemainingSpots(time);
+                return (
+                  <button
+                    key={time}
+                    onClick={() => updateBookingData("time", time)}
+                    className={`p-4 border-2 rounded-lg text-center transition-all hover:shadow-md ${
+                      bookingData.time === time
+                        ? "border-blue-500 bg-blue-50 text-blue-700"
+                        : "border-gray-200 hover:border-gray-300"
                     }`}
-                >
-                  <Clock className="w-5 h-5 mx-auto mb-2 text-gray-600" />
-                  <span className="font-medium">{time}</span>
-                </button>
-              ))
+                  >
+                    <Clock className="w-5 h-5 mx-auto mb-2 text-gray-600" />
+                    <span className="font-medium block">{time}</span>
+                    {remainingSpots <= 3 && (
+                      <span className="text-xs text-orange-600 mt-1 block">
+                        {remainingSpots} spot{remainingSpots !== 1 ? 's' : ''} left
+                      </span>
+                    )}
+                  </button>
+                );
+              })
             ) : (
-              <p>No available times</p>
+              <p className="col-span-full text-center text-gray-500">
+                No available times for this date
+              </p>
             )}
           </div>
           {errors.time && <p className="text-red-500 text-sm mt-2">{errors.time}</p>}
@@ -850,14 +916,14 @@ const renderSection2 = () => {
             <button
               type="button"
               onClick={() => updateGroupSize(bookingData.maxAttendees + 1)}
-              disabled={bookingData.maxAttendees >= (selected.maxAttendees || 15)}
+              disabled={bookingData.maxAttendees >= (selected.maxAttendeesPerBooking || 15)}
               className="w-12 h-12 rounded-full border-2 border-gray-300 flex items-center justify-center hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-xl font-bold"
             >
               +
             </button>
           </div>
           <p className="text-left text-sm text-gray-500 mt-2"> 
-            Maximum {selected.maxAttendees} people per tour
+            Maximum {selected.maxAttendeesPerBooking} people per tour
           </p>
           {errors.maxAttendees && (
             <p className="text-red-500 text-sm mt-2 text-left">{errors.maxAttendees}</p>
