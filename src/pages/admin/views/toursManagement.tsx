@@ -19,7 +19,8 @@ function TourFormPage({ onBack, editingTour }: { onBack: () => void; editingTour
     description: '',
     duration: 60,
     durationUnit: 'minutes',
-    maxAttendees: 10,
+    maxAttendeesPerBooking: 5,
+    maxBookings: 3,
     location: '',
     zoomLink: '',
     autoGenerateZoom: false,
@@ -187,13 +188,26 @@ function TourFormPage({ onBack, editingTour }: { onBack: () => void; editingTour
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Max Attendees *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Max Bookings Per Time Slot *</label>
               <input
                 type="number"
                 min="1"
                 className="w-full px-3 2xl:px-4 py-2 2xl:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm 2xl:text-base"
-                value={tour.maxAttendees}
-                onChange={(e) => updateTour({ maxAttendees: parseInt(e.target.value) || 1 })}
+                value={tour.maxBookings}
+                onChange={(e) => updateTour({ maxBookings: parseInt(e.target.value) || 1 })}
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 2xl:grid-cols-2 gap-4 2xl:gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Max Attendees Per Booking *</label>
+              <input
+                type="number"
+                min="1"
+                className="w-full px-3 2xl:px-4 py-2 2xl:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm 2xl:text-base"
+                value={tour.maxAttendeesPerBooking}
+                onChange={(e) => updateTour({ maxAttendeesPerBooking: parseInt(e.target.value) || 1 })}
               />
             </div>
           </div>
@@ -860,10 +874,15 @@ function TourFormPage({ onBack, editingTour }: { onBack: () => void; editingTour
                 <span className="font-medium text-gray-700">Duration:</span>
                 <span className="ml-2 text-gray-900">{tour.duration} {tour.durationUnit}</span>
               </div>
+
+              <div>
+                <span className="font-medium text-gray-700">Max Attendees Per Session:</span>
+                <span className="ml-2 text-gray-900">{tour.maxAttendeesPerBooking}</span>
+              </div>
               
               <div>
-                <span className="font-medium text-gray-700">Max Attendees:</span>
-                <span className="ml-2 text-gray-900">{tour.maxAttendees}</span>
+                <span className="font-medium text-gray-700">Max Bookings Per Session:</span>
+                <span className="ml-2 text-gray-900">{tour.maxBookings}</span>
               </div>
               
               <div>
@@ -1266,7 +1285,7 @@ function ToursDashboard({ onCreateTour, onEditTour, tours, setTours }: {
                       
                       <div className="flex items-center space-x-2">
                         <Users className="h-4 w-4 text-gray-400" />
-                        <span className="text-gray-600">Max {tour.maxAttendees}</span>
+                        <span className="text-gray-600">Max: {tour.maxAttendeesPerBooking} People Per Session</span>
                       </div>
                       
                       <div className="flex items-center space-x-2">
