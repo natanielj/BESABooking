@@ -23,7 +23,8 @@ declare global {
         startDate?: string; // Optional start date
         endDate?: string; // Optional end date
         durationUnit: 'minutes' | 'hours' | 'hour'; // Unit for duration
-        maxAttendees: number; // Maximum number of attendees
+        maxAttendeesPerBooking: number; // Maximum number of attendees per booking
+        maxBookings: number; // Maximum number of bookings allowed per session
         location: string; // Physical location or 'Online'
         zoomLink: string; // Zoom link if applicable
         autoGenerateZoom: boolean;
