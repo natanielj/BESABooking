@@ -53,7 +53,8 @@ function App() {
           description: data.description ?? "",
           duration: data.duration ?? 0,
           durationUnit: data.durationUnit ?? "minutes",
-          maxAttendees: data.maxAttendees ?? 1,
+          maxAttendeesPerBooking: data.maxAttendees ?? 5,
+          maxBookings: data.maxBookings ?? 3,
           startDate: data.startDate, 
           endDate: data.endDate, 
           location: data.location ?? "",
@@ -187,7 +188,7 @@ function App() {
                     </div>
                     <div className="flex items-center space-x-1">
                       <Users className="h-4 w-4" />
-                      <span className="text-sm">Max {tour.maxAttendees}</span>
+                      <span className="text-sm">Max {tour.maxAttendeesPerBooking}</span>
                     </div>
                   </div>
                   <div className="flex-grow flex flex-col justify-between">
