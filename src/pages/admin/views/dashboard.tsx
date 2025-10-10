@@ -4,6 +4,9 @@ import { Calendar, Users, Trash2, Plus, X } from 'lucide-react';
 import { db } from '../../../../src/firebase.ts';
 import { collection, getDocs, updateDoc, doc, deleteDoc } from "firebase/firestore";
 
+{/* Have it auto-assign BESAS and save correctly */}
+{/* Bookings don't delete, tourID problem */}
+
 export default function DashboardView() {
   const [currentRole, setCurrentRole] = useState<UserRole>("public");
   const [bookings, setBookings] = useState<BookingData[]>([]);
@@ -107,14 +110,21 @@ export default function DashboardView() {
         const data = snapshot.docs.map((doc) => {
           const docData = doc.data();
           return {
-            id: doc.id,
+            tourId: doc.id,
             ...docData,
             // Handle backward compatibility - convert single besa to array
             besas: docData.besas ? docData.besas : (docData.besa ? [docData.besa] : [])
           };
         }) as BookingData[];
 
-        setBookings(data);
+        // Sort bookings by date (most recent first)
+        const sortedData = data.sort((a, b) => {
+          const dateA = new Date(a.date);
+          const dateB = new Date(b.date);
+          return dateA.getTime() - dateB.getTime();
+        });
+
+        setBookings(sortedData);
 
         const today = new Date();
         const todayStr = today.toISOString().split("T")[0];
@@ -193,6 +203,33 @@ export default function DashboardView() {
     );
   };
 
+  // Auto-assign all available BESAs to a booking
+  const autoAssignBesas = (bookingData: BookingData) => {
+    const availableBesas = getAvailableBesas(bookingData);
+    return {
+      ...bookingData,
+      besas: availableBesas.map(besa => besa.name)
+    };
+  };
+
+  // Handle date/time changes and auto-assign BESAs
+  const handleDateTimeChange = (field: 'date' | 'time', value: string) => {
+    if (!formData) return;
+    
+    const updatedFormData = {
+      ...formData,
+      [field]: value
+    };
+    
+    // Auto-assign BESAs when both date and time are available
+    if (updatedFormData.date && updatedFormData.time) {
+      const withAutoAssignedBesas = autoAssignBesas(updatedFormData);
+      setFormData(withAutoAssignedBesas);
+    } else {
+      setFormData(updatedFormData);
+    }
+  };
+
   const handleEditClick = (booking: BookingData) => {
     setEditBooking(booking);
     setFormData({ ...booking, besas: booking.besas || [] });
@@ -203,10 +240,10 @@ export default function DashboardView() {
   };
 
   const confirmDelete = async () => {
-    if (!deleteBooking || !deleteBooking.id) return;
+    if (!deleteBooking || !deleteBooking.tourId) return;
     
     try {
-      await deleteDoc(doc(db, "Bookings", deleteBooking.id));
+      await deleteDoc(doc(db, "Bookings", deleteBooking.tourId));
       
       // Refresh bookings list
       const bookingsRef = collection(db, "Bookings");
@@ -214,7 +251,7 @@ export default function DashboardView() {
       const data = snapshot.docs.map((doc) => {
         const docData = doc.data();
         return {
-          id: doc.id,
+          tourId: doc.id,
           ...docData,
           besas: docData.besas ? docData.besas : (docData.besa ? [docData.besa] : [])
         };
@@ -238,7 +275,7 @@ export default function DashboardView() {
         besas: formData.besas?.filter(besa => besa.trim() !== '') || []
       };
       
-      await updateDoc(doc(db, "Bookings", formData.id!), saveData);
+      await updateDoc(doc(db, "Bookings", formData.tourId!), saveData);
       setEditBooking(null);
       
       const bookingsRef = collection(db, "Bookings");
@@ -246,7 +283,7 @@ export default function DashboardView() {
       const data = snapshot.docs.map((doc) => {
         const docData = doc.data();
         return {
-          id: doc.id,
+          tourId: doc.id,
           ...docData,
           besas: docData.besas ? docData.besas : (docData.besa ? [docData.besa] : [])
         };
@@ -289,6 +326,13 @@ export default function DashboardView() {
       ...formData,
       besas: newBesas
     });
+  };
+
+  // Reassign BESAs based on current date/time
+  const reassignBesas = () => {
+    if (!formData) return;
+    const withAutoAssignedBesas = autoAssignBesas(formData);
+    setFormData(withAutoAssignedBesas);
   };
 
   return (
@@ -351,7 +395,7 @@ export default function DashboardView() {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {bookings.map((booking) => (
-                <tr key={booking.id} className="hover:bg-gray-50">
+                <tr key={booking.tourId} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     {booking.tourType}
                   </td>
@@ -360,7 +404,7 @@ export default function DashboardView() {
                     <div className="text-sm text-gray-500">{booking.time}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {booking.attendees}/{booking.maxAttendees}
+                    {booking.maxAttendees}/{tours.find(t => t.title === booking.tourType)?.maxAttendees}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {booking.besas && booking.besas.length > 0 ? (
@@ -372,7 +416,7 @@ export default function DashboardView() {
                         ))}
                       </div>
                     ) : (
-                      <span className="text-gray-400 italic">Unassigned</span>
+                      <span className="text-gray-400 italic">Auto-assigned</span>
                     )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -510,7 +554,7 @@ export default function DashboardView() {
             <input
               type="date"
               value={formData.date}
-              onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+              onChange={(e) => handleDateTimeChange('date', e.target.value)}
               className="w-full px-3 py-2 border rounded-lg mb-4"
             />
 
@@ -519,93 +563,90 @@ export default function DashboardView() {
             <input
               type="text"
               value={formData.time}
-              onChange={(e) => setFormData({ ...formData, time: e.target.value })}
+              onChange={(e) => handleDateTimeChange('time', e.target.value)}
               className="w-full px-3 py-2 border rounded-lg mb-4"
               placeholder="e.g., 10:00 AM"
             />
 
-            {/* BESA Assignment - Multiple BESAs */}
+            {/* Auto-assigned BESAs Display */}
             <div className="mb-4">
-              <label className="block mb-2 font-medium">
-                BESA Assignments
+              <div className="flex items-center justify-between mb-2">
+                <label className="font-medium">
+                  BESA Assignments
+                  {formData.date && formData.time && (
+                    <span className="text-sm text-gray-500 ml-2">
+                      (Auto-assigned for {new Date(formData.date).toLocaleDateString('en-US', { weekday: 'long' })} at {formData.time})
+                    </span>
+                  )}
+                </label>
                 {formData.date && formData.time && (
-                  <span className="text-sm text-gray-500 ml-2">
-                    (Available on {new Date(formData.date).toLocaleDateString('en-US', { weekday: 'long' })} at {formData.time})
-                  </span>
-                )}
-              </label>
-
-              Existing BESA assignments
-              {formData.besas && formData.besas.map((besa, index) => (
-                <div key={index} className="flex gap-2 mb-2">
-                  <select
-                    value={besa}
-                    onChange={(e) => updateBesaSlot(index, e.target.value)}
-                    className="flex-1 px-3 py-2 border rounded-lg"
+                  <button
+                    type="button"
+                    onClick={reassignBesas}
+                    className="px-3 py-1 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 text-sm"
                   >
-                    <option value="">Select a BESA</option>
-                    {getAvailableBesas(formData).map((availableBesa) => (
-                      <option key={availableBesa.id} value={availableBesa.name}>
-                        {availableBesa.name}
-                      </option>
-                    ))}
-                    {/* Manual override options */}
-                    {formData.date && formData.time && getAvailableBesas(formData).length === 0 && 
-                      besaList.filter(b => b.status === 'active').map((availableBesa) => (
-                        <option key={availableBesa.id} value={availableBesa.name}>
-                          {availableBesa.name} (not available)
+                    Refresh Assignments
+                  </button>
+                )}
+              </div>
+
+              {/* Display auto-assigned BESAs */}
+              {formData.besas && formData.besas.length > 0 ? (
+                <div className="space-y-2 mb-3">
+                  {formData.besas.map((besa, index) => (
+                    <div key={index} className="flex items-center gap-2 p-2 bg-green-50 border border-green-200 rounded-lg">
+                      <div className="flex-1 text-sm text-green-800">
+                        ✓ {besa} (auto-assigned)
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => removeBesaSlot(index)}
+                        className="px-2 py-1 bg-red-100 text-red-600 rounded hover:bg-red-200"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg mb-3">
+                  <p className="text-sm text-gray-600">
+                    {formData.date && formData.time 
+                      ? "No BESAs available at this date and time"
+                      : "Set date and time to auto-assign BESAs"
+                    }
+                  </p>
+                </div>
+              )}
+
+              {/* Manual BESA assignment option */}
+              <div className="border-t pt-3">
+                <label className="block mb-2 text-sm font-medium text-gray-600">Manual Override (Optional)</label>
+                <div className="flex gap-2">
+                  <select
+                    value=""
+                    onChange={(e) => {
+                      if (e.target.value) {
+                        const newBesas = [...(formData.besas || []), e.target.value];
+                        setFormData({ ...formData, besas: newBesas });
+                        e.target.value = ""; // Reset selection
+                      }
+                    }}
+                    className="flex-1 px-3 py-2 border rounded-lg text-sm"
+                  >
+                    <option value="">Add BESA manually...</option>
+                    {besaList
+                      .filter(b => b.status === 'active' && !formData.besas?.includes(b.name))
+                      .map((besa) => (
+                        <option key={besa.id} value={besa.name}>
+                          {besa.name}
                         </option>
                       ))
                     }
                   </select>
-                  {formData.besas && formData.besas.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => removeBesaSlot(index)}
-                      className="px-3 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                  )}
                 </div>
-              ))}
-
-              {/* Add BESA button */}
-              <button
-                type="button"
-                onClick={addBesaSlot}
-                className="flex items-center gap-2 px-3 py-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200"
-              >
-                <Plus className="h-4 w-4" />
-                Add Another BESA
-              </button>
-
-              {/* Initialize with empty array if no BESAs */}
-              {(!formData.besas || formData.besas.length === 0) && (
-                <button
-                  type="button"
-                  onClick={() => setFormData({ ...formData, besas: [''] })}
-                  className="flex items-center gap-2 px-3 py-2 bg-green-100 text-green-600 rounded-lg hover:bg-green-200 mt-2"
-                >
-                  <Plus className="h-4 w-4" />
-                  Assign BESA
-                </button>
-              )}
-            </div>
-
-            {/* Show availability info */}
-            {formData.date && formData.time && getAvailableBesas(formData).length === 0 && (
-              <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <p className="text-sm text-yellow-800">
-                  ⚠️ No BESAs are available at this date and time. You may need to:
-                </p>
-                <ul className="text-sm text-yellow-700 mt-1 ml-4 list-disc">
-                  <li>Change the booking time</li>
-                  <li>Update BESA office hours</li>
-                  <li>Assign manually (override availability)</li>
-                </ul>
               </div>
-            )}
+            </div>
 
             {/* Attendees */}
             <label className="block mb-2 font-medium">Attendees</label>
@@ -626,13 +667,23 @@ export default function DashboardView() {
             />
 
             {/* Interests */}
-            <label className="block mb-2 font-medium">Interests (comma separated)</label>
-            <input
-              type="text"
-              value={formData.interests.join(", ")}
-              onChange={(e) => setFormData({ ...formData, interests: e.target.value.split(",").map(i => i.trim()) })}
-              className="w-full px-3 py-2 border rounded-lg mb-4"
-            />
+            <div className="mb-4">
+              <label className="block mb-2 font-medium">Selected Interests</label>
+              {formData.interests && formData.interests.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {formData.interests.map((interest, index) => (
+                    <span
+                      key={index}
+                      className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800 border border-blue-200"
+                    >
+                      {interest}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-gray-500 italic text-sm">No interests specified</div>
+              )}
+            </div>
 
             <div className="flex justify-end gap-3 mt-4">
               <button

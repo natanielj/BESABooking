@@ -1,20 +1,17 @@
 // Minimal helpers for Google Calendar via REST + GIS (browser)
-export type Attendee = { email: string; displayName?: string };
 
 export type InsertEventInput = {
   accessToken: string;
   summary: string;
   description?: string;
   location?: string;
-  startISO: string;
+  startISO: string;     // e.g., "2025-09-09T15:30:00-07:00"
   endISO: string;
-  calendarId?: string;
-  attendeeEmail?: string;     
+  calendarId?: string;  // default "primary"
+  attendeeEmail?: string;
   attendeeName?: string;
-  extraAttendees?: Attendee[];
-  timezone?: string;
+  timezone?: string;    // IANA tz; if provided, also set start/end timeZone fields
 };
-
 
 export async function insertCalendarEvent(input: InsertEventInput) {
   const {
@@ -27,14 +24,8 @@ export async function insertCalendarEvent(input: InsertEventInput) {
     calendarId = "primary",
     attendeeEmail,
     attendeeName,
-    extraAttendees = [],        
     timezone,
   } = input;
-  
-  const attendees = [
-    ...(attendeeEmail ? [{ email: attendeeEmail, displayName: attendeeName }] : []),
-    ...extraAttendees,
-  ];
 
   const body: any = {
     summary,
@@ -42,13 +33,13 @@ export async function insertCalendarEvent(input: InsertEventInput) {
     location,
     start: timezone ? { dateTime: startISO, timeZone: timezone } : { dateTime: startISO },
     end: timezone ? { dateTime: endISO, timeZone: timezone } : { dateTime: endISO },
-    attendees,
+    attendees: attendeeEmail ? [{ email: attendeeEmail, displayName: attendeeName }] : [],
     guestsCanInviteOthers: false,
     guestsCanModify: false,
     guestsCanSeeOtherGuests: true,
     reminders: { useDefault: true },
   };
-  
+
   const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(
     calendarId
   )}/events?sendUpdates=all`;

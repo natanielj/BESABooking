@@ -203,8 +203,6 @@ export default function BESAManagementView() {
     });
   };
 
-  
-
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="flex justify-between items-center mb-8">
@@ -553,40 +551,4 @@ export default function BESAManagementView() {
       )}
     </div>
   );
-}
-
-
-const dayKey = (d: Date) =>
-  ["sunday","monday","tuesday","wednesday","thursday","friday","saturday"][d.getDay()];
-
-const hmToMinutes = (hm: string) => {
-  const [h, m] = hm.split(":").map(Number);
-  return h * 60 + (m || 0);
-};
-
-/** Return true if [startMin,endMin) is fully inside slot [slotStart,slotEnd). */
-const intervalInsideSlot = (startMin: number, endMin: number, slot: TimeSlot) => {
-  const s = hmToMinutes(slot.start);
-  const e = hmToMinutes(slot.end);
-  return s <= startMin && endMin <= e;
-};
-
-export function getAvailableBesasForInterval(
-  besas: Besa[],
-  startLocal: Date,
-  endLocal: Date,
-  opts: { requireActive?: boolean } = { requireActive: true }
-): Besa[] {
-  const key = dayKey(startLocal);
-  const startMin = startLocal.getHours() * 60 + startLocal.getMinutes();
-  const endMin = endLocal.getHours() * 60 + endLocal.getMinutes();
-
-  return besas.filter(b => {
-    if (opts.requireActive && b.status?.toLowerCase() !== "active") return false;
-
-    const hours = b.officeHours?.[key as keyof Besa["officeHours"]];
-    if (!hours || !hours.available || !hours.timeSlots?.length) return false;
-
-    return hours.timeSlots.some(slot => intervalInsideSlot(startMin, endMin, slot));
-  });
 }
