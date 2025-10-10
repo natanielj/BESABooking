@@ -379,7 +379,7 @@ const BookingConfirmationPage: React.FC = () => {
                 Return to Home
               </button>
               <button
-                onClick={() => navigate("/book")}
+                onClick={() => navigate("/")}
                 className="flex-1 sm:flex-none px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
               >
                 Book Another Tour
