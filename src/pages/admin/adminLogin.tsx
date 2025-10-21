@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '/Users/arely/BESABooking/BESABooking/src/firebase.ts';
+import { auth } from '../../../src/firebase.ts';
 
 export default function AdminPage() {
   const [email, setEmail] = useState('');
