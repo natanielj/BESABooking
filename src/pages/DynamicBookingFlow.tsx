@@ -154,6 +154,7 @@ const DynamicBookingForm: React.FC<DynamicBookingFormProps> = ({
 
   // Booking Data State
   const [bookingData, setBookingData] = useState<BookingData>({
+    bookingId: "",
     tourId: preselectedTour || "",
     tourType: "",
     date: "",
