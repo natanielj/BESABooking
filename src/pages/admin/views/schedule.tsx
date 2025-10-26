@@ -7,7 +7,7 @@ export default function ScheduleView() {
   const [besas, setBesas] = useState<Besa[]>([]);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [tours, setTours] = useState<Tour[]>([]);
+  const [, setTours] = useState<Tour[]>([]);
   const [bookings, setBookings] = useState<BookingData[]>([]);
   const [viewMode, setViewMode] = useState<'calendar' | 'list'>('calendar');
   const [selectedBooking, setSelectedBooking] = useState<BookingData | null>(null);
