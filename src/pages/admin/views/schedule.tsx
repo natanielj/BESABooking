@@ -1,13 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { collection, getDocs } from 'firebase/firestore';
-import { db } from '../../../../src/firebase.ts'; 
-import { Calendar, Users, List, Eye } from 'lucide-react';
-
-{/* Bookings show 1 day before */}
-{/* Bookings stack days in view */}
-{/* List management only shows month of september */}
-{/* Past tours doesn't show past tours */}
-{/* All tours doesn't show all tours */}
+import { db } from '../../../../src/firebase.ts';
+import { Calendar, List, Eye } from 'lucide-react';
 
 export default function ScheduleView() {
   const [besas, setBesas] = useState<Besa[]>([]);
@@ -19,76 +13,55 @@ export default function ScheduleView() {
   const [selectedBooking, setSelectedBooking] = useState<BookingData | null>(null);
   const [dateFilter, setDateFilter] = useState<'upcoming' | 'past' | 'all'>('upcoming');
 
+  // ---------- formatting helpers ----------
   const format = (date: Date, formatStr: string) => {
-    const months = ['January', 'February', 'March', 'April', 'May', 'June',
-                   'July', 'August', 'September', 'October', 'November', 'December'];
-    const shortMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-                        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    
-    if (formatStr === 'MMMM yyyy') {
-      return `${months[date.getMonth()]} ${date.getFullYear()}`;
-    }
-    if (formatStr === 'MMMM d, yyyy') {
-      return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
-    }
-    if (formatStr === 'MMM d, yyyy') {
-      return `${shortMonths[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
-    }
-    if (formatStr === 'MM-dd-yyyy') {
-      return `${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}-${date.getFullYear()}`;
-    }
-    if (formatStr === 'EEEE') {
-      return days[date.getDay()];
-    }
+    const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    const shortMonths = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+    if (formatStr === 'MMMM yyyy') return `${months[date.getMonth()]} ${date.getFullYear()}`;
+    if (formatStr === 'MMMM d, yyyy') return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+    if (formatStr === 'MMM d, yyyy') return `${shortMonths[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+    if (formatStr === 'MM-dd-yyyy') return `${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}-${date.getFullYear()}`;
+    if (formatStr === 'EEEE') return days[date.getDay()];
     return date.toString();
   };
 
-  const startOfMonth = (date: Date) => {
-    return new Date(date.getFullYear(), date.getMonth(), 1);
+  // IMPORTANT: date-only helpers (avoid UTC shift)
+  const parseYMDLocal = (ymd: string) => {
+    const [y, m, d] = ymd.split('-').map(Number);
+    return new Date(y, (m ?? 1) - 1, d ?? 1, 0, 0, 0, 0); // local date; no timezone shift
   };
+  const ymdKey = (d: Date) =>
+    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
-  const endOfMonth = (date: Date) => {
-    return new Date(date.getFullYear(), date.getMonth() + 1, 0);
-  };
-
+  // ---------- calendar math ----------
+  const startOfMonth = (date: Date) => new Date(date.getFullYear(), date.getMonth(), 1);
+  const endOfMonth = (date: Date) => new Date(date.getFullYear(), date.getMonth() + 1, 0);
   const startOfWeek = (date: Date) => {
     const d = new Date(date);
-    const day = d.getDay();
-    const diff = d.getDate() - day;
+    const diff = d.getDate() - d.getDay();
     return new Date(d.setDate(diff));
   };
-
   const endOfWeek = (date: Date) => {
     const d = new Date(date);
-    const day = d.getDay();
-    const diff = d.getDate() - day + 6;
+    const diff = d.getDate() - d.getDay() + 6;
     return new Date(d.setDate(diff));
   };
-
   const addDays = (date: Date, days: number) => {
     const result = new Date(date);
     result.setDate(result.getDate() + days);
     return result;
   };
-
-  const isSameDay = (date1: Date, date2: Date) => {
-    return date1.getDate() === date2.getDate() &&
-           date1.getMonth() === date2.getMonth() &&
-           date1.getFullYear() === date2.getFullYear();
-  };
-
-  const isSameMonth = (date1: Date, date2: Date) => {
-    return date1.getMonth() === date2.getMonth() &&
-           date1.getFullYear() === date2.getFullYear();
-  };
-
+  const isSameDay = (a: Date, b: Date) =>
+    a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+  const isSameMonth = (a: Date, b: Date) =>
+    a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth();
   const subMonths = (date: Date, months: number) => {
     const result = new Date(date);
     result.setMonth(result.getMonth() - months);
     return result;
   };
-
   const addMonths = (date: Date, months: number) => {
     const result = new Date(date);
     result.setMonth(result.getMonth() + months);
@@ -98,12 +71,7 @@ export default function ScheduleView() {
   // Convert 24hr to 12hr format
   const formatTime12Hour = (time24: string) => {
     if (!time24) return '';
-    
-    // Check if already in 12hr format
-    if (time24.includes('AM') || time24.includes('PM')) {
-      return time24;
-    }
-    
+    if (time24.includes('AM') || time24.includes('PM')) return time24;
     const [hours, minutes] = time24.split(':');
     const hour = parseInt(hours, 10);
     const ampm = hour >= 12 ? 'PM' : 'AM';
@@ -111,177 +79,139 @@ export default function ScheduleView() {
     return `${hour12}:${minutes} ${ampm}`;
   };
 
-  // Get Pacific Time date
-  const getPacificTime = (date: Date | string) => {
-    const d = typeof date === 'string' ? new Date(date) : date;
-    return new Date(d.toLocaleString("en-US", {timeZone: "America/Los_Angeles"}));
-  };
-
-  // Fetch BESAS from firebase
+  // ---------- data fetch ----------
   useEffect(() => {
     const fetchBesas = async () => {
       try {
-        const querySnapshot = await getDocs(collection(db, "Besas"));
+        const querySnapshot = await getDocs(collection(db, 'Besas'));
         const besasData = querySnapshot.docs.map(doc => {
-          const data = doc.data();
-          
-          // Convert old format to new format if needed
+          const data = doc.data() as any;
           const convertedOfficeHours: { [day: string]: OfficeHours } = {};
           Object.entries(data.officeHours || {}).forEach(([day, hours]: [string, any]) => {
             if (typeof hours === 'object' && 'start' in hours && 'end' in hours) {
-              // Old format conversion
               convertedOfficeHours[day] = {
                 available: hours.available || false,
-                timeSlots: hours.available ? [{
-                  id: Math.random().toString(36).substr(2, 9),
-                  start: hours.start || '09:00',
-                  end: hours.end || '17:00'
-                }] : []
+                timeSlots: hours.available
+                  ? [{ id: Math.random().toString(36).substr(2, 9), start: hours.start || '09:00', end: hours.end || '17:00' }]
+                  : []
               };
             } else {
-              // New format
-              convertedOfficeHours[day] = hours as OfficeHours || { available: false, timeSlots: [] };
+              convertedOfficeHours[day] = (hours as OfficeHours) || { available: false, timeSlots: [] };
             }
           });
-
-          return {
-            id: doc.id,
-            ...data,
-            officeHours: convertedOfficeHours,
-          };
-        }) as Besa[];
-        console.log("Fetched BESAs:", besasData);
+          return { id: doc.id, ...data, officeHours: convertedOfficeHours } as Besa[];
+        }) as unknown as Besa[];
         setBesas(besasData);
       } catch (error) {
-        console.error("Error fetching besas from Firestore:", error);
+        console.error('Error fetching besas from Firestore:', error);
       }
     };
-
     fetchBesas();
   }, []);
 
-  // Fetch Tours from firebase
   useEffect(() => {
     const fetchTours = async () => {
       try {
-        const querySnapshot = await getDocs(collection(db, "mockTours"));
+        const querySnapshot = await getDocs(collection(db, 'mockTours'));
         const tourData = querySnapshot.docs.map(doc => ({
           tourId: doc.id,
           ...doc.data(),
         })) as Tour[];
         setTours(tourData);
       } catch (error) {
-        console.error("Error fetching tours from Firestore:", error);
+        console.error('Error fetching tours from Firestore:', error);
       }
     };
-
     fetchTours();
   }, []);
 
-  // Fetch Bookings from firebase
   useEffect(() => {
     const fetchBookings = async () => {
       try {
-        const querySnapshot = await getDocs(collection(db, "Bookings"));
+        const querySnapshot = await getDocs(collection(db, 'Bookings'));
+        // Store the doc id as bookingId (stable key)
         const bookingsData = querySnapshot.docs.map(doc => ({
-          tourId: doc.id,
+          bookingId: doc.id,
           ...doc.data(),
         })) as BookingData[];
         setBookings(bookingsData);
       } catch (error) {
-        console.error("Error fetching bookings from Firestore:", error);
+        console.error('Error fetching bookings from Firestore:', error);
       }
     };
-
     fetchBookings();
   }, []);
 
+  // ---------- calendar grid ----------
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(monthStart);
-  const startDate = startOfWeek(monthStart);
-  const endDate = endOfWeek(monthEnd);
+  const gridStart = startOfWeek(monthStart);
+  const gridEnd = endOfWeek(monthEnd);
 
-  const generateCalendarDays = () => {
-    const days = [];
-    let day = startDate;
-    while (day <= endDate) {
-      days.push(day);
-      day = addDays(day, 1);
+  const calendarDays: Date[] = useMemo(() => {
+    const days: Date[] = [];
+    for (let d = new Date(gridStart); d <= gridEnd; d = addDays(d, 1)) {
+      days.push(new Date(d));
     }
     return days;
-  };
+  }, [gridStart.getTime(), gridEnd.getTime()]);
 
-  const calendarDays = generateCalendarDays();
-
-  const handleDayClick = (day: Date) => {
-    setSelectedDate(day);
-  };
-
+  const handleDayClick = (day: Date) => setSelectedDate(day);
   const handleToday = () => {
-    const today = getPacificTime(new Date());
+    const today = new Date();
     setCurrentMonth(today);
     setSelectedDate(today);
   };
-
   const handlePrevMonth = () => setCurrentMonth(subMonths(currentMonth, 1));
   const handleNextMonth = () => setCurrentMonth(addMonths(currentMonth, 1));
 
-  const selectedDateKey = format(getPacificTime(selectedDate), 'MM-dd-yyyy');
-  const filteredBookings = bookings.filter(booking => {
-    const bookingDate = getPacificTime(booking.date);
-    return format(bookingDate, 'MM-dd-yyyy') === selectedDateKey;
-  });
+  // ---------- calendar: selected day + bookings ----------
+  const selectedDateKey = ymdKey(selectedDate);
+  const filteredBookings = bookings.filter(b => b.date === selectedDateKey);
 
   const selectedWeekday = format(selectedDate, 'EEEE').toLowerCase() as keyof Besa['officeHours'];
 
-  // Get all bookings for list view
-  const getAllBookings = () => {
-  const now = new Date();
-  const today = format(now, 'MM-dd-yyyy');
-  
-  return bookings.filter(booking => {
-    if (dateFilter === 'upcoming') {
-      // Compare date strings directly
-      return booking.date >= today;
-    } else if (dateFilter === 'past') {
-      return booking.date < today;
-    }
-    return true; // 'all'
-  }).sort((a, b) => {
-    // Sort by date string (MM-dd-yyyy format sorts correctly when comparing same year)
-    return a.date.localeCompare(b.date);
-  });
-};
+  // show “hasBooking” markers without UTC shift
+  const dayHasBooking = (day: Date) => bookings.some(b => b.date === ymdKey(day));
 
-  // Group bookings by date for list view
-  const getGroupedBookings = (): { [key: string]: BookingData[] } => {
-  const filteredBookings = getAllBookings();
-  const grouped: { [key: string]: BookingData[] } = {}; // ← Add this type annotation
-  
-  filteredBookings.forEach(booking => {
-    const dateKey = booking.date;
-    if (!grouped[dateKey]) {
-      grouped[dateKey] = [];
+  // ---------- list view (upcoming / past / all) ----------
+  const groupedBookings = useMemo(() => {
+    const todayKey = ymdKey(new Date()); // 'YYYY-MM-DD'
+
+    const filtered = bookings.filter(b => {
+      if (!b?.date) return false;
+      if (dateFilter === 'upcoming') return b.date >= todayKey; // today & future
+      if (dateFilter === 'past') return b.date < todayKey;      // strictly before today
+      return true; // 'all'
+    });
+
+    // sort by date ASC, then time ASC
+    filtered.sort((a, b) => {
+      if (a.date !== b.date) return a.date.localeCompare(b.date);
+      return (a.time || '').localeCompare(b.time || '');
+    });
+
+    // group by booking.date ('YYYY-MM-DD')
+    const grouped: Record<string, BookingData[]> = {};
+    for (const b of filtered) {
+      (grouped[b.date] ||= []).push(b);
     }
-    grouped[dateKey].push(booking);
-  });
-  
-  return grouped;
-};
+    return grouped;
+  }, [bookings, dateFilter]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Schedule Management</h1>
         <p className="text-gray-600">View and manage tour schedules and office hours</p>
-        
+
         {/* View Toggle */}
         <div className="mt-4 flex space-x-2">
           <button
             onClick={() => setViewMode('calendar')}
             className={`flex items-center space-x-1 px-3 py-2 rounded-lg text-sm font-medium ${
-              viewMode === 'calendar' 
-                ? 'bg-blue-100 text-blue-700' 
+              viewMode === 'calendar'
+                ? 'bg-blue-100 text-blue-700'
                 : 'text-gray-600 hover:bg-gray-100'
             }`}>
             <Calendar className="h-4 w-4" />
@@ -290,8 +220,8 @@ export default function ScheduleView() {
           <button
             onClick={() => setViewMode('list')}
             className={`flex items-center space-x-1 px-3 py-2 rounded-lg text-sm font-medium ${
-              viewMode === 'list' 
-                ? 'bg-blue-100 text-blue-700' 
+              viewMode === 'list'
+                ? 'bg-blue-100 text-blue-700'
                 : 'text-gray-600 hover:bg-gray-100'
             }`}>
             <List className="h-4 w-4" />
@@ -310,21 +240,27 @@ export default function ScheduleView() {
                 <div className="flex items-center space-x-2">
                   <button
                     onClick={handlePrevMonth}
-                    className="text-lg px-3 py-1 text-black hover:bg-blue-50 rounded-lg">&lt;
+                    className="text-lg px-3 py-1 text-black hover:bg-blue-50 rounded-lg"
+                  >
+                    &lt;
                   </button>
                   <h2 className="text-xl font-bold text-gray-900">
                     {format(currentMonth, 'MMMM yyyy')}
                   </h2>
                   <button
                     onClick={handleNextMonth}
-                    className="text-lg px-3 py-1 text-black hover:bg-blue-50 rounded-lg">&gt;
+                    className="text-lg px-3 py-1 text-black hover:bg-blue-50 rounded-lg"
+                  >
+                    &gt;
                   </button>
                 </div>
 
                 {/* Right side: Today button */}
                 <button
                   onClick={handleToday}
-                  className="text-md px-3 py-1 text-blue-600 hover:bg-blue-50 rounded-lg">Today
+                  className="text-md px-3 py-1 text-blue-600 hover:bg-blue-50 rounded-lg"
+                >
+                  Today
                 </button>
               </div>
 
@@ -340,13 +276,10 @@ export default function ScheduleView() {
                 {calendarDays.map((day, i) => {
                   const isSelected = isSameDay(day, selectedDate);
                   const isCurrentMonth = isSameMonth(day, currentMonth);
-                  const hasBooking = bookings.some(booking => {
-                    const bookingDate = getPacificTime(booking.date);
-                    return isSameDay(bookingDate, day);
-                  });
+                  const hasBooking = dayHasBooking(day);
                   return (
                     <div
-                      key={i}
+                      key={`${ymdKey(day)}-${i}`}
                       onClick={() => handleDayClick(day)}
                       className={`p-2 text-center text-sm h-12 flex items-center justify-center rounded-lg cursor-pointer
                         ${isSelected
@@ -375,27 +308,33 @@ export default function ScheduleView() {
               <div className="space-y-4">
                 {filteredBookings.length > 0 ? (
                   filteredBookings.map(booking => (
-                    <div key={booking.tourId} className="border-l-4 border-blue-500 pl-4">
+                    <div
+                      key={booking.bookingId ?? `${booking.tourId}-${booking.date}-${booking.time}`}
+                      className="border-l-4 border-blue-500 pl-4"
+                    >
                       <div className="flex justify-between items-start">
                         <div>
                           <p className="font-medium text-gray-900">{booking.tourType}</p>
                           <p className="text-sm text-gray-500">
-                            {format(getPacificTime(booking.date), 'MMM d, yyyy')} at {formatTime12Hour(booking.time)}
+                            {format(parseYMDLocal(booking.date), 'MMM d, yyyy')} at {formatTime12Hour(booking.time)}
                           </p>
                           <p className="text-sm text-gray-600">{booking.attendees} attendees</p>
                           <p className="text-sm text-gray-600">{booking.firstName} {booking.lastName}</p>
                         </div>
                         <div className="flex items-center space-x-2">
-                          <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                            booking.status === 'confirmed'
-                              ? 'bg-green-100 text-green-800'
-                              : 'bg-yellow-100 text-yellow-800'
-                          }`}>
+                          <span
+                            className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                              booking.status === 'confirmed'
+                                ? 'bg-green-100 text-green-800'
+                                : 'bg-yellow-100 text-yellow-800'
+                            }`}
+                          >
                             {booking.status}
                           </span>
                           <button
                             onClick={() => setSelectedBooking(booking)}
-                            className="p-1 text-blue-600 hover:bg-blue-50 rounded">
+                            className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                          >
                             <Eye className="h-4 w-4" />
                           </button>
                         </div>
@@ -416,8 +355,8 @@ export default function ScheduleView() {
                 {besas
                   .filter(besa => besa.officeHours[selectedWeekday]?.available)
                   .map(besa => (
-                    <div key={besa.id} className="mb-2">
-                      <span className="text-sm text-gray-900 font-semibold">{besa.name}</span>
+                    <div key={(besa as any).id} className="mb-2">
+                      <span className="text-sm text-gray-900 font-semibold">{(besa as any).name}</span>
                       {besa.officeHours[selectedWeekday].timeSlots.length > 0 ? (
                         <div className="ml-2 flex flex-wrap gap-2 mt-1">
                           {besa.officeHours[selectedWeekday].timeSlots.map(slot => (
@@ -451,8 +390,8 @@ export default function ScheduleView() {
               <button
                 onClick={() => setDateFilter('upcoming')}
                 className={`px-3 py-2 rounded-lg text-sm font-medium ${
-                  dateFilter === 'upcoming' 
-                    ? 'bg-blue-100 text-blue-700' 
+                  dateFilter === 'upcoming'
+                    ? 'bg-blue-100 text-blue-700'
                     : 'text-gray-600 hover:bg-gray-100'
                 }`}>
                 Upcoming
@@ -460,8 +399,8 @@ export default function ScheduleView() {
               <button
                 onClick={() => setDateFilter('past')}
                 className={`px-3 py-2 rounded-lg text-sm font-medium ${
-                  dateFilter === 'past' 
-                    ? 'bg-blue-100 text-blue-700' 
+                  dateFilter === 'past'
+                    ? 'bg-blue-100 text-blue-700'
                     : 'text-gray-600 hover:bg-gray-100'
                 }`}>
                 Past
@@ -469,8 +408,8 @@ export default function ScheduleView() {
               <button
                 onClick={() => setDateFilter('all')}
                 className={`px-3 py-2 rounded-lg text-sm font-medium ${
-                  dateFilter === 'all' 
-                    ? 'bg-blue-100 text-blue-700' 
+                  dateFilter === 'all'
+                    ? 'bg-blue-100 text-blue-700'
                     : 'text-gray-600 hover:bg-gray-100'
                 }`}>
                 All
@@ -478,36 +417,44 @@ export default function ScheduleView() {
             </div>
 
             <div className="space-y-6 max-h-96 overflow-y-auto max-h-[80vh]">
-              {Object.keys(getGroupedBookings()).length > 0 ? (
-                Object.entries(getGroupedBookings()).map(([dateKey, dayBookings]) => {
-                  const date = new Date(dateKey);
+              {Object.keys(groupedBookings).length > 0 ? (
+                Object.entries(groupedBookings).map(([dateKey, dayBookings]) => {
+                  const dateObj = parseYMDLocal(dateKey);
                   return (
                     <div key={dateKey} className="border-b border-gray-100 pb-4 last:border-b-0">
                       <h4 className="font-bold text-gray-900 mb-3">
-                        {format(date, 'MMMM d, yyyy')}
+                        {format(dateObj, 'MMMM d, yyyy')}
                       </h4>
                       <div className="space-y-3 ml-4">
                         {dayBookings.map(booking => (
-                          <div key={booking.tourId} className="border border-gray-200 rounded-lg p-3">
+                          <div
+                            key={booking.bookingId ?? `${booking.tourId}-${booking.date}-${booking.time}`}
+                            className="border border-gray-200 rounded-lg p-3"
+                          >
                             <div className="flex justify-between items-start">
                               <div>
                                 <p className="font-medium text-gray-900">{booking.tourType}</p>
                                 <p className="text-sm text-gray-500">
                                   {formatTime12Hour(booking.time)}
                                 </p>
-                                <p className="text-md text-gray-600">{booking.firstName} {booking.lastName}</p>
+                                <p className="text-md text-gray-600">
+                                  {booking.firstName} {booking.lastName}
+                                </p>
                               </div>
                               <div className="flex items-center space-x-2">
-                                <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                                  booking.status === 'confirmed'
-                                    ? 'bg-green-100 text-green-800'
-                                    : 'bg-yellow-100 text-yellow-800'
-                                }`}>
+                                <span
+                                  className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                                    booking.status === 'confirmed'
+                                      ? 'bg-green-100 text-green-800'
+                                      : 'bg-yellow-100 text-yellow-800'
+                                  }`}
+                                >
                                   {booking.status}
                                 </span>
                                 <button
                                   onClick={() => setSelectedBooking(booking)}
-                                  className="p-1 text-blue-600 hover:bg-blue-50 rounded">
+                                  className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                                >
                                   <Eye className="h-4 w-4" />
                                 </button>
                               </div>
@@ -520,8 +467,8 @@ export default function ScheduleView() {
                 })
               ) : (
                 <p className="text-gray-500">
-                  {dateFilter === 'upcoming' ? 'No upcoming tours scheduled.' : 
-                   dateFilter === 'past' ? 'No past tours found.' : 
+                  {dateFilter === 'upcoming' ? 'No upcoming tours scheduled.' :
+                   dateFilter === 'past' ? 'No past tours found.' :
                    'No tours scheduled.'}
                 </p>
               )}
@@ -542,7 +489,7 @@ export default function ScheduleView() {
                 ✕
               </button>
             </div>
-            
+
             <div className="space-y-4">
               <div>
                 <span className="text-sm font-medium text-gray-700">Contact Name:</span>
@@ -555,7 +502,7 @@ export default function ScheduleView() {
               <div>
                 <span className="text-sm font-medium text-gray-700">Date & Time:</span>
                 <p className="text-sm text-gray-900">
-                  {format(getPacificTime(selectedBooking.date), 'MMMM d, yyyy')} at {formatTime12Hour(selectedBooking.time)}
+                  {format(parseYMDLocal(selectedBooking.date), 'MMMM d, yyyy')} at {formatTime12Hour(selectedBooking.time)}
                 </p>
               </div>
               <div className="grid grid-cols-2 gap-4">
