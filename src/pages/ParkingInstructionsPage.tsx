@@ -176,7 +176,7 @@ const ParkingInstructionsPage: React.FC = () => {
                   <ExternalLink className="w-5 h-5 text-gray-600" />
                   <div>
                     <a
-                      href="https://taps.ucsc.edu/parking/visitor-parking.html"
+                      href="https://transportation.ucsc.edu/"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="font-medium text-blue-600 hover:underline"
