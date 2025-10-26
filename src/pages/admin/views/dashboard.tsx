@@ -4,7 +4,6 @@ import { Calendar, Users, Trash2, Plus, X } from 'lucide-react';
 import { db } from '../../../../src/firebase.ts';
 import { collection, getDocs, updateDoc, doc, deleteDoc } from "firebase/firestore";
 
-{/* Have it auto-assign BESAS and save correctly */}
 {/* Bookings don't delete, tourID problem */}
 
 export default function DashboardView() {
@@ -172,6 +171,27 @@ export default function DashboardView() {
     
     return `${hour.toString().padStart(2, '0')}:${minute}`;
   };
+
+  const toDateTime = (dateStr: string, time12?: string) => {
+  const base = new Date(`${dateStr}T00:00:00`);
+  if (!time12) return base; // treat as start of day if no time
+  const t24 = parseTime12Hour(time12);
+  if (!t24) return base;
+  const [hh, mm] = t24.split(':').map(Number);
+  base.setHours(hh, mm, 0, 0);
+  return base;
+};
+
+const futureBookings = bookings
+  .filter((b) => {
+    if (!b?.date) return false;
+    const when = toDateTime(b.date, b.time);
+    const now = new Date();
+    // same-day past times are excluded; future times included
+    return when.getTime() >= now.getTime();
+  })
+  .sort((a, b) => toDateTime(a.date, a.time).getTime() - toDateTime(b.date, b.time).getTime());
+
 
   // Check if a booking time falls within a BESA's availability
   const isBesaAvailable = (besa: BesaData, bookingDate: string, bookingTime: string) => {
@@ -394,7 +414,7 @@ export default function DashboardView() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {bookings.map((booking) => (
+              {futureBookings.map((booking) => (
                 <tr key={booking.tourId} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     {booking.tourType}
@@ -404,7 +424,7 @@ export default function DashboardView() {
                     <div className="text-sm text-gray-500">{booking.time}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {booking.maxAttendees}/{tours.find(t => t.title === booking.tourType)?.maxAttendees}
+                    {booking.maxAttendees}/{tours.find(t => t.title === booking.tourType)?.maxBookings}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {booking.besas && booking.besas.length > 0 ? (
