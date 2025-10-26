@@ -4,7 +4,7 @@ import { Calendar, Users, Trash2, Plus, X } from 'lucide-react';
 import { db } from '../../../../src/firebase.ts';
 import { collection, getDocs, updateDoc, doc, deleteDoc } from "firebase/firestore";
 
-{/* Bookings don't delete, tourID problem */}
+// Bookings don't delete, tourID problem (fixed by using bookingId)
 
 export default function DashboardView() {
   const [currentRole, setCurrentRole] = useState<UserRole>("public");
@@ -27,7 +27,7 @@ export default function DashboardView() {
     6: 'saturday'
   };
 
-  {/* Fetch BESA Data */}
+  // Fetch BESA Data
   useEffect(() => {
     const fetchBESAs = async () => {
       try {
@@ -47,8 +47,8 @@ export default function DashboardView() {
                 available: true,
                 timeSlots: [{
                   id: Math.random().toString(36).substr(2, 9),
-                  start: typeof hours.start === 'string' ? hours.start : '09:00',
-                  end: typeof hours.end === 'string' ? hours.end : '17:00'
+                  start: typeof (hours as any).start === 'string' ? (hours as any).start : '09:00',
+                  end: typeof (hours as any).end === 'string' ? (hours as any).end : '17:00'
                 }]
               };
             } else if (
@@ -93,7 +93,7 @@ export default function DashboardView() {
     fetchBESAs();
   }, []);
 
-  {/* Fetch Booking Data */}
+  // Fetch Booking & Tour Data
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -107,16 +107,16 @@ export default function DashboardView() {
         const bookingsRef = collection(db, "Bookings");
         const snapshot = await getDocs(bookingsRef);
         const data = snapshot.docs.map((doc) => {
-          const docData = doc.data();
+          const docData = doc.data() as any;
           return {
-            tourId: doc.id,
+            bookingId: doc.id, // unique per booking doc
             ...docData,
-            // Handle backward compatibility - convert single besa to array
-            besas: docData.besas ? docData.besas : (docData.besa ? [docData.besa] : [])
+            // Back-compat: convert single besa to array
+            besas: docData?.besas ? docData.besas : (docData?.besa ? [docData.besa] : [])
           };
         }) as BookingData[];
 
-        // Sort bookings by date (most recent first)
+        // Sort by date ascending
         const sortedData = data.sort((a, b) => {
           const dateA = new Date(a.date);
           const dateB = new Date(b.date);
@@ -125,12 +125,13 @@ export default function DashboardView() {
 
         setBookings(sortedData);
 
+        // Stats
         const today = new Date();
         const todayStr = today.toISOString().split("T")[0];
 
         const startOfWeek = new Date(today);
         startOfWeek.setDate(today.getDate() - today.getDay());
-        const endOfWeek = new Date(today);
+        const endOfWeek = new Date(startOfWeek);
         endOfWeek.setDate(startOfWeek.getDate() + 6);
 
         const todayCount = data.filter((b) => b.date === todayStr).length;
@@ -152,65 +153,47 @@ export default function DashboardView() {
   // Convert 12hr to 24hr format
   const parseTime12Hour = (time12: string) => {
     if (!time12) return '';
-    
-    // Handle various time formats
     const timeRegex = /(\d{1,2}):(\d{2})\s*(AM|PM)/i;
     const match = time12.match(timeRegex);
-    
     if (!match) return '';
-    
     let hour = parseInt(match[1], 10);
     const minute = match[2];
     const ampm = match[3].toUpperCase();
-    
-    if (ampm === 'PM' && hour !== 12) {
-      hour += 12;
-    } else if (ampm === 'AM' && hour === 12) {
-      hour = 0;
-    }
-    
+    if (ampm === 'PM' && hour !== 12) hour += 12;
+    else if (ampm === 'AM' && hour === 12) hour = 0;
     return `${hour.toString().padStart(2, '0')}:${minute}`;
   };
 
   const toDateTime = (dateStr: string, time12?: string) => {
-  const base = new Date(`${dateStr}T00:00:00`);
-  if (!time12) return base; // treat as start of day if no time
-  const t24 = parseTime12Hour(time12);
-  if (!t24) return base;
-  const [hh, mm] = t24.split(':').map(Number);
-  base.setHours(hh, mm, 0, 0);
-  return base;
-};
+    const base = new Date(`${dateStr}T00:00:00`);
+    if (!time12) return base; // treat as start of day if no time
+    const t24 = parseTime12Hour(time12);
+    if (!t24) return base;
+    const [hh, mm] = t24.split(':').map(Number);
+    base.setHours(hh, mm, 0, 0);
+    return base;
+  };
 
-const futureBookings = bookings
-  .filter((b) => {
-    if (!b?.date) return false;
-    const when = toDateTime(b.date, b.time);
-    const now = new Date();
-    // same-day past times are excluded; future times included
-    return when.getTime() >= now.getTime();
-  })
-  .sort((a, b) => toDateTime(a.date, a.time).getTime() - toDateTime(b.date, b.time).getTime());
-
+  // Only upcoming bookings (now or later)
+  const futureBookings = bookings
+    .filter((b) => {
+      if (!b?.date) return false;
+      const when = toDateTime(b.date, b.time);
+      const now = new Date();
+      return when.getTime() >= now.getTime();
+    })
+    .sort((a, b) => toDateTime(a.date, a.time).getTime() - toDateTime(b.date, b.time).getTime());
 
   // Check if a booking time falls within a BESA's availability
   const isBesaAvailable = (besa: BesaData, bookingDate: string, bookingTime: string) => {
     if (!bookingDate || !bookingTime) return false;
-    
     const date = new Date(bookingDate);
     const dayOfWeek = date.getDay();
     const dayKey = dayMapping[dayOfWeek as keyof typeof dayMapping];
-    
     const dayHours = besa.officeHours[dayKey];
-    if (!dayHours || !dayHours.available || dayHours.timeSlots.length === 0) {
-      return false;
-    }
-    
-    // Convert booking time to 24hr format for comparison
+    if (!dayHours || !dayHours.available || dayHours.timeSlots.length === 0) return false;
     const bookingTime24 = parseTime12Hour(bookingTime);
     if (!bookingTime24) return false;
-    
-    // Check if booking time falls within any of the BESA's time slots
     return dayHours.timeSlots.some(slot => {
       return bookingTime24 >= slot.start && bookingTime24 <= slot.end;
     });
@@ -235,13 +218,7 @@ const futureBookings = bookings
   // Handle date/time changes and auto-assign BESAs
   const handleDateTimeChange = (field: 'date' | 'time', value: string) => {
     if (!formData) return;
-    
-    const updatedFormData = {
-      ...formData,
-      [field]: value
-    };
-    
-    // Auto-assign BESAs when both date and time are available
+    const updatedFormData = { ...formData, [field]: value };
     if (updatedFormData.date && updatedFormData.time) {
       const withAutoAssignedBesas = autoAssignBesas(updatedFormData);
       setFormData(withAutoAssignedBesas);
@@ -259,25 +236,25 @@ const futureBookings = bookings
     setDeleteBooking(booking);
   };
 
+  const reloadBookings = async () => {
+    const bookingsRef = collection(db, "Bookings");
+    const snapshot = await getDocs(bookingsRef);
+    const data = snapshot.docs.map((doc) => {
+      const docData = doc.data() as any;
+      return {
+        bookingId: doc.id,
+        ...docData,
+        besas: docData?.besas ? docData.besas : (docData?.besa ? [docData.besa] : [])
+      };
+    }) as BookingData[];
+    setBookings(data);
+  };
+
   const confirmDelete = async () => {
-    if (!deleteBooking || !deleteBooking.tourId) return;
-    
+    if (!deleteBooking || !deleteBooking.bookingId) return;
     try {
-      await deleteDoc(doc(db, "Bookings", deleteBooking.tourId));
-      
-      // Refresh bookings list
-      const bookingsRef = collection(db, "Bookings");
-      const snapshot = await getDocs(bookingsRef);
-      const data = snapshot.docs.map((doc) => {
-        const docData = doc.data();
-        return {
-          tourId: doc.id,
-          ...docData,
-          besas: docData.besas ? docData.besas : (docData.besa ? [docData.besa] : [])
-        };
-      }) as BookingData[];
-      setBookings(data);
-      
+      await deleteDoc(doc(db, "Bookings", deleteBooking.bookingId));
+      await reloadBookings();
       setDeleteBooking(null);
       alert("Booking deleted successfully!");
     } catch (error) {
@@ -289,27 +266,14 @@ const futureBookings = bookings
   const handleSave = async () => {
     if (!editBooking || !formData) return;
     try {
-      // Clean up the data before saving
       const saveData = {
         ...formData,
         besas: formData.besas?.filter(besa => besa.trim() !== '') || []
       };
-      
-      await updateDoc(doc(db, "Bookings", formData.tourId!), saveData);
+      if (!formData.bookingId) throw new Error("Missing bookingId on formData");
+      await updateDoc(doc(db, "Bookings", formData.bookingId), saveData as any);
       setEditBooking(null);
-      
-      const bookingsRef = collection(db, "Bookings");
-      const snapshot = await getDocs(bookingsRef);
-      const data = snapshot.docs.map((doc) => {
-        const docData = doc.data();
-        return {
-          tourId: doc.id,
-          ...docData,
-          besas: docData.besas ? docData.besas : (docData.besa ? [docData.besa] : [])
-        };
-      }) as BookingData[];
-      setBookings(data);
-      
+      await reloadBookings();
       alert("Booking updated successfully!");
     } catch (error) {
       console.error("Error updating booking:", error);
@@ -396,7 +360,7 @@ const futureBookings = bookings
         </div>
       </div>
 
-      {/* Recent Bookings */}
+      {/* Recent Bookings (future only) */}
       <div className="bg-white rounded-xl shadow-sm border">
         <div className="p-6 border-b">
           <h2 className="text-xl font-bold text-gray-900">Recent Bookings</h2>
@@ -415,7 +379,7 @@ const futureBookings = bookings
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {futureBookings.map((booking) => (
-                <tr key={booking.tourId} className="hover:bg-gray-50">
+                <tr key={booking.bookingId} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     {booking.tourType}
                   </td>
@@ -429,8 +393,11 @@ const futureBookings = bookings
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {booking.besas && booking.besas.length > 0 ? (
                       <div className="space-y-1">
-                        {booking.besas.map((besa, index) => (
-                          <div key={index} className="inline-block bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs mr-1">
+                        {booking.besas.map((besa) => (
+                          <div
+                            key={`${booking.bookingId}-${besa}`}
+                            className="inline-block bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs mr-1"
+                          >
                             {besa}
                           </div>
                         ))}
@@ -462,6 +429,13 @@ const futureBookings = bookings
                   </td>
                 </tr>
               ))}
+              {futureBookings.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="px-6 py-8 text-center text-sm text-gray-500">
+                    No upcoming bookings.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
@@ -614,7 +588,7 @@ const futureBookings = bookings
               {formData.besas && formData.besas.length > 0 ? (
                 <div className="space-y-2 mb-3">
                   {formData.besas.map((besa, index) => (
-                    <div key={index} className="flex items-center gap-2 p-2 bg-green-50 border border-green-200 rounded-lg">
+                    <div key={`${besa}-${index}`} className="flex items-center gap-2 p-2 bg-green-50 border border-green-200 rounded-lg">
                       <div className="flex-1 text-sm text-green-800">
                         ✓ {besa} (auto-assigned)
                       </div>
@@ -649,7 +623,7 @@ const futureBookings = bookings
                       if (e.target.value) {
                         const newBesas = [...(formData.besas || []), e.target.value];
                         setFormData({ ...formData, besas: newBesas });
-                        e.target.value = ""; // Reset selection
+                        (e.target as HTMLSelectElement).value = ""; // Reset selection
                       }
                     }}
                     className="flex-1 px-3 py-2 border rounded-lg text-sm"
@@ -693,7 +667,7 @@ const futureBookings = bookings
                 <div className="flex flex-wrap gap-2">
                   {formData.interests.map((interest, index) => (
                     <span
-                      key={index}
+                      key={`${interest}-${index}`}
                       className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800 border border-blue-200"
                     >
                       {interest}

@@ -122,7 +122,8 @@ declare global {
     }
 
     interface BookingData {
-        tourId?: string;
+        bookingId: string; // specific ID for each booking
+        tourId?: string; // gets tour name for display purposes
         timeSlot?: string,
         groupSize?: number,
         tourType?: string;
