@@ -82,9 +82,20 @@ const ParkingInstructionsPage: React.FC = () => {
             <div className="mb-8">
               <h3 className="text-2xl font-bold text-gray-900 mb-4">Baskin Parking Videos</h3>
               
-              <div className="relative">
+              <div className="relative flex items-center gap-4">
+                {/* Left Arrow */}
+                {videos.length > 1 && (
+                  <button
+                    onClick={prevVideo}
+                    className="flex-shrink-0 bg-blue-600 hover:bg-blue-700 text-white rounded-full p-3 transition-all duration-200 shadow-lg"
+                    aria-label="Previous video"
+                  >
+                    <ChevronLeft className="w-6 h-6" />
+                  </button>
+                )}
+                
                 {/* Video Container */}
-                <div className="relative bg-gray-100 rounded-lg overflow-hidden" style={{ paddingBottom: '56.25%', height: 0 }}>
+                <div className="flex-1 relative bg-gray-100 rounded-lg overflow-hidden" style={{ paddingBottom: '56.25%', height: 0 }}>
                   <iframe
                     className="absolute top-0 left-0 w-full h-full"
                     src={`https://www.youtube.com/embed/${videos[currentVideoIndex].id}`}
@@ -93,58 +104,49 @@ const ParkingInstructionsPage: React.FC = () => {
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
                   ></iframe>
-                  
-                  {/* Navigation Arrows */}
-                  {videos.length > 1 && (
-                    <>
-                      <button
-                        onClick={prevVideo}
-                        className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-70 text-white rounded-full p-2 transition-all duration-200"
-                        aria-label="Previous video"
-                      >
-                        <ChevronLeft className="w-6 h-6" />
-                      </button>
-                      <button
-                        onClick={nextVideo}
-                        className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-70 text-white rounded-full p-2 transition-all duration-200"
-                        aria-label="Next video"
-                      >
-                        <ChevronRight className="w-6 h-6" />
-                      </button>
-                    </>
-                  )}
                 </div>
                 
-                {/* Video Info */}
-                <div className="mt-4">
-                  <h4 className="text-lg font-semibold text-gray-900">{videos[currentVideoIndex].title}</h4>
-                  <p className="text-sm text-gray-600 mt-1">{videos[currentVideoIndex].description}</p>
-                  
-                  {/* Video Indicators */}
-                  {videos.length > 1 && (
-                    <div className="flex justify-center mt-4 gap-2">
-                      {videos.map((_, index) => (
-                        <button
-                          key={index}
-                          onClick={() => setCurrentVideoIndex(index)}
-                          className={`w-3 h-3 rounded-full transition-all duration-200 ${
-                            index === currentVideoIndex 
-                              ? 'bg-blue-600' 
-                              : 'bg-gray-300 hover:bg-gray-400'
-                          }`}
-                          aria-label={`Go to video ${index + 1}`}
-                        />
-                      ))}
-                    </div>
-                  )}
-                  
-                  {/* Video Counter */}
-                  {videos.length > 1 && (
-                    <p className="text-center text-sm text-gray-500 mt-2">
-                      Video {currentVideoIndex + 1} of {videos.length}
-                    </p>
-                  )}
-                </div>
+                {/* Right Arrow */}
+                {videos.length > 1 && (
+                  <button
+                    onClick={nextVideo}
+                    className="flex-shrink-0 bg-blue-600 hover:bg-blue-700 text-white rounded-full p-3 transition-all duration-200 shadow-lg"
+                    aria-label="Next video"
+                  >
+                    <ChevronRight className="w-6 h-6" />
+                  </button>
+                )}
+              </div>
+                
+              {/* Video Info */}
+              <div className="mt-4">
+                <h4 className="text-lg font-semibold text-gray-900">{videos[currentVideoIndex].title}</h4>
+                <p className="text-sm text-gray-600 mt-1">{videos[currentVideoIndex].description}</p>
+                
+                {/* Video Indicators */}
+                {videos.length > 1 && (
+                  <div className="flex justify-center mt-4 gap-2">
+                    {videos.map((_, index) => (
+                      <button
+                        key={index}
+                        onClick={() => setCurrentVideoIndex(index)}
+                        className={`w-3 h-3 rounded-full transition-all duration-200 ${
+                          index === currentVideoIndex 
+                            ? 'bg-blue-600' 
+                            : 'bg-gray-300 hover:bg-gray-400'
+                        }`}
+                        aria-label={`Go to video ${index + 1}`}
+                      />
+                    ))}
+                  </div>
+                )}
+                
+                {/* Video Counter */}
+                {videos.length > 1 && (
+                  <p className="text-center text-sm text-gray-500 mt-2">
+                    Video {currentVideoIndex + 1} of {videos.length}
+                  </p>
+                )}
               </div>
             </div>
 
