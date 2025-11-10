@@ -80,21 +80,21 @@ function BookingPage() {
       const toursData: Tour[] = querySnapshot.docs.map((d) => {
         const data: any = d.data();
         return {
-          tourId: d.id, // ← Changed from 'id' to 'tourId'
+          tourId: d.id, 
           title: data.title ?? "",
           description: data.description ?? "",
           duration: data.duration ?? 0,
           durationUnit: data.durationUnit ?? "minutes",
           maxAttendeesPerBooking: data.maxAttendees ?? 5,
           maxBookings: data.maxBookings ?? 3,
-          startDate: data.startDate, // ← Add this
-          endDate: data.endDate, // ← Add this
+          startDate: data.startDate,
+          endDate: data.endDate, 
           location: data.location ?? "",
           zoomLink: data.zoomLink ?? "",
           autoGenerateZoom: data.autoGenerateZoom ?? false,
           weeklyHours: data.weeklyHours ?? {},
           dateSpecificBlockDays: data.dateSpecificBlockDays ?? [],
-          dateSpecificDays: data.dateSpecificDays ?? [], // ← Add this
+          dateSpecificDays: data.dateSpecificDays ?? [], 
           frequency: data.frequency ?? 1,
           frequencyUnit: data.frequencyUnit ?? "hours",
           registrationLimit: data.registrationLimit ?? 1,
@@ -425,12 +425,20 @@ const isDateAvailable = (dateString: string, tour: Tour): { available: boolean; 
 
   // Check if date falls within any dateSpecificDays range
   const isInDateRange = tour.dateSpecificDays?.some(range => {
-    const start = new Date(range.startDate);
-    const end = new Date(range.endDate);
-    start.setHours(0, 0, 0, 0);
-    end.setHours(23, 59, 59, 999);
-    return selectedDate >= start && selectedDate <= end;
-  });
+  const tourStart = new Date(range.startDate);
+  const tourEnd = new Date(range.endDate);
+  tourStart.setHours(0, 0, 0, 0);
+  tourEnd.setHours(23, 59, 59, 999);
+
+  const selectedStart = new Date(range.startDate);
+  const selectedEnd = new Date(range.endDate);
+  selectedStart.setHours(0, 0, 0, 0);
+  selectedEnd.setHours(23, 59, 59, 999);
+
+  // ✅ checks if selected range is fully inside the allowed tour range
+  return selectedStart >= tourStart && selectedEnd <= tourEnd;
+});
+
 
   // Check if the day of week has available hours in weeklyHours
   const hasWeeklyHours = tour.weeklyHours?.[dayOfWeek]?.length > 0;
@@ -444,15 +452,27 @@ const isDateAvailable = (dateString: string, tour: Tour): { available: boolean; 
   }
 
   // Check dateSpecificBlockDays for unavailable dates
-  const dateSpecific = tour.dateSpecificBlockDays?.find(d => d.date === dateString);
-  if (dateSpecific?.unavailable) {
-    return { 
-      available: false, 
-      reason: "This date is unavailable for bookings." 
-    };
-  }
+  const dateSpecific = tour.dateSpecificBlockDays?.find(d => {
+  const blockStart = new Date(d.startDate);
+  const blockEnd = new Date(d.endDate ?? d.startDate);
 
-  return { available: true };
+  blockStart.setHours(0, 0, 0, 0);
+  blockEnd.setHours(23, 59, 59, 999);
+
+  const selected = new Date(dateString);
+  selected.setHours(12, 0, 0, 0);
+
+  return selected >= blockStart && selected <= blockEnd;
+});
+
+if (dateSpecific?.unavailable) {
+  return {
+    available: false,
+    reason: "This date is unavailable for bookings.",
+  };
+}
+
+return { available: true };
 };
 
   // ---------- Validation ----------
@@ -656,7 +676,6 @@ const handleSubmit = async () => {
     let rangeMaxDate = null;
 
     if (selectedTourData.dateSpecificDays && selectedTourData.dateSpecificDays.length > 0) {
-      // Find the earliest startDate and latest endDate in the array
       const dates = selectedTourData.dateSpecificDays.map(d => ({
         start: new Date(d.startDate + 'T00:00:00'),
         end: new Date(d.endDate + 'T00:00:00')
@@ -721,7 +740,7 @@ const handleSubmit = async () => {
     
     // Check for date-specific hours first
     const dateSpecific = selectedTourData.dateSpecificBlockDays?.find(
-      (d) => d.date === dateStr && !d.unavailable
+      (d) => d.startDate === dateStr && !d.unavailable
     );
     
     let allTimeSlots: string[] = [];
@@ -981,7 +1000,7 @@ const renderSection2 = () => {
       
       // Check for date-specific hours first
       const dateSpecific = selected.dateSpecificBlockDays?.find(
-        (d) => d.date === date && !d.unavailable
+        (d) => d.startDate === date && !d.unavailable
       );
       
       let allTimeSlots: string[] = [];

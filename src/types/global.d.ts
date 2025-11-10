@@ -37,7 +37,8 @@ declare global {
         // Example: [{ date: '2023-12-25', slots: [{ start: '10:00', end: '12:00' }], unavailable: false }]
         // If 'unavailable' is true, the date is blocked regardless of slots
         dateSpecificBlockDays: Array<{ 
-            date: string;
+            startDate: string;
+            endDate?: string;
             slots: { start: string; end: string }[];
             unavailable: boolean;
         }>;
