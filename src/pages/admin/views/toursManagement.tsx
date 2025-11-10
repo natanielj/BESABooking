@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { ArrowLeft, ArrowRight, Calendar, Clock, MapPin, Users, Settings, FileText, Bell, CheckCircle,Plus,X,Globe,Video,AlertCircle,Edit3,Trash2,Eye} from 'lucide-react';
 import { db } from "../../../../src/firebase.ts";
-import { collection, onSnapshot, deleteDoc, doc, updateDoc, addDoc } from "firebase/firestore";
+import { collection, onSnapshot, deleteDoc, doc, updateDoc, addDoc, getDocs, writeBatch } from "firebase/firestore";
 
 const DAYS_OF_WEEK = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
@@ -43,7 +43,9 @@ function TourFormPage({ onBack, editingTour }: { onBack: () => void; editingTour
     },
     reminderEmails: [{ timing: 24, unit: 'hours' }],
     sessionInstructions: '',
-    published: false
+    published: false,
+    // NEW field: whether to apply holiday dates to all tours
+    applyToAllTours: false
   });
 
   const isEditing = !!editingTour;
@@ -128,6 +130,52 @@ function TourFormPage({ onBack, editingTour }: { onBack: () => void; editingTour
         return tour.location.trim() || tour.zoomLink.trim() || tour.autoGenerateZoom;
       default:
         return true;
+    }
+  };
+
+  // Utility: merge universalDates into existingDates without exact duplicates
+  const mergeDateOverrides = (existingDates: any[] = [], universalDates: any[] = []) => {
+    if (!universalDates || universalDates.length === 0) return existingDates || [];
+    const seen = new Set<string>();
+    const add = (d: any) => {
+      const key = JSON.stringify({
+        startDate: d.startDate || '',
+        endDate: d.endDate || '',
+        unavailable: !!d.unavailable,
+        // if you need to consider slots too, include them in the key
+      });
+      if (!seen.has(key)) {
+        seen.add(key);
+        merged.push(d);
+      }
+    };
+    const merged: any[] = [];
+    (existingDates || []).forEach(add);
+    (universalDates || []).forEach(add);
+    return merged;
+  };
+
+  // Apply the tour.dateSpecificBlockDays (universalDates) to every tour in Firestore
+  const applyUniversalDatesToAll = async (universalDates: any[]) => {
+    try {
+      if (!universalDates || universalDates.length === 0) return;
+      const toursRef = collection(db, "Tours");
+      const snapshot = await getDocs(toursRef);
+      if (snapshot.empty) return;
+
+      const batch = writeBatch(db);
+      snapshot.docs.forEach((d) => {
+        const docData = d.data() as any;
+        const existing = Array.isArray(docData.dateSpecificBlockDays) ? docData.dateSpecificBlockDays : [];
+        const merged = mergeDateOverrides(existing, universalDates);
+        const tourRef = doc(db, "Tours", d.id);
+        batch.update(tourRef, { dateSpecificBlockDays: merged });
+      });
+
+      await batch.commit();
+    } catch (err) {
+      console.error("Error applying universal dates to all tours:", err);
+      // we surface the error to console — optional: show alert to user
     }
   };
 
@@ -401,21 +449,34 @@ function TourFormPage({ onBack, editingTour }: { onBack: () => void; editingTour
           <h3 className="text-base 2xl:text-lg font-medium text-gray-900">Holidays & Special Events</h3>
           <p className="text-xs 2xl:text-sm text-gray-500 mt-1">Block off specific dates or date ranges</p>
         </div>
-        <button
-          type="button"
-          onClick={() => {
-            updateTour({
-              dateSpecificBlockDays: [
-                ...(tour.dateSpecificBlockDays || []),
-                { startDate: '', endDate: '', slots: [], unavailable: true }
-              ]
-            });
-          }}
-          className="text-blue-600 hover:bg-blue-50 px-3 py-2 rounded-lg flex items-center space-x-1 self-start"
-        >
-          <Plus className="h-4 w-4" />
-          <span className="text-sm">Add Date Override</span>
-        </button>
+        <div className="flex items-center space-x-3">
+          <button
+            type="button"
+            onClick={() => {
+              updateTour({
+                dateSpecificBlockDays: [
+                  ...(tour.dateSpecificBlockDays || []),
+                  { startDate: '', endDate: '', slots: [], unavailable: true }
+                ]
+              });
+            }}
+            className="text-blue-600 hover:bg-blue-50 px-3 py-2 rounded-lg flex items-center space-x-1 self-start"
+          >
+            <Plus className="h-4 w-4" />
+            <span className="text-sm">Add Date Override</span>
+          </button>
+
+          {/* NEW: Apply to all tours toggle */}
+          <label className="flex items-center space-x-2 text-sm">
+            <input
+              type="checkbox"
+              checked={!!tour.applyToAllTours}
+              onChange={(e) => updateTour({ applyToAllTours: e.target.checked })}
+              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+            />
+            <span className="text-xs text-gray-600">Apply these dates to all tours</span>
+          </label>
+        </div>
       </div>
 
       <div className="space-y-3 2xl:space-y-4">
@@ -947,18 +1008,29 @@ function TourFormPage({ onBack, editingTour }: { onBack: () => void; editingTour
 
   const handleSaveTour = async (tourToSave: Tour) => {
     try {
+      // Save or update this tour
       if (isEditing && tourToSave.tourId) {
         const { tourId, ...updateData } = tourToSave;
         await updateDoc(doc(db, "Tours", tourId), updateData);
+        // If applyToAllTours selected, propagate dateSpecificBlockDays to all tours
+        if (tourToSave.applyToAllTours) {
+          await applyUniversalDatesToAll(tourToSave.dateSpecificBlockDays || []);
+        }
         alert('Tour updated!');
       } else {
         const { tourId, ...newTourData } = tourToSave;
-        await addDoc(collection(db, "Tours"), {
+        const addedRef = await addDoc(collection(db, "Tours"), {
           ...newTourData,
           createdAt: new Date().toISOString().split('T')[0],
           upcomingBookings: 0,
           totalBookings: 0,
         });
+        // After creating, if applyToAllTours selected, apply to existing tours
+        if (tourToSave.applyToAllTours) {
+          // applyUniversalDatesToAll will iterate all tours and include the new tour too (it will update existing docs)
+          // Note: addDoc already created the new tour; the batch will update every tour doc including ones created earlier.
+          await applyUniversalDatesToAll(tourToSave.dateSpecificBlockDays || []);
+        }
         alert('Tour created!');
       }
       onBack();
@@ -1153,17 +1225,6 @@ function ToursDashboard({ onCreateTour, onEditTour, tours, setTours }: {
     return () => unsubscribe();
   }, [setTours]);
 
-  // const updateTour = async (updatedTour: Tour) => {
-  //   if (!updatedTour.tourId) return;
-  //   try {
-  //     const tourRef = doc(db, "Tours", updatedTour.tourId);
-  //     await updateDoc(tourRef, updatedTour);
-  //     setTours(tours.map((tour) => (tour.tourId === updatedTour.tourId ? updatedTour : tour)));
-  //   } catch (err) {
-  //     console.error("Error updating tour:", err);
-  //   }
-  // };
-
   const getDateRange = (tour: Tour) => {
     if (tour.startDate && tour.endDate) {
       const start = new Date(tour.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
@@ -1318,27 +1379,11 @@ function ToursDashboard({ onCreateTour, onEditTour, tours, setTours }: {
                     
                     {tour.published && (
                       <div className="flex items-center space-x-6 mt-4 pt-4 border-t border-gray-100">
-                        {/* <div className="text-sm">
-                          <span className="text-gray-600">Upcoming: </span>
-                          <span className="font-medium text-blue-600">{tour.upcomingBookings || 0}</span>
-                        </div>
-                        <div className="text-sm">
-                          <span className="text-gray-600">Total Bookings: </span>
-                          <span className="font-medium text-gray-900">{tour.totalBookings || 0}</span>
-                        </div> */}
                       </div>
                     )}
                   </div>
                   
                   <div className="flex items-center space-x-2 ml-4">
-                    {/* <button
-                      onClick={() => alert(`Viewing tour: ${tour.title}`)}
-                      className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg"
-                      title="View Tour"
-                    >
-                      <Eye className="h-4 w-4" />
-                    </button> */}
-                    
                     <button
                       onClick={() => onEditTour(tour)}
                       className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg"

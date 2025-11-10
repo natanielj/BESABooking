@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import type { UserRole } from "../../../appTypes.d.ts";
 import { Calendar, Users, Trash2, Plus, X } from 'lucide-react';
 import { db } from '../../../../src/firebase.ts';

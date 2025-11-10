@@ -54,6 +54,7 @@ declare global {
         // Recurrence
         frequency: number; // e.g., every 1 hour
         frequencyUnit: 'minutes' | 'hours' | 'hour'; // Unit for frequency;
+        applyToAllTours?: boolean; // Whether recurrence applies to all dates
 
         // Scheduling Rules
         registrationLimit: number; // Max Bookings allowed

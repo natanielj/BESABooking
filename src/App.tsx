@@ -36,7 +36,7 @@ const FeedbackButton = () => {
 
 function App() {
   const [tours, setTours] = useState<Tour[]>([]);
-  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
+  // const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
   const navigate = useNavigate();
   const [logoClickCount, setLogoClickCount] = useState(0);
 

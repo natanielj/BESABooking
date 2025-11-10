@@ -180,6 +180,8 @@ const DynamicBookingForm: React.FC<DynamicBookingFormProps> = ({
 
   // --- Add bookings state and fetch logic ---
   const [bookings, setBookings] = useState<any[]>([]);
+  const [universalOverrides, setUniversalOverrides] = useState<any[]>([]);
+
 
   useEffect(() => {
     const fetchBookings = async () => {
@@ -192,6 +194,21 @@ const DynamicBookingForm: React.FC<DynamicBookingFormProps> = ({
       }
     };
     fetchBookings();
+  }, []);
+
+  useEffect(() => {
+    const fetchUniversal = async () => {
+      try {
+        const snap = await getDocs(collection(db, "UniversalDateOverrides"));
+        const data = snap.docs.map(d => ({ id: d.id, ...(d.data() || {}) }));
+        setUniversalOverrides(data);
+      } catch (err) {
+        // If collection doesn't exist, just keep an empty array
+        console.warn("No universal overrides found or error fetching:", err);
+        setUniversalOverrides([]);
+      }
+    };
+    fetchUniversal();
   }, []);
 
   const sections = [
@@ -212,7 +229,7 @@ const DynamicBookingForm: React.FC<DynamicBookingFormProps> = ({
       ...prev,
       tourId: t.tourId,
       tourType: t.title,
-      maxAttendees: 1, // Always default to 1 when selecting a tour
+      maxAttendees: 1,
     }));
     console.log("Tour Selected", t.tourId);
   };
