@@ -257,6 +257,7 @@ const futureBookings = bookings
 
   const handleDeleteClick = (booking: BookingData) => {
     setDeleteBooking(booking);
+    
   };
 
   const confirmDelete = async () => {
