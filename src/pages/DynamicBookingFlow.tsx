@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import {Calendar, Clock, Users, User, ArrowLeft, ArrowRight, Check, AlertCircle, GraduationCap, ChevronRight, ChevronLeft} from "lucide-react";
 import { collection, getDocs, doc, setDoc } from "firebase/firestore";
 import { db } from "../../src/firebase.ts";
-import { getCalendarAccessToken, insertCalendarEvent } from "../calendarAPI.tsx";
+// import { getCalendarAccessToken, insertCalendarEvent } from "../calendarAPI.tsx";
 
 // Add Booking type definition (adjust fields as needed)
 type Booking = {
