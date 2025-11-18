@@ -1,6 +1,88 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+
+from fastapi.middleware.cors import CORSMiddleware
+
+# from api import calendarAPI
+from datetime import datetime, timedelta
+
+from google.oauth2.credentials import Credentials
+from googleapiclient.discovery import build
+
+import firebase_admin
+from firebase_admin import credentials
+from firebase_admin import firestore # For Firestore
+
+# Path to FIREBASE service account key file
+cred = credentials.Certificate("../serviceAccountKey.json")
+firebase_admin.initialize_app(cred)
 
 app = FastAPI()
+
+origins = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"]
+)
+
+SCOPES = ['https://www.googleapis.com/auth/calendar.events']
+
+creds = Credentials.from_authorized_user_file("token.json", SCOPES)
+calendar_service = build("calendar", "v3", credentials=creds)
+db = firestore.client()
+
+
+def getEvents():
+    tours_ref = db.collection('Tours')
+    docs = tours_ref.stream()
+
+
+
+def createEvent(data):
+    start_dt = datetime.strptime(
+        f"{data['date']} {data['time']}",
+        "%Y-%m-%d %I:%M %p"
+    )
+    end_dt = start_dt + timedelta(hours=1)
+    # print("Using service account:", creds.service_account_email)
+
+
+    event = {
+        "summary": data.get("tourType", "Event"),
+        "description": f"Tour ID: {data['tourId']}\n"
+                        f"Name: {data['firstName']} {data['lastName']}\n"
+                        f"Organization: {data['organization']}\n"
+                        f"Role: {data['role']}\n"
+                        f"Interests: {', '.join(data.get('interests', []))}\n"
+                        f"Notes: {data.get('notes', '')}",
+        "start": {
+            "dateTime": start_dt.isoformat(),
+            "timeZone": "America/Los_Angeles",
+        },
+        "end": {
+            "dateTime": end_dt.isoformat(),
+            "timeZone": "America/Los_Angeles",
+        },
+        "attendees": [
+            {"email": data["email"]}
+        ],
+    }
+
+    created_event = calendar_service.events().insert(
+        calendarId="primary",
+        body=event,
+        sendUpdates="all"
+    ).execute()
+
+    return created_event
+
+
 
 # need to create functions that Create, Get, and Delete Events
 
@@ -12,65 +94,14 @@ def root():
 
 # Create/Insert Event given a specific time, date, location, attendees, description, reminders?, 
 
+# sample query: 
+# http://127.0.0.1:8000/book-tour/?attendeeEmail="njayasee@ucsc.edu"&dateTime="2025-07-06XYZ"&tourId="tourtype"
 
-# event creation reference
+@app.post('/book-tour/')
+# async def create_event(attendeeEmail: str, dateTime: str, tourId: str):
+async def create_event(request: Request):
 
-# event = {
-#   'summary': 'Google I/O 2015',
-#   'location': '800 Howard St., San Francisco, CA 94103',
-#   'description': 'A chance to hear more about Google\'s developer products.',
-#   'start': {
-#     'dateTime': '2015-05-28T09:00:00-07:00',
-#     'timeZone': 'America/Los_Angeles',
-#   },
-#   'end': {
-#     'dateTime': '2015-05-28T17:00:00-07:00',
-#     'timeZone': 'America/Los_Angeles',
-#   },
-#   'recurrence': [
-#     'RRULE:FREQ=DAILY;COUNT=2'
-#   ],
-#   'attendees': [
-#     {'email': 'lpage@example.com'},
-#     {'email': 'sbrin@example.com'},
-#   ],
-#   'reminders': {
-#     'useDefault': False,
-#     'overrides': [
-#       {'method': 'email', 'minutes': 24 * 60},
-#       {'method': 'popup', 'minutes': 10},
-#     ],
-#   },
-# }
+    data = await request.json()
+    createEvent(data)
+    return {"message": "Tour created successfully!", "data": data}
 
-@app.get('/book-tour/')
-async def create_event(attendeeEmail: str, dateTime: str, tourId: str):
-    event = {
-        'summary': tourId,
-        'location': '800 Howard St., San Francisco, CA 94103',
-        'description': 'A chance to hear more about Google\'s developer products.',
-        'start': {
-            'dateTime': dateTime,
-            'timeZone': 'America/Los_Angeles',
-        },
-        'end': {
-            'dateTime': dateTime,
-            'timeZone': 'America/Los_Angeles',
-        },
-        # 'recurrence': [
-        #     'RRULE:FREQ=DAILY;COUNT=2'
-        # ],
-        'attendees': [
-            {'email': attendeeEmail},
-        ],
-        'reminders': {
-            'useDefault': True,
-            # 'overrides': [
-            # {'method': 'email', 'minutes': 24 * 60},
-            # {'method': 'popup', 'minutes': 10},
-            # ],
-        },
-    }
-
-    
-    return {"create tour": event}

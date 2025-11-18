@@ -4,6 +4,7 @@ import {Calendar, Clock, Users, User, ArrowLeft, ArrowRight, Check, AlertCircle,
 import { collection, getDocs, doc, setDoc } from "firebase/firestore";
 import { db } from "../../src/firebase.ts";
 // import { getCalendarAccessToken, insertCalendarEvent } from "../calendarAPI.tsx";
+import api from "../api.ts";
 
 // Add Booking type definition (adjust fields as needed)
 type Booking = {
@@ -524,51 +525,8 @@ const handleSubmit = async () => {
 
     let calendarEventLink = "";
 
-    try {
-      // 3) Get Google access token (browser OAuth) and insert the event
-      const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID as string;
-      if (!clientId) throw new Error("VITE_GOOGLE_CLIENT_ID is missing.");
-
-      const accessToken = await getCalendarAccessToken(clientId);
-
-      const location = selected.zoomLink
-        ? `Online (Zoom): ${selected.zoomLink}`
-        : (selected.location || "");
-
-      const descriptionLines = [
-        `Tour: ${bookingData.tourType || selected.title}`,
-        `Date & Time: ${bookingData.date} at ${bookingData.time} (${userTimeZone})`,
-        `Group Size: ${bookingData.maxAttendees}`,
-        `Lead Guide: ${bookingData.leadGuide || "TBD"}`,
-        "",
-        "Contact",
-        `- Name: ${bookingData.firstName} ${bookingData.lastName}`,
-        `- Email: ${bookingData.email}`,
-        `- Phone: ${bookingData.phone}`,
-        "",
-        "Notes",
-      ].filter(Boolean);
-
-      const summary = `${selected.title} — ${bookingData.firstName} ${bookingData.lastName} (${bookingData.maxAttendees})`;
-
-      const event = await insertCalendarEvent({
-        accessToken,
-        summary,
-        description: descriptionLines.join("\n"),
-        location,
-        startISO,
-        endISO,
-        attendeeEmail: bookingData.email,
-        attendeeName: `${bookingData.firstName} ${bookingData.lastName}`,
-        timezone: userTimeZone,
-        calendarId: "primary", // change if you maintain a shared calendar
-      });
-
-      calendarEventLink = event?.htmlLink || "";
-      console.log("Calendar event created:", calendarEventLink || event?.id);
-    } catch (calendarError) {
-      console.error("Calendar integration failed:", calendarError);
-    }
+    await api.post('/book-tour/', bookingData);
+    console.log('bookingData', bookingData)
 
     // 4) Prepare data for confirmation page
     const confirmationData = {

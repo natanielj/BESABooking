@@ -38,3 +38,11 @@ src/google92b6b100bdfc843f.html
 /backend/.venv/
 /backend/.env
 /backend/credentials.json
+
+backend/token.json
+backend/client_secret.json
+
+serviceAccountKey.json
+
+backend/__pycache__/
+backend/api/__pycache__/
