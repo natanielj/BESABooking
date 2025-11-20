@@ -12,6 +12,8 @@ dist
 dist-ssr
 *.local
 
+
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
@@ -24,16 +26,16 @@ dist-ssr
 *.sw?
 .env
 
-password.txt
-/project/
+/frontend/password.txt
+/frontend//project/
 
-src/firebase.ts
-src/credentials.json
+/frontend/src/firebase.ts
+/frontend/src/credentials.json
 
-src/google92b6b100bdfc843f.html
+/frontend/src/google92b6b100bdfc843f.html
 
-/src/besa-booking-469920-27ffc6b3226b.json
-/server/node_modules
+/frontend/src/besa-booking-469920-27ffc6b3226b.json
+
 
 /backend/.venv/
 /backend/.env
