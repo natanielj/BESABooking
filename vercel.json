@@ -5,12 +5,20 @@
     {
       "src": "backend/main.py",
       "use": "@vercel/python"
+    },
+    {
+      "src": "frontend/package.json",
+      "use": "@vercel/node"
     }
   ],
   "routes": [
     {
+      "src": "/backend/(.*)",
+      "dest": "/backend/main.py"
+    },
+    {
       "src": "/(.*)",
-      "dest": "main.py"
+      "dest": "/frontend/$1"
     }
   ]
 }
