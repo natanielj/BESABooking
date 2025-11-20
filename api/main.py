@@ -11,6 +11,8 @@ from googleapiclient.discovery import build
 import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import firestore # For Firestore
+from mangum import Mangum
+
 
 # Path to FIREBASE service account key file
 cred = credentials.Certificate("../serviceAccountKey.json")
@@ -36,6 +38,8 @@ SCOPES = ['https://www.googleapis.com/auth/calendar.events']
 creds = Credentials.from_authorized_user_file("token.json", SCOPES)
 calendar_service = build("calendar", "v3", credentials=creds)
 db = firestore.client()
+
+handler = Mangum(app)
 
 
 def getEvents():
