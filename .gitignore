@@ -37,14 +37,14 @@ dist-ssr
 /frontend/src/besa-booking-469920-27ffc6b3226b.json
 
 
-/backend/.venv/
-/backend/.env
-/backend/credentials.json
+/api/.venv/
+/api/.env
+/api/credentials.json
 
-backend/token.json
-backend/client_secret.json
+api/token.json
+api/client_secret.json
 
 serviceAccountKey.json
 
-backend/__pycache__/
-backend/api/__pycache__/
+api/__pycache__/
+api/api/__pycache__/
