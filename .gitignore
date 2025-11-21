@@ -29,7 +29,7 @@ dist-ssr
 /frontend/password.txt
 /frontend//project/
 
-/frontend/src/firebase.ts
+# /frontend/src/firebase.ts
 /frontend/src/credentials.json
 
 /frontend/src/google92b6b100bdfc843f.html
