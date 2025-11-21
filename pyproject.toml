@@ -1,5 +1,0 @@
-[project.scripts]
-app = "backend.main:app"
-
-[tool.vercel.scripts]
-build = "uvicorn backend.main:app"
