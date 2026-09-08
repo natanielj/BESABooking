@@ -1184,8 +1184,8 @@ function TourFormPage({ onBack, editingTour }: { onBack: () => void; editingTour
             )}
           </div>
 
-          {/* Step Content */}
-          <div className="mb-8">
+          {/* Remount each step so the invite editor's HTML cannot carry into other fields. */}
+          <div key={currentStep} className="mb-8">
             {renderStepContent()}
           </div>
 
