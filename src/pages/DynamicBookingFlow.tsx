@@ -1796,11 +1796,6 @@ const renderSection2 = () => {
         </div>
         <div>
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Available Time Slots</h3>
-          {selected.maxAttendeesPerBooking >= 5 && (
-            <div className="mb-4 flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
-              <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-600" />
-            </div>
-          )}
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-4">
             {loadingSelectedDateAvailability && bookingData.date ? (
               <p className="col-span-full text-center text-gray-500">
