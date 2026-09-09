@@ -44,9 +44,6 @@ interface CustomCalendarProps {
   minDate?: Date | null;
   maxDate?: Date | null;
   onVisibleRangeChange?: (rangeStart: string, rangeEnd: string) => void;
-  availabilityDates?: Record<string, boolean>;
-  availabilityRange?: { start: string; end: string } | null;
-  isLoadingAvailability?: boolean;
 }
 
 const DAYS_OF_WEEK = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -96,9 +93,6 @@ const CustomCalendar: React.FC<CustomCalendarProps> = ({
   minDate,
   maxDate,
   onVisibleRangeChange,
-  availabilityDates = {},
-  availabilityRange,
-  isLoadingAvailability = false,
 }) => {
   const getInitialWeekStart = () => {
     if (selectedDate) {
@@ -164,42 +158,18 @@ const CustomCalendar: React.FC<CustomCalendarProps> = ({
     : null;
   const canGoPreviousMobile = !minWeekStart || previousMobileWeekStart >= minWeekStart;
   const canGoNextMobile = !maxDateTime || nextMobileWeekStart <= maxDateTime;
-  const canGoPreviousDesktop = !minWeekStart || previousDesktopPeriodStart >= minWeekStart;
+  // A two-week step may overlap the first bookable week; clamp instead of
+  // disabling Back and leaving that week unreachable after mobile navigation.
+  const previousDesktopStart = minWeekStart && previousDesktopPeriodStart < minWeekStart
+    ? minWeekStart
+    : previousDesktopPeriodStart;
+  const canGoPreviousDesktop = !minWeekStart || currentWeekStart > minWeekStart;
   const canGoNextDesktop = !maxDateTime || nextDesktopPeriodStart <= maxDateTime;
 
   useEffect(() => {
     onVisibleRangeChange?.(visibleRangeStart, visibleRangeEnd);
   }, [visibleRangeStart, visibleRangeEnd]);
 
-  useEffect(() => {
-    const hasLoadedVisibleRange =
-      availabilityRange?.start === visibleRangeStart && availabilityRange?.end === visibleRangeEnd;
-    const hasAvailableDate = displayedDays.some(
-      (date) => availabilityDates[formatDateString(date)] === true && !isDateDisabled(date)
-    );
-
-    if (
-      !tourData ||
-      isLoadingAvailability ||
-      !hasLoadedVisibleRange ||
-      hasAvailableDate ||
-      !canGoNextDesktop
-    ) {
-      return;
-    }
-
-    setCurrentWeekStart(nextDesktopPeriodStart);
-  }, [
-    availabilityDates,
-    availabilityRange,
-    canGoNextDesktop,
-    displayedDays,
-    isLoadingAvailability,
-    nextDesktopPeriodStart,
-    tourData,
-    visibleRangeEnd,
-    visibleRangeStart,
-  ]);
 
   return (
     <div className="h-90% border-2 border-blue-500 rounded-2xl p-6 bg-white shadow-lg">
@@ -282,7 +252,7 @@ const CustomCalendar: React.FC<CustomCalendarProps> = ({
 
       <div className="hidden items-center gap-3 sm:flex">
         <button
-          onClick={() => canGoPreviousDesktop && setCurrentWeekStart(previousDesktopPeriodStart)}
+          onClick={() => canGoPreviousDesktop && setCurrentWeekStart(previousDesktopStart)}
           className="shrink-0 rounded-full border border-blue-200 p-2 text-blue-600 transition-all hover:bg-blue-500 hover:text-white disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-blue-600"
           type="button"
           disabled={!canGoPreviousDesktop}
@@ -589,7 +559,6 @@ export const DynamicBookingForm: React.FC<DynamicBookingFormProps> = ({
   const [besas, setBesas] = useState<BesaData[]>([]);
   const [calendarRange, setCalendarRange] = useState<{ start: string; end: string } | null>(null);
   const [availabilityDates, setAvailabilityDates] = useState<Record<string, boolean>>({});
-  const [isLoadingAvailabilityDates, setIsLoadingAvailabilityDates] = useState(false);
   const [selectedDateAvailability, setSelectedDateAvailability] = useState<AvailabilityResponse | null>(null);
   const [loadingSelectedDateAvailability, setLoadingSelectedDateAvailability] = useState(false);
 
@@ -643,12 +612,10 @@ export const DynamicBookingForm: React.FC<DynamicBookingFormProps> = ({
   useEffect(() => {
     if (!bookingData.tourId || !calendarRange) {
       setAvailabilityDates({});
-      setIsLoadingAvailabilityDates(false);
       return;
     }
 
     let active = true;
-    setIsLoadingAvailabilityDates(true);
 
     fetchAvailabilityRange(bookingData.tourId, calendarRange.start, calendarRange.end)
       .then((response) => {
@@ -659,10 +626,6 @@ export const DynamicBookingForm: React.FC<DynamicBookingFormProps> = ({
         if (!active) return;
         console.error("Error fetching availability range:", error);
         setAvailabilityDates({});
-      })
-      .finally(() => {
-        if (!active) return;
-        setIsLoadingAvailabilityDates(false);
       });
 
     return () => {
@@ -1329,6 +1292,7 @@ const renderSectionIndicator = () => {
         <div className="grid items-stretch gap-6 lg:grid-cols-[minmax(0,7fr)_minmax(0,3fr)]">
           <div className="flex min-w-0 flex-col">
             <CustomCalendar
+              key={`${bookingData.tourId}:${minDate ? formatDateString(minDate) : ""}`}
               selectedDate={bookingData.date ?? ""}
               onVisibleRangeChange={(rangeStart, rangeEnd) =>
                 setCalendarRange((current) =>
@@ -1388,9 +1352,6 @@ const renderSectionIndicator = () => {
               }}
               minDate={minDate}
               maxDate={maxDate}
-              availabilityDates={availabilityDates}
-              availabilityRange={calendarRange}
-              isLoadingAvailability={isLoadingAvailabilityDates}
             />
             {errors.date && (
               <div className="flex items-center space-x-2">
@@ -1724,6 +1685,7 @@ const renderSectionIndicator = () => {
         <div>
           <label className="block text-lg font-semibold text-gray-900 mb-4">Preferred Date</label>
             <CustomCalendar
+              key={`${bookingData.tourId}:${minDate ? formatDateString(minDate) : ""}`}
               selectedDate={bookingData.date ?? ""}
               onVisibleRangeChange={(rangeStart, rangeEnd) =>
                 setCalendarRange((current) =>
@@ -1785,9 +1747,6 @@ const renderSectionIndicator = () => {
             }}
             minDate={minDate}
             maxDate={maxDate}
-            availabilityDates={availabilityDates}
-            availabilityRange={calendarRange}
-            isLoadingAvailability={isLoadingAvailabilityDates}
           />
           {errors.date && (
             <div className="flex items-center space-x-2 mt-2">
