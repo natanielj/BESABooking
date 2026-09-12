@@ -111,6 +111,7 @@ function TourFormPage({ onBack, editingTour }: { onBack: () => void; editingTour
     weeklyHours: {},
     availabilityRanges: [createDefaultAvailabilityRange()],
     allowConcurrentTours: false,
+    disableAutoAssignBesas: false,
     googleCalendarId: '',
     dateSpecificBlockDays: [],
     dateSpecificDays: [],
@@ -491,6 +492,26 @@ function TourFormPage({ onBack, editingTour }: { onBack: () => void; editingTour
     case 4:
   return (
   <div className="space-y-6 2xl:space-y-8">
+
+    <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
+      <button
+        type="button"
+        aria-pressed={tour.disableAutoAssignBesas ?? false}
+        onClick={() => updateTour({ disableAutoAssignBesas: !tour.disableAutoAssignBesas })}
+        className={`rounded-lg border px-4 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+          tour.disableAutoAssignBesas
+            ? 'border-blue-600 bg-blue-600 text-white hover:bg-blue-700'
+            : 'border-blue-300 bg-white text-blue-700 hover:bg-blue-100'
+        }`}
+      >
+        Disable auto-assigning BESAs
+      </button>
+      <p className="mt-2 text-xs text-gray-600">
+        {tour.disableAutoAssignBesas
+          ? 'Auto-assignment is disabled. Assign BESAs manually for this tour.'
+          : 'Auto-assignment is enabled. Disable it for tours that need manual BESA assignments.'}
+      </p>
+    </div>
 
     <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
       <label className="flex items-start space-x-3">
@@ -989,6 +1010,9 @@ function TourFormPage({ onBack, editingTour }: { onBack: () => void; editingTour
             </div>
 
             <div className="mt-3 2xl:mt-4 pt-3 2xl:pt-4 border-t">
+              <p className="mb-3 text-xs 2xl:text-sm text-gray-900">
+                BESA auto-assignment: {tour.disableAutoAssignBesas ? 'Disabled (manual assignment)' : 'Enabled'}
+              </p>
               <span className="font-medium text-gray-700 text-xs 2xl:text-sm">Availability Ranges:</span>
               <div className="mt-2 space-y-4">
                 {(tour.availabilityRanges || []).map((range, rangeIndex) => (

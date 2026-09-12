@@ -1,3 +1,4 @@
+import { toursRepository } from "../repositories/tours.repository.js";
 import { besasRepository } from "../repositories/besas.repository.js";
 
 const dayMapping = {
@@ -134,7 +135,7 @@ function isBesaAvailable(
 }
 
 export const assignmentService = {
-  async assignBesas(payload: unknown, _tour: unknown) {
+  async assignBesas(payload: unknown, tour: unknown) {
     const booking = payload && typeof payload === "object" ? (payload as Record<string, unknown>) : {};
     const bookingDate = normalizeDateKey(booking.date);
     const bookingTime =
@@ -147,6 +148,13 @@ export const assignmentService = {
       typeof booking.tourId === "string" && booking.tourId.trim() !== ""
         ? booking.tourId
         : undefined;
+
+    const tourRecord = tour && typeof tour === "object"
+      ? tour as Record<string, unknown>
+      : tourId ? await toursRepository.getById(tourId) : undefined;
+    if (tourRecord?.disableAutoAssignBesas === true) {
+      return [];
+    }
 
     const besas = await besasRepository.listActive();
     const availableBesas = besas

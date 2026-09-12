@@ -52,6 +52,10 @@ export default function DashboardView() {
   const [deleteBooking, setDeleteBooking] = useState<BookingData | null>(null);
   const [viewingBooking, setViewingBooking] = useState<BookingData | null>(null);
 
+  const autoAssignmentDisabled = tours.some((tour) =>
+    tour.tourId === formData?.tourId && tour.disableAutoAssignBesas === true
+  );
+
   const normalizeBesaEntry = (besa: any) => {
     if (typeof besa === 'string') return besa;
     if (besa && typeof besa === 'object') {
@@ -187,6 +191,9 @@ export default function DashboardView() {
     });
 
   const requestBesaAssignments = async (bookingData: BookingData) => {
+    if (tours.some((tour) => tour.tourId === bookingData.tourId && tour.disableAutoAssignBesas === true)) {
+      return bookingData;
+    }
     if (!bookingData.date || !(bookingData.time || bookingData.startTime)) {
       return bookingData;
     }
@@ -772,13 +779,13 @@ export default function DashboardView() {
               <div className="flex items-center justify-between mb-2">
                 <label className="font-medium">
                   BESA Assignments
-                  {formData.date && formData.time && (
+                  {!autoAssignmentDisabled && formData.date && formData.time && (
                     <span className="text-sm text-gray-500 ml-2">
                       (Auto-assigned for {toDateTime(formData.date).toLocaleDateString('en-US', { weekday: 'long' })} at {formData.time})
                     </span>
                   )}
                 </label>
-                {formData.date && formData.time && (
+                {!autoAssignmentDisabled && formData.date && formData.time && (
                   <button
                     type="button"
                     onClick={reassignBesas}
@@ -795,7 +802,7 @@ export default function DashboardView() {
                   {formatBesas(formData.besas).map((besa, index) => (
                     <div key={`${besa}-${index}`} className="flex items-center gap-2 p-2 bg-green-50 border border-green-200 rounded-lg">
                       <div className="flex-1 text-sm text-green-800">
-                        ✓ {besa} (auto-assigned)
+                        ✓ {besa}
                       </div>
                       <button
                         type="button"
@@ -810,7 +817,9 @@ export default function DashboardView() {
               ) : (
                 <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg mb-3">
                   <p className="text-sm text-gray-600">
-                    {formData.date && formData.time 
+                    {autoAssignmentDisabled
+                      ? "Auto-assignment is disabled for this tour. Assign BESAs manually below."
+                      : formData.date && formData.time
                       ? "No BESAs available at this date and time"
                       : "Set date and time to auto-assign BESAs"
                     }

@@ -40,6 +40,7 @@ declare global {
         // Availability
         weeklyHours: WeeklyHours; // Legacy/default weekly recurring hours
         availabilityRanges?: AvailabilityRange[]; // Date ranges with their own recurring hours
+        disableAutoAssignBesas?: boolean; // Requires manual BESA assignment when enabled
         allowConcurrentTours?: boolean; // Allows overlaps only with other tours that also enable it
         // Example: { monday: [{ start: '09:00', end: '17:00' }], tuesday: [...] }  
 
